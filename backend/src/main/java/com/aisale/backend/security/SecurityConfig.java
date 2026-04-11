@@ -29,15 +29,19 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
+                        // Public endpoints - 登录注册等
                         .requestMatchers(
-                                "/api/auth/**",
-                                "/api/admin/auth/**",
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/api/auth/send-verification",
+                                "/api/admin/auth/login",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/doc.html",
                                 "/webjars/**"
                         ).permitAll()
+                        // 需要认证的个人接口
+                        .requestMatchers("/api/auth/**").authenticated()
                         // Admin endpoints
                         .requestMatchers("/api/admin/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
                         // User endpoints
