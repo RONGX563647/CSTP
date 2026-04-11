@@ -1,0 +1,96 @@
+/* 全局主题变量 - 浅黄色系 */
+
+:root {
+  /* 主色系 - 浅黄色/琥珀色 */
+  --primary-color: #F59E0B;        /* 琥珀色 - 主色调 */
+  --primary-light: #FDE68A;        /* 浅黄色 - 轻背景 */
+  --primary-lighter: #FEF3C7;      /* 更浅黄 - 大背景 */
+  --primary-dark: #D97706;         /* 深橙色 - hover 状态 */
+  --primary-darker: #B45309;       /* 最深橙 - 按下状态 */
+
+  /* 中性色 */
+  --text-primary: #1F2937;         /* 主文字 - 深灰 */
+  --text-secondary: #6B7280;       /* 次要文字 - 中灰 */
+  --text-placeholder: #9CA3AF;     /* 占位符文字 */
+
+  /* 背景色 */
+  --bg-color: #FFFDF5;             /* 页面背景 - 极浅黄白 */
+  --bg-card: #FFFFFF;              /* 卡片背景 - 纯白 */
+  --bg-input: #FFFFFF;             /* 输入框背景 */
+
+  /* 边框色 */
+  --border-color: #E5E7EB;         /* 默认边框 */
+  --border-focus: #F59E0B;         /* 焦点边框 */
+
+  /* 状态色 */
+  --success-color: #10B981;        /* 成功 - 绿色 */
+  --warning-color: #F59E0B;        /* 警告 - 黄色 */
+  --error-color: #EF4444;          /* 错误 - 红色 */
+  --info-color: #3B82F6;           /* 信息 - 蓝色 */
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+}
+
+/* 全局样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* 链接样式 */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--primary-dark);
+}
+
+/* 按钮覆盖 - 浅黄色主题 */
+.el-button--primary {
+  --el-button-bg-color: var(--primary-color);
+  --el-button-border-color: var(--primary-color);
+  --el-button-hover-bg-color: var(--primary-dark);
+  --el-button-hover-border-color: var(--primary-dark);
+}
+
+/* 输入框焦点颜色 */
+.el-input__wrapper.is-focus {
+  --el-input-focus-border-color: var(--primary-color);
+}
