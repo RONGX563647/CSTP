@@ -1,0 +1,60 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: aisale-backend
+
+  # 主配置文件
+  profiles:
+    active: dev
+
+  datasource:
+    url: jdbc:h2:mem:aisale;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+  # AI 配置
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:test-key-for-dev}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        enabled: ${AI_CHAT_ENABLED:false}
+        options:
+          model: gpt-3.5-turbo
+
+# Knife4j Configuration
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.aisale.backend
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+    swagger-model-name: AiSale API
+
