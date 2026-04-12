@@ -14,6 +14,7 @@ import com.aisale.backend.repository.OrderRepository;
 import com.aisale.backend.repository.OrderReviewRepository;
 import com.aisale.backend.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Random;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class OrderService {
 
@@ -53,27 +55,33 @@ public class OrderService {
      */
     @Transactional
     public OrderResponse createOrder(OrderRequest request, Long buyerId) {
+        log.info("创建订单 - 买家 ID: {}, 商品 ID: {}, 数量：{}", buyerId, request.getProductId(), request.getQuantity());
+
         // 1. 检查商品是否存在
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new NotFoundException("商品不存在"));
 
         // 2. 检查商品是否在售
         if (!product.getIsOnSale() || product.getStatus() != Product.ProductStatus.ON_SALE) {
+            log.warn("商品不可售 - 商品 ID: {}, 状态：{}", product.getId(), product.getStatus());
             throw new ConflictException("商品已下架或不可售");
         }
 
         // 3. 检查库存是否充足
         if (product.getStock() < request.getQuantity()) {
+            log.warn("库存不足 - 商品 ID: {}, 库存：{}, 需求：{}", product.getId(), product.getStock(), request.getQuantity());
             throw new ConflictException("库存不足");
         }
 
         // 4. 检查是否已有未完成的订单
         if (orderRepository.hasActiveOrder(request.getProductId())) {
+            log.warn("商品已有进行中的订单 - 商品 ID: {}", product.getId());
             throw new ConflictException("该商品已有进行中的订单");
         }
 
         // 5. 不能购买自己的商品
         if (product.getSellerId().equals(buyerId)) {
+            log.warn("用户尝试购买自己的商品 - 用户 ID: {}, 商品 ID: {}", buyerId, product.getId());
             throw new ForbiddenException("不能购买自己的商品");
         }
 
@@ -96,6 +104,7 @@ public class OrderService {
         order.setBuyerRemark(request.getBuyerRemark());
 
         order = orderRepository.save(order);
+        log.info("订单创建成功 - 订单 ID: {}, 订单号：{}", order.getId(), orderNo);
 
         // 8. 扣减库存
         product.setStock(product.getStock() - request.getQuantity());
@@ -103,6 +112,7 @@ public class OrderService {
             product.setStatus(Product.ProductStatus.OUT_OF_STOCK);
         }
         productRepository.save(product);
+        log.debug("库存已扣减 - 商品 ID: {}, 新库存：{}", product.getId(), product.getStock());
 
         // 9. 记录订单日志
         logOrderAction(order.getId(), buyerId, OrderLog.OperatorRole.BUYER,
@@ -117,16 +127,20 @@ public class OrderService {
      */
     @Transactional
     public OrderResponse payOrder(Long orderId, Long buyerId) {
+        log.info("买家确认付款 - 订单 ID: {}, 买家 ID: {}", orderId, buyerId);
+
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("订单不存在"));
 
         // 验证订单属于买家
         if (!order.getBuyerId().equals(buyerId)) {
+            log.warn("无权操作订单 - 订单 ID: {}, 用户 ID: {}", orderId, buyerId);
             throw new ForbiddenException("无权操作此订单");
         }
 
         // 验证订单状态
         if (order.getStatus() != Order.OrderStatus.PENDING_PAYMENT) {
+            log.warn("订单状态不允许付款 - 订单 ID: {}, 当前状态：{}", orderId, order.getStatus());
             throw new ConflictException("订单状态不允许付款");
         }
 
@@ -135,6 +149,7 @@ public class OrderService {
         order.setPaymentTime(LocalDateTime.now());
         order = orderRepository.save(order);
 
+        log.info("付款成功 - 订单 ID: {}, 状态：{} -> {}", orderId, oldStatus, order.getStatus());
         logOrderAction(orderId, buyerId, OrderLog.OperatorRole.BUYER,
                        "PAY_ORDER", oldStatus, order.getStatus(), "买家已确认付款");
 
@@ -146,16 +161,20 @@ public class OrderService {
      */
     @Transactional
     public OrderResponse confirmPickup(Long orderId, Long buyerId) {
+        log.info("买家确认提货 - 订单 ID: {}, 买家 ID: {}", orderId, buyerId);
+
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("订单不存在"));
 
         // 验证订单属于买家
         if (!order.getBuyerId().equals(buyerId)) {
+            log.warn("无权操作订单 - 订单 ID: {}, 用户 ID: {}", orderId, buyerId);
             throw new ForbiddenException("无权操作此订单");
         }
 
         // 验证订单状态
         if (order.getStatus() != Order.OrderStatus.PENDING_PICKUP) {
+            log.warn("订单状态不允许提货 - 订单 ID: {}, 当前状态：{}", orderId, order.getStatus());
             throw new ConflictException("订单状态不允许提货");
         }
 
@@ -164,6 +183,7 @@ public class OrderService {
         order.setPickupTime(LocalDateTime.now());
         order = orderRepository.save(order);
 
+        log.info("提货成功 - 订单 ID: {}, 状态：{} -> {}", orderId, oldStatus, order.getStatus());
         logOrderAction(orderId, buyerId, OrderLog.OperatorRole.BUYER,
                        "CONFIRM_PICKUP", oldStatus, order.getStatus(), "买家已确认提货");
 
@@ -175,16 +195,20 @@ public class OrderService {
      */
     @Transactional
     public OrderResponse confirmPayment(Long orderId, Long sellerId) {
+        log.info("卖家确认收款 - 订单 ID: {}, 卖家 ID: {}", orderId, sellerId);
+
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("订单不存在"));
 
         // 验证订单属于卖家
         if (!order.getSellerId().equals(sellerId)) {
+            log.warn("无权操作订单 - 订单 ID: {}, 用户 ID: {}", orderId, sellerId);
             throw new ForbiddenException("无权操作此订单");
         }
 
         // 验证订单状态
         if (order.getStatus() != Order.OrderStatus.PENDING_CONFIRM) {
+            log.warn("订单状态不允许确认 - 订单 ID: {}, 当前状态：{}", orderId, order.getStatus());
             throw new ConflictException("订单状态不允许确认");
         }
 
@@ -193,6 +217,7 @@ public class OrderService {
         order.setConfirmTime(LocalDateTime.now());
         order = orderRepository.save(order);
 
+        log.info("确认收款成功 - 订单 ID: {}, 状态：{} -> {}", orderId, oldStatus, order.getStatus());
         logOrderAction(orderId, sellerId, OrderLog.OperatorRole.SELLER,
                        "CONFIRM_PAYMENT", oldStatus, order.getStatus(), "卖家已确认收款");
 
@@ -204,21 +229,26 @@ public class OrderService {
      */
     @Transactional
     public OrderResponse cancelOrder(Long orderId, Long userId, String reason, boolean isBuyer) {
+        log.info("取消订单 - 订单 ID: {}, 用户 ID: {}, 取消方：{}, 原因：{}", orderId, userId, isBuyer ? "买家" : "卖家", reason);
+
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new NotFoundException("订单不存在"));
 
         // 验证取消权限
         if (isBuyer && !order.getBuyerId().equals(userId)) {
-            throw new RuntimeException("无权取消此订单");
+            log.warn("无权取消订单 - 订单 ID: {}, 用户 ID: {}", orderId, userId);
+            throw new ForbiddenException("无权取消此订单");
         }
         if (!isBuyer && !order.getSellerId().equals(userId)) {
-            throw new RuntimeException("无权取消此订单");
+            log.warn("无权取消订单 - 订单 ID: {}, 用户 ID: {}", orderId, userId);
+            throw new ForbiddenException("无权取消此订单");
         }
 
         // 验证订单状态
         if (order.getStatus() == Order.OrderStatus.COMPLETED ||
             order.getStatus() == Order.OrderStatus.CANCELLED ||
             order.getStatus() == Order.OrderStatus.REFUNDED) {
+            log.warn("订单状态无法取消 - 订单 ID: {}, 当前状态：{}", orderId, order.getStatus());
             throw new ConflictException("当前订单状态无法取消");
         }
 
@@ -231,13 +261,14 @@ public class OrderService {
 
         // 恢复库存
         Product product = productRepository.findById(order.getProductId())
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         product.setStock(product.getStock() + order.getQuantity());
         if (product.getIsOnSale() && product.getStock() > 0) {
             product.setStatus(Product.ProductStatus.ON_SALE);
         }
         productRepository.save(product);
 
+        log.info("订单取消成功 - 订单 ID: {}, 状态：{} -> {}, 库存恢复：{}", orderId, oldStatus, Order.OrderStatus.CANCELLED, product.getStock());
         logOrderAction(orderId, userId, isBuyer ? OrderLog.OperatorRole.BUYER : OrderLog.OperatorRole.SELLER,
                        "CANCEL_ORDER", oldStatus, Order.OrderStatus.CANCELLED,
                        reason != null ? reason : (isBuyer ? "买家取消订单" : "卖家取消订单"));
