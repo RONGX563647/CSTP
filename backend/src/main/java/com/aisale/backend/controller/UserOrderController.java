@@ -1,5 +1,6 @@
 package com.aisale.backend.controller;
 
+import com.aisale.backend.dto.ApiResponse;
 import com.aisale.backend.dto.OrderRequest;
 import com.aisale.backend.dto.OrderResponse;
 import com.aisale.backend.dto.OrderReviewRequest;
@@ -179,21 +180,5 @@ public class UserOrderController {
         Long userId = jwtRequestUtils.getCurrentUserId(httpRequest);
         List<OrderReviewResponse> reviews = orderReviewService.getReviewsByRevieweeId(userId);
         return ApiResponse.success(reviews);
-    }
-
-    // 内部类用于响应
-    @lombok.Data
-    @lombok.AllArgsConstructor
-    public static class ApiResponse<T> {
-        private String message;
-        private T data;
-
-        public static <T> ApiResponse<T> success(String message, T data) {
-            return new ApiResponse<>(message, data);
-        }
-
-        public static <T> ApiResponse<T> success(T data) {
-            return new ApiResponse<>(null, data);
-        }
     }
 }

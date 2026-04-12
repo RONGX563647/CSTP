@@ -1,5 +1,6 @@
 package com.aisale.backend.controller;
 
+import com.aisale.backend.dto.ApiResponse;
 import com.aisale.backend.dto.OrderResponse;
 import com.aisale.backend.entity.Order;
 import com.aisale.backend.service.OrderService;
@@ -100,22 +101,6 @@ public class AdminOrderController {
     public ApiResponse<java.util.List<com.aisale.backend.entity.OrderLog>> getOrderLogs(
             @PathVariable Long id) {
         return ApiResponse.success(orderService.getOrderLogs(id));
-    }
-
-    // 内部类用于响应
-    @lombok.Data
-    @lombok.AllArgsConstructor
-    public static class ApiResponse<T> {
-        private String message;
-        private T data;
-
-        public static <T> ApiResponse<T> success(String message, T data) {
-            return new ApiResponse<>(message, data);
-        }
-
-        public static <T> ApiResponse<T> success(T data) {
-            return new ApiResponse<>(null, data);
-        }
     }
 
     @lombok.Data
