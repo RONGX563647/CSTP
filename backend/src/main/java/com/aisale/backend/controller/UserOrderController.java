@@ -181,4 +181,15 @@ public class UserOrderController {
         List<OrderReviewResponse> reviews = orderReviewService.getReviewsByRevieweeId(userId);
         return ApiResponse.success(reviews);
     }
+
+    @Operation(summary = "获取订单日志")
+    @GetMapping("/{id}/logs")
+    public ApiResponse<List<com.aisale.backend.entity.OrderLog>> getOrderLogs(
+            @PathVariable Long id,
+            HttpServletRequest httpRequest) {
+        Long userId = jwtRequestUtils.getCurrentUserId(httpRequest);
+        // 验证订单权限
+        orderService.getOrderById(id, userId);
+        return ApiResponse.success(orderService.getOrderLogs(id));
+    }
 }

@@ -367,7 +367,7 @@ export const getOrderStats = () => {
  */
 export const getOrderLogs = (id: number) => {
   return request<ApiResponse<OrderLog[]>>({
-    url: `/admin/orders/${id}/logs`,
+    url: `/user/orders/${id}/logs`,
     method: 'get'
   })
 }
