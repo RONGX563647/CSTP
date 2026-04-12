@@ -3,6 +3,8 @@ package com.aisale.backend.service;
 import com.aisale.backend.dto.ProductRequest;
 import com.aisale.backend.dto.ProductResponse;
 import com.aisale.backend.entity.Product;
+import com.aisale.backend.exception.business.ForbiddenException;
+import com.aisale.backend.exception.business.NotFoundException;
 import com.aisale.backend.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,10 +34,10 @@ public class ProductService {
     @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request, Long sellerId) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         // 检查商品是否属于当前用户
         if (sellerId != null && !product.getSellerId().equals(sellerId)) {
-            throw new RuntimeException("无权操作此商品");
+            throw new ForbiddenException("无权操作此商品");
         }
         updateProductFromRequest(product, request);
         product = productRepository.save(product);
@@ -45,10 +47,10 @@ public class ProductService {
     @Transactional
     public void deleteProduct(Long id, Long sellerId) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         // 检查商品是否属于当前用户
         if (sellerId != null && !product.getSellerId().equals(sellerId)) {
-            throw new RuntimeException("无权操作此商品");
+            throw new ForbiddenException("无权操作此商品");
         }
         productRepository.deleteById(id);
     }
@@ -56,10 +58,10 @@ public class ProductService {
     @Transactional
     public ProductResponse updateStock(Long id, Integer stock, Long sellerId) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         // 检查商品是否属于当前用户
         if (sellerId != null && !product.getSellerId().equals(sellerId)) {
-            throw new RuntimeException("无权操作此商品");
+            throw new ForbiddenException("无权操作此商品");
         }
         product.setStock(stock);
 
@@ -79,10 +81,10 @@ public class ProductService {
     @Transactional
     public ProductResponse updateStatus(Long id, Product.ProductStatus status, Long sellerId) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         // 检查商品是否属于当前用户
         if (sellerId != null && !product.getSellerId().equals(sellerId)) {
-            throw new RuntimeException("无权操作此商品");
+            throw new ForbiddenException("无权操作此商品");
         }
         product.setStatus(status);
 
@@ -109,7 +111,7 @@ public class ProductService {
     @Transactional
     public ProductResponse updateProductForAdmin(Long id, ProductRequest request) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         updateProductFromRequest(product, request);
         product = productRepository.save(product);
         return ProductResponse.fromEntity(product);
@@ -123,7 +125,7 @@ public class ProductService {
     @Transactional
     public ProductResponse updateStockForAdmin(Long id, Integer stock) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         product.setStock(stock);
 
         // 自动更新状态
@@ -142,7 +144,7 @@ public class ProductService {
     @Transactional
     public ProductResponse updateStatusForAdmin(Long id, Product.ProductStatus status) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         product.setStatus(status);
 
         if (status == Product.ProductStatus.OFF_SALE) {
@@ -202,10 +204,10 @@ public class ProductService {
 
     public ProductResponse getProductById(Long id, Long sellerId) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         // 检查商品是否属于当前用户
         if (sellerId != null && !product.getSellerId().equals(sellerId)) {
-            throw new RuntimeException("无权查看此商品");
+            throw new ForbiddenException("无权查看此商品");
         }
         // 增加浏览量
         product.setViewCount(product.getViewCount() + 1);
@@ -281,7 +283,7 @@ public class ProductService {
      */
     public ProductResponse getPublicProductById(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         return ProductResponse.fromEntity(product);
     }
 
@@ -330,7 +332,7 @@ public class ProductService {
     @Transactional
     public ProductResponse setSaleStatus(Long id, Boolean isOnSale) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         product.setIsOnSale(isOnSale);
 
         // 更新商品状态
@@ -352,7 +354,7 @@ public class ProductService {
     @Transactional
     public ProductResponse setFeaturedStatus(Long id, Boolean isFeatured) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
         product.setIsFeatured(isFeatured);
         product = productRepository.save(product);
         return ProductResponse.fromEntity(product);

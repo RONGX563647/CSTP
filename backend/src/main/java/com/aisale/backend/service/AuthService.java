@@ -5,6 +5,10 @@ import com.aisale.backend.dto.AuthResponse;
 import com.aisale.backend.dto.LoginRequest;
 import com.aisale.backend.dto.RegisterRequest;
 import com.aisale.backend.entity.User;
+import com.aisale.backend.exception.business.ConflictException;
+import com.aisale.backend.exception.business.ForbiddenException;
+import com.aisale.backend.exception.business.NotFoundException;
+import com.aisale.backend.exception.business.UnauthorizedException;
 import com.aisale.backend.repository.UserRepository;
 import com.aisale.backend.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -25,17 +29,17 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
         // 检查用户名是否已存在
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("用户名已存在");
+            throw new ConflictException("用户名已存在");
         }
 
         // 检查邮箱是否已存在
         if (request.getEmail() != null && userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("邮箱已被注册");
+            throw new ConflictException("邮箱已被注册");
         }
 
         // 检查手机号是否已存在
         if (request.getPhone() != null && userRepository.existsByPhone(request.getPhone())) {
-            throw new RuntimeException("手机号已被注册");
+            throw new ConflictException("手机号已被注册");
         }
 
         // 创建用户
@@ -69,15 +73,15 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("密码错误");
+            throw new UnauthorizedException("密码错误");
         }
 
         if (user.getStatus() == User.UserStatus.BANNED) {
-            throw new RuntimeException("账号已被禁用");
+            throw new ForbiddenException("账号已被禁用");
         }
 
         if (user.getStatus() == User.UserStatus.INACTIVE) {
-            throw new RuntimeException("账号未激活");
+            throw new ForbiddenException("账号未激活");
         }
 
         String token = jwtUtil.generateToken(user.getUsername(), "USER", user.getId());

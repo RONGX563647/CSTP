@@ -5,6 +5,8 @@ import com.aisale.backend.dto.AddressRequest;
 import com.aisale.backend.dto.AddressResponse;
 import com.aisale.backend.entity.Address;
 import com.aisale.backend.entity.User;
+import com.aisale.backend.exception.business.ConflictException;
+import com.aisale.backend.exception.business.NotFoundException;
 import com.aisale.backend.repository.AddressRepository;
 import com.aisale.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +24,7 @@ public class AddressService {
 
     public List<AddressResponse> getUserAddresses(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new NotFoundException("用户不存在"));
 
         List<Address> addresses = addressRepository.findByUserAndStatusOrderByIsDefaultDescCreatedAtDesc(
                 user, Address.AddressStatus.ACTIVE);
@@ -34,10 +36,10 @@ public class AddressService {
 
     public AddressResponse getAddressById(String username, Long addressId) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new NotFoundException("用户不存在"));
 
         Address address = addressRepository.findByUserAndIdAndStatus(user, addressId, Address.AddressStatus.ACTIVE)
-                .orElseThrow(() -> new RuntimeException("地址不存在"));
+                .orElseThrow(() -> new NotFoundException("地址不存在"));
 
         return AddressResponse.fromEntity(address);
     }
@@ -45,7 +47,7 @@ public class AddressService {
     @Transactional
     public AddressResponse createAddress(String username, AddressRequest request) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new NotFoundException("用户不存在"));
 
         long addressCount = addressRepository.countByUserAndStatus(user, Address.AddressStatus.ACTIVE);
         if (addressCount >= 10) {
@@ -67,10 +69,10 @@ public class AddressService {
     @Transactional
     public AddressResponse updateAddress(String username, Long addressId, AddressRequest request) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new NotFoundException("用户不存在"));
 
         Address address = addressRepository.findByUserAndIdAndStatus(user, addressId, Address.AddressStatus.ACTIVE)
-                .orElseThrow(() -> new RuntimeException("地址不存在"));
+                .orElseThrow(() -> new NotFoundException("地址不存在"));
 
         BeanUtil.copyProperties(request, address);
 
@@ -89,10 +91,10 @@ public class AddressService {
     @Transactional
     public void deleteAddress(String username, Long addressId) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new NotFoundException("用户不存在"));
 
         Address address = addressRepository.findByUserAndIdAndStatus(user, addressId, Address.AddressStatus.ACTIVE)
-                .orElseThrow(() -> new RuntimeException("地址不存在"));
+                .orElseThrow(() -> new NotFoundException("地址不存在"));
 
         boolean wasDefault = address.getIsDefault();
         address.setStatus(Address.AddressStatus.DELETED);
@@ -106,10 +108,10 @@ public class AddressService {
     @Transactional
     public AddressResponse setDefaultAddress(String username, Long addressId) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new NotFoundException("用户不存在"));
 
         Address address = addressRepository.findByUserAndIdAndStatus(user, addressId, Address.AddressStatus.ACTIVE)
-                .orElseThrow(() -> new RuntimeException("地址不存在"));
+                .orElseThrow(() -> new NotFoundException("地址不存在"));
 
         clearDefaultAddress(user);
         address.setIsDefault(true);

@@ -6,6 +6,9 @@ import com.aisale.backend.entity.Order;
 import com.aisale.backend.entity.OrderLog;
 import com.aisale.backend.entity.OrderReview;
 import com.aisale.backend.entity.Product;
+import com.aisale.backend.exception.business.ConflictException;
+import com.aisale.backend.exception.business.ForbiddenException;
+import com.aisale.backend.exception.business.NotFoundException;
 import com.aisale.backend.repository.OrderLogRepository;
 import com.aisale.backend.repository.OrderRepository;
 import com.aisale.backend.repository.OrderReviewRepository;
@@ -52,26 +55,26 @@ public class OrderService {
     public OrderResponse createOrder(OrderRequest request, Long buyerId) {
         // 1. 检查商品是否存在
         Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("商品不存在"));
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
 
         // 2. 检查商品是否在售
         if (!product.getIsOnSale() || product.getStatus() != Product.ProductStatus.ON_SALE) {
-            throw new RuntimeException("商品已下架或不可售");
+            throw new ConflictException("商品已下架或不可售");
         }
 
         // 3. 检查库存是否充足
         if (product.getStock() < request.getQuantity()) {
-            throw new RuntimeException("库存不足");
+            throw new ConflictException("库存不足");
         }
 
         // 4. 检查是否已有未完成的订单
         if (orderRepository.hasActiveOrder(request.getProductId())) {
-            throw new RuntimeException("该商品已有进行中的订单");
+            throw new ConflictException("该商品已有进行中的订单");
         }
 
         // 5. 不能购买自己的商品
         if (product.getSellerId().equals(buyerId)) {
-            throw new RuntimeException("不能购买自己的商品");
+            throw new ForbiddenException("不能购买自己的商品");
         }
 
         // 6. 生成订单号
@@ -115,16 +118,16 @@ public class OrderService {
     @Transactional
     public OrderResponse payOrder(Long orderId, Long buyerId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("订单不存在"));
+                .orElseThrow(() -> new NotFoundException("订单不存在"));
 
         // 验证订单属于买家
         if (!order.getBuyerId().equals(buyerId)) {
-            throw new RuntimeException("无权操作此订单");
+            throw new ForbiddenException("无权操作此订单");
         }
 
         // 验证订单状态
         if (order.getStatus() != Order.OrderStatus.PENDING_PAYMENT) {
-            throw new RuntimeException("订单状态不允许付款");
+            throw new ConflictException("订单状态不允许付款");
         }
 
         Order.OrderStatus oldStatus = order.getStatus();
@@ -144,16 +147,16 @@ public class OrderService {
     @Transactional
     public OrderResponse confirmPickup(Long orderId, Long buyerId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("订单不存在"));
+                .orElseThrow(() -> new NotFoundException("订单不存在"));
 
         // 验证订单属于买家
         if (!order.getBuyerId().equals(buyerId)) {
-            throw new RuntimeException("无权操作此订单");
+            throw new ForbiddenException("无权操作此订单");
         }
 
         // 验证订单状态
         if (order.getStatus() != Order.OrderStatus.PENDING_PICKUP) {
-            throw new RuntimeException("订单状态不允许提货");
+            throw new ConflictException("订单状态不允许提货");
         }
 
         Order.OrderStatus oldStatus = order.getStatus();
@@ -173,16 +176,16 @@ public class OrderService {
     @Transactional
     public OrderResponse confirmPayment(Long orderId, Long sellerId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("订单不存在"));
+                .orElseThrow(() -> new NotFoundException("订单不存在"));
 
         // 验证订单属于卖家
         if (!order.getSellerId().equals(sellerId)) {
-            throw new RuntimeException("无权操作此订单");
+            throw new ForbiddenException("无权操作此订单");
         }
 
         // 验证订单状态
         if (order.getStatus() != Order.OrderStatus.PENDING_CONFIRM) {
-            throw new RuntimeException("订单状态不允许确认");
+            throw new ConflictException("订单状态不允许确认");
         }
 
         Order.OrderStatus oldStatus = order.getStatus();
@@ -202,7 +205,7 @@ public class OrderService {
     @Transactional
     public OrderResponse cancelOrder(Long orderId, Long userId, String reason, boolean isBuyer) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("订单不存在"));
+                .orElseThrow(() -> new NotFoundException("订单不存在"));
 
         // 验证取消权限
         if (isBuyer && !order.getBuyerId().equals(userId)) {
@@ -216,7 +219,7 @@ public class OrderService {
         if (order.getStatus() == Order.OrderStatus.COMPLETED ||
             order.getStatus() == Order.OrderStatus.CANCELLED ||
             order.getStatus() == Order.OrderStatus.REFUNDED) {
-            throw new RuntimeException("当前订单状态无法取消");
+            throw new ConflictException("当前订单状态无法取消");
         }
 
         Order.OrderStatus oldStatus = order.getStatus();
@@ -247,11 +250,11 @@ public class OrderService {
      */
     public OrderResponse getOrderById(Long orderId, Long userId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("订单不存在"));
+                .orElseThrow(() -> new NotFoundException("订单不存在"));
 
         // 验证权限：只有买家或卖家可以查看
         if (!order.getBuyerId().equals(userId) && !order.getSellerId().equals(userId)) {
-            throw new RuntimeException("无权查看此订单");
+            throw new ForbiddenException("无权查看此订单");
         }
 
         OrderResponse response = OrderResponse.fromEntity(order);
@@ -330,7 +333,7 @@ public class OrderService {
      */
     public OrderResponse getOrderByIdForAdmin(Long orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("订单不存在"));
+                .orElseThrow(() -> new NotFoundException("订单不存在"));
         return OrderResponse.fromEntity(order);
     }
 
@@ -351,7 +354,7 @@ public class OrderService {
     @Transactional
     public OrderResponse updateOrderStatus(Long orderId, Order.OrderStatus status, Long adminId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("订单不存在"));
+                .orElseThrow(() -> new NotFoundException("订单不存在"));
 
         Order.OrderStatus oldStatus = order.getStatus();
         order.setStatus(status);
@@ -369,7 +372,7 @@ public class OrderService {
     @Transactional
     public OrderResponse updateAdminRemark(Long orderId, String remark, Long adminId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("订单不存在"));
+                .orElseThrow(() -> new NotFoundException("订单不存在"));
 
         order.setAdminRemark(remark);
         order = orderRepository.save(order);

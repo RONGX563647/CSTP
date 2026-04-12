@@ -24,23 +24,15 @@ public class AdminAuthController {
     @Operation(summary = "管理员登录")
     @PostMapping("/login")
     public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        try {
-            AuthResponse response = adminAuthService.login(request);
-            return ApiResponse.success("登录成功", response);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(401, e.getMessage());
-        }
+        AuthResponse response = adminAuthService.login(request);
+        return ApiResponse.success("登录成功", response);
     }
 
     @Operation(summary = "获取当前管理员信息")
     @GetMapping("/me")
     public ApiResponse<Admin> getCurrentAdmin(@AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            Admin admin = adminAuthService.getCurrentAdmin(userDetails.getUsername());
-            return ApiResponse.success(admin);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(404, e.getMessage());
-        }
+        Admin admin = adminAuthService.getCurrentAdmin(userDetails.getUsername());
+        return ApiResponse.success(admin);
     }
 
     @Operation(summary = "创建管理员账号（超级管理员权限）")
@@ -52,12 +44,8 @@ public class AdminAuthController {
             @RequestParam(required = false) String nickname,
             @RequestParam(defaultValue = "ADMIN") String role,
             @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            Admin.AdminRole adminRole = Admin.AdminRole.valueOf(role.toUpperCase());
-            Admin admin = adminAuthService.createAdmin(username, password, email, nickname, adminRole);
-            return ApiResponse.success("创建成功", admin);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(400, e.getMessage());
-        }
+        Admin.AdminRole adminRole = Admin.AdminRole.valueOf(role.toUpperCase());
+        Admin admin = adminAuthService.createAdmin(username, password, email, nickname, adminRole);
+        return ApiResponse.success("创建成功", admin);
     }
 }

@@ -25,34 +25,22 @@ public class UserAuthController {
     @Operation(summary = "用户注册")
     @PostMapping("/register")
     public ApiResponse<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        try {
-            AuthResponse response = authService.register(request);
-            return ApiResponse.success("注册成功", response);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(400, e.getMessage());
-        }
+        AuthResponse response = authService.register(request);
+        return ApiResponse.success("注册成功", response);
     }
 
     @Operation(summary = "用户登录")
     @PostMapping("/login")
     public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        try {
-            AuthResponse response = authService.login(request);
-            return ApiResponse.success("登录成功", response);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(401, e.getMessage());
-        }
+        AuthResponse response = authService.login(request);
+        return ApiResponse.success("登录成功", response);
     }
 
     @Operation(summary = "获取当前用户信息")
     @GetMapping("/me")
     public ApiResponse<User> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            User user = authService.getCurrentUser(userDetails.getUsername());
-            return ApiResponse.success(user);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(404, e.getMessage());
-        }
+        User user = authService.getCurrentUser(userDetails.getUsername());
+        return ApiResponse.success(user);
     }
 
     @Operation(summary = "发送邮箱验证码")

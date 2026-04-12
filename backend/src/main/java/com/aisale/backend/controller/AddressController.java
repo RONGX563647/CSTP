@@ -25,12 +25,8 @@ public class AddressController {
     @Operation(summary = "获取用户所有地址")
     @GetMapping
     public ApiResponse<List<AddressResponse>> getAllAddresses(@AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            List<AddressResponse> addresses = addressService.getUserAddresses(userDetails.getUsername());
-            return ApiResponse.success(addresses);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(400, e.getMessage());
-        }
+        List<AddressResponse> addresses = addressService.getUserAddresses(userDetails.getUsername());
+        return ApiResponse.success(addresses);
     }
 
     @Operation(summary = "获取单个地址详情")
@@ -38,12 +34,8 @@ public class AddressController {
     public ApiResponse<AddressResponse> getAddressById(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id) {
-        try {
-            AddressResponse address = addressService.getAddressById(userDetails.getUsername(), id);
-            return ApiResponse.success(address);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(404, e.getMessage());
-        }
+        AddressResponse address = addressService.getAddressById(userDetails.getUsername(), id);
+        return ApiResponse.success(address);
     }
 
     @Operation(summary = "添加新地址")
@@ -51,12 +43,8 @@ public class AddressController {
     public ApiResponse<AddressResponse> createAddress(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody AddressRequest request) {
-        try {
-            AddressResponse address = addressService.createAddress(userDetails.getUsername(), request);
-            return ApiResponse.success("地址添加成功", address);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(400, e.getMessage());
-        }
+        AddressResponse address = addressService.createAddress(userDetails.getUsername(), request);
+        return ApiResponse.success("地址添加成功", address);
     }
 
     @Operation(summary = "更新地址")
@@ -65,12 +53,8 @@ public class AddressController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id,
             @Valid @RequestBody AddressRequest request) {
-        try {
-            AddressResponse address = addressService.updateAddress(userDetails.getUsername(), id, request);
-            return ApiResponse.success("地址更新成功", address);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(400, e.getMessage());
-        }
+        AddressResponse address = addressService.updateAddress(userDetails.getUsername(), id, request);
+        return ApiResponse.success("地址更新成功", address);
     }
 
     @Operation(summary = "删除地址")
@@ -78,12 +62,8 @@ public class AddressController {
     public ApiResponse<Void> deleteAddress(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id) {
-        try {
-            addressService.deleteAddress(userDetails.getUsername(), id);
-            return ApiResponse.success("地址删除成功", null);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(400, e.getMessage());
-        }
+        addressService.deleteAddress(userDetails.getUsername(), id);
+        return ApiResponse.success("地址删除成功", null);
     }
 
     @Operation(summary = "设置默认地址")
@@ -91,11 +71,7 @@ public class AddressController {
     public ApiResponse<AddressResponse> setDefaultAddress(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id) {
-        try {
-            AddressResponse address = addressService.setDefaultAddress(userDetails.getUsername(), id);
-            return ApiResponse.success("默认地址设置成功", address);
-        } catch (RuntimeException e) {
-            return ApiResponse.error(400, e.getMessage());
-        }
+        AddressResponse address = addressService.setDefaultAddress(userDetails.getUsername(), id);
+        return ApiResponse.success("默认地址设置成功", address);
     }
 }
