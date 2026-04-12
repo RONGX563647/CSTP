@@ -115,7 +115,7 @@ const handleLogin = async () => {
 
       // 跳转到重定向页面或首页
       const redirect = route.query.redirect as string
-      router.push(redirect || '/home')
+      router.push(redirect || '/user/home')
     } catch (error) {
       console.error('登录失败:', error)
     } finally {

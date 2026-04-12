@@ -5,13 +5,32 @@ const routes: RouteRecordRaw[] = [
   // 重定向
   {
     path: '/',
-    redirect: '/home'
+    redirect: '/user/home'
+  },
+  // 用户端路由
+  {
+    path: '/user/home',
+    name: 'UserHome',
+    component: () => import('@/views/user/Home.vue'),
+    meta: { requiresAuth: true, title: '首页' }
   },
   {
-    path: '/home',
-    name: 'Home',
-    component: () => import('@/views/Home.vue'),
-    meta: { requiresAuth: true }
+    path: '/user/addresses',
+    name: 'UserAddressList',
+    component: () => import('@/views/user/AddressList.vue'),
+    meta: { requiresAuth: true, title: '收货地址' }
+  },
+  {
+    path: '/user/addresses/new',
+    name: 'UserAddressNew',
+    component: () => import('@/views/user/AddressForm.vue'),
+    meta: { requiresAuth: true, title: '新建地址' }
+  },
+  {
+    path: '/user/addresses/:id',
+    name: 'UserAddressEdit',
+    component: () => import('@/views/user/AddressForm.vue'),
+    meta: { requiresAuth: true, title: '编辑地址' }
   },
   // 用户认证路由
   {
@@ -34,10 +53,8 @@ const routes: RouteRecordRaw[] = [
     meta: { guest: true, title: '管理员登录' }
   },
   {
-    path: '/admin/register',
-    name: 'AdminRegister',
-    component: () => import('@/views/admin/Register.vue'),
-    meta: { guest: true, title: '管理员注册' }
+    path: '/admin',
+    redirect: '/admin/login'
   }
 ]
 
@@ -68,7 +85,7 @@ router.beforeEach((to, _from, next) => {
   // 仅限访客（已登录用户不能访问登录/注册页）
   else if (to.meta.guest) {
     if (authStore.isLoggedIn) {
-      next({ name: 'Home' })
+      next({ name: 'UserHome' })
     } else {
       next()
     }

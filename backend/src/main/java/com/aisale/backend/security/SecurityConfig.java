@@ -44,8 +44,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").authenticated()
                         // Admin endpoints
                         .requestMatchers("/api/admin/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                        // User endpoints
-                        .requestMatchers("/api/user/**").hasRole("USER")
+                        // User endpoints - 允许 USER 或管理员访问
+                        .requestMatchers("/api/user/**").hasAnyRole("USER", "SUPER_ADMIN", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
