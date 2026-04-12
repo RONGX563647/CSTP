@@ -76,11 +76,12 @@ public class UserProductController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Long sellerId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<ProductResponse> products = productService.searchPublicProducts(
-                name, category, minPrice, maxPrice, pageable);
+                name, category, minPrice, maxPrice, sellerId, pageable);
         return ApiResponse.success(products);
     }
 

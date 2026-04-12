@@ -32,6 +32,44 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/AddressForm.vue'),
     meta: { requiresAuth: true, title: '编辑地址' }
   },
+  // 用户端商品路由
+  {
+    path: '/user/products',
+    name: 'UserProductList',
+    component: () => import('@/views/user/ProductList.vue'),
+    meta: { requiresAuth: false, title: '商品列表' }
+  },
+  {
+    path: '/user/products/:id',
+    name: 'UserProductDetail',
+    component: () => import('@/views/user/ProductDetail.vue'),
+    meta: { requiresAuth: false, title: '商品详情' }
+  },
+  {
+    path: '/user/products/my',
+    name: 'UserMyProducts',
+    component: () => import('@/views/user/MyProducts.vue'),
+    meta: { requiresAuth: true, title: '我的商品' }
+  },
+  {
+    path: '/user/products/new',
+    name: 'UserProductNew',
+    component: () => import('@/views/user/ProductForm.vue'),
+    meta: { requiresAuth: true, title: '发布商品' }
+  },
+  {
+    path: '/user/products/:id/edit',
+    name: 'UserProductEdit',
+    component: () => import('@/views/user/ProductForm.vue'),
+    meta: { requiresAuth: true, title: '编辑商品' }
+  },
+  // 管理端查看用户商品路由
+  {
+    path: '/admin/products/user/:userId',
+    name: 'AdminUserProducts',
+    component: () => import('@/views/user/ProductList.vue'),
+    meta: { requiresAuth: true, role: 'admin', title: '用户商品' }
+  },
   // 用户认证路由
   {
     path: '/login',
@@ -45,16 +83,35 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/Register.vue'),
     meta: { guest: true, title: '用户注册' }
   },
-  // 管理员认证路由
+  // 管理端路由
   {
     path: '/admin/login',
     name: 'AdminLogin',
     component: () => import('@/views/admin/Login.vue'),
     meta: { guest: true, title: '管理员登录' }
   },
+  // 管理端商品管理路由
   {
     path: '/admin',
     redirect: '/admin/login'
+  },
+  {
+    path: '/admin/products',
+    name: 'AdminProductList',
+    component: () => import('@/views/admin/ProductList.vue'),
+    meta: { requiresAuth: true, role: 'admin', title: '商品管理' }
+  },
+  {
+    path: '/admin/products/new',
+    name: 'AdminProductNew',
+    component: () => import('@/views/user/ProductForm.vue'),
+    meta: { requiresAuth: true, role: 'admin', title: '新增商品' }
+  },
+  {
+    path: '/admin/products/:id/edit',
+    name: 'AdminProductEdit',
+    component: () => import('@/views/user/ProductForm.vue'),
+    meta: { requiresAuth: true, role: 'admin', title: '编辑商品' }
   }
 ]
 

@@ -298,9 +298,10 @@ public class ProductService {
      */
     public Page<ProductResponse> searchPublicProducts(String name, String category,
                                                        BigDecimal minPrice, BigDecimal maxPrice,
+                                                       Long sellerId,
                                                        Pageable pageable) {
         return productRepository.searchProducts(name, category, minPrice, maxPrice,
-                        Product.ProductStatus.ON_SALE, null, pageable)
+                        Product.ProductStatus.ON_SALE, sellerId, pageable)
                 .map(ProductResponse::fromEntity);
     }
 

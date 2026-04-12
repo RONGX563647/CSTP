@@ -109,9 +109,9 @@ const handleLogin = async () => {
 
       ElMessage.success('登录成功')
 
-      // 跳转到重定向页面或首页
+      // 跳转到重定向页面或商品管理页
       const redirect = route.query.redirect as string
-      router.push(redirect || '/home')
+      router.push(redirect || '/admin/products')
     } catch (error) {
       console.error('登录失败:', error)
     } finally {
