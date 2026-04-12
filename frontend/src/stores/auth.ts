@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import request, { type ApiResponse } from '@/utils/request'
 
 // 用户信息类型
 interface UserInfo {
@@ -24,6 +25,17 @@ interface RegisterParams {
   email?: string
   phone?: string
   nickname?: string
+}
+
+// 认证响应数据类型
+interface AuthResponse {
+  id: number
+  username: string
+  nickname: string
+  avatar: string
+  role: string
+  token: string
+  tokenType: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -59,84 +71,54 @@ export const useAuthStore = defineStore('auth', () => {
    * 用户登录
    */
   const login = async (params: LoginParams) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(params)
+    const response = await request.post('/api/auth/login', { username: params.username, password: params.password })
+    const res = response.data as unknown as ApiResponse<AuthResponse>
+    const authData = res.data
+    setToken(authData.tokenType + ' ' + authData.token)
+    setUserInfo({
+      id: authData.id,
+      username: authData.username,
+      nickname: authData.nickname,
+      avatar: authData.avatar,
+      role: authData.role
     })
-    const result = await response.json()
-
-    if (result.code === 200 && result.data) {
-      const authData = result.data
-      setToken(authData.tokenType + ' ' + authData.token)
-      setUserInfo({
-        id: authData.id,
-        username: authData.username,
-        nickname: authData.nickname,
-        avatar: authData.avatar,
-        role: authData.role
-      })
-      return result
-    }
-    throw new Error(result.message || '登录失败')
+    return res
   }
 
   /**
    * 管理员登录
    */
   const adminLogin = async (params: LoginParams) => {
-    const response = await fetch('/api/admin/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(params)
+    const response = await request.post('/api/admin/auth/login', { username: params.username, password: params.password })
+    const res = response.data as unknown as ApiResponse<AuthResponse>
+    const authData = res.data
+    setToken(authData.tokenType + ' ' + authData.token)
+    setUserInfo({
+      id: authData.id,
+      username: authData.username,
+      nickname: authData.nickname,
+      avatar: authData.avatar,
+      role: authData.role
     })
-    const result = await response.json()
-
-    if (result.code === 200 && result.data) {
-      const authData = result.data
-      setToken(authData.tokenType + ' ' + authData.token)
-      setUserInfo({
-        id: authData.id,
-        username: authData.username,
-        nickname: authData.nickname,
-        avatar: authData.avatar,
-        role: authData.role
-      })
-      return result
-    }
-    throw new Error(result.message || '登录失败')
+    return res
   }
 
   /**
    * 用户注册
    */
   const register = async (params: RegisterParams) => {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(params)
+    const response = await request.post('/api/auth/register', params)
+    const res = response.data as unknown as ApiResponse<AuthResponse>
+    const authData = res.data
+    setToken(authData.tokenType + ' ' + authData.token)
+    setUserInfo({
+      id: authData.id,
+      username: authData.username,
+      nickname: authData.nickname,
+      avatar: authData.avatar,
+      role: authData.role
     })
-    const result = await response.json()
-
-    if (result.code === 200 && result.data) {
-      const authData = result.data
-      setToken(authData.tokenType + ' ' + authData.token)
-      setUserInfo({
-        id: authData.id,
-        username: authData.username,
-        nickname: authData.nickname,
-        avatar: authData.avatar,
-        role: authData.role
-      })
-      return result
-    }
-    throw new Error(result.message || '注册失败')
+    return res
   }
 
   /**
@@ -146,20 +128,13 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return
 
     try {
-      const response = await fetch('/api/auth/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': token.value
-        }
-      })
-      const result = await response.json()
-
-      if (result.code === 200 && result.data) {
-        setUserInfo(result.data)
-        return result
-      }
+      const response = await request.get<UserInfo>('/api/auth/me')
+      const res = response.data as unknown as ApiResponse<UserInfo>
+      setUserInfo(res.data)
+      return res
     } catch (error) {
       console.error('获取用户信息失败:', error)
+      throw error
     }
   }
 

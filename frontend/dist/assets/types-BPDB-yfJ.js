@@ -1,1 +1,0 @@
-var e=function(e){return e.ON_SALE=`ON_SALE`,e.OFF_SALE=`OFF_SALE`,e.OUT_OF_STOCK=`OUT_OF_STOCK`,e}({}),t={[e.ON_SALE]:`在售`,[e.OFF_SALE]:`下架`,[e.OUT_OF_STOCK]:`售罄`},n={[e.ON_SALE]:`success`,[e.OFF_SALE]:`info`,[e.OUT_OF_STOCK]:`danger`};export{n,t as r,e as t};

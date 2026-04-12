@@ -42,3 +42,19 @@ export const ProductStatusColor: Record<ProductStatus, string> = {
   [ProductStatus.OFF_SALE]: 'info',
   [ProductStatus.OUT_OF_STOCK]: 'danger'
 }
+
+// 错误响应类型
+export interface ErrorResponse {
+  code: string | number
+  message: string
+  details?: string
+  path?: string
+  timestamp?: string
+}
+
+// 通用 API 响应类型
+export interface ApiResponse<T> {
+  code: number
+  message: string
+  data: T
+}

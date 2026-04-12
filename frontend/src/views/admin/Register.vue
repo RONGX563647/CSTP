@@ -101,6 +101,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
+import request from '@/utils/request'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 
 const router = useRouter()
@@ -161,30 +162,18 @@ const handleRegister = async () => {
     try {
       // 注意：这里需要调用后端的管理员创建 API
       // 目前后端只有 /api/admin/auth/create 需要认证权限
-      const response = await fetch('/api/admin/auth/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          username: registerForm.username,
-          password: registerForm.password,
-          nickname: registerForm.nickname || undefined,
-          email: registerForm.email || undefined,
-          role: registerForm.role
-        })
+      await request.post('/api/admin/auth/create', {
+        username: registerForm.username,
+        password: registerForm.password,
+        nickname: registerForm.nickname || undefined,
+        email: registerForm.email || undefined,
+        role: registerForm.role
       })
-      const result = await response.json()
 
-      if (result.code === 200) {
-        ElMessage.success('管理员账号创建成功')
-        router.push('/admin/login')
-      } else {
-        ElMessage.error(result.message || '创建失败')
-      }
+      ElMessage.success('管理员账号创建成功')
+      router.push('/admin/login')
     } catch (error) {
-      console.error('创建失败:', error)
-      ElMessage.error('创建失败，请检查网络连接')
+      // 错误已由拦截器处理
     } finally {
       loading.value = false
     }
