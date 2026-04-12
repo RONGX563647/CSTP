@@ -40,6 +40,7 @@ public class OrderReviewResponse {
         response.setId(review.getId());
         response.setOrderId(review.getOrderId());
         response.setReviewerId(review.getReviewerId());
+        response.setRevieweeId(review.getRevieweeId());
         response.setProductId(review.getProductId());
         response.setRating(review.getRating());
         response.setContent(review.getContent());
