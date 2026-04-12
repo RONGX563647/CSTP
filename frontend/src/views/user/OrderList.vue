@@ -1,140 +1,137 @@
 <template>
-  <div class="order-list-page">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <h1 class="page-title">{{ isBuyerTab ? '我买的订单' : '我卖的订单' }}</h1>
-    </div>
-
-    <!-- 切换标签 -->
-    <div class="tab-container">
-      <el-radio-group v-model="currentTab" @change="handleTabChange">
-        <el-radio-button label="buyer">我买的</el-radio-button>
-        <el-radio-button label="seller">我卖的</el-radio-button>
-      </el-radio-group>
-    </div>
-
-    <!-- 筛选条件 -->
-    <div class="filter-container">
-      <el-select v-model="statusFilter" placeholder="订单状态" clearable @change="fetchOrders">
-        <el-option label="全部状态" value="" />
-        <el-option label="待付款" :value="OrderStatus.PENDING_PAYMENT" />
-        <el-option label="待提货" :value="OrderStatus.PENDING_PICKUP" />
-        <el-option label="待确认" :value="OrderStatus.PENDING_CONFIRM" />
-        <el-option label="待评价" :value="OrderStatus.PENDING_REVIEW" />
-        <el-option label="已完成" :value="OrderStatus.COMPLETED" />
-        <el-option label="已取消" :value="OrderStatus.CANCELLED" />
-      </el-select>
-    </div>
-
-    <!-- 订单列表 -->
-    <div class="order-list">
-      <!-- 加载中 -->
-      <div v-if="loading" class="loading-container">
-        <el-icon class="is-loading"><Loading /></el-icon>
-        <span>加载中...</span>
+  <MobileLayout title="我的订单" :show-tab-bar="true">
+    <div class="order-list-page">
+      <!-- 切换标签 -->
+      <div class="tab-container">
+        <el-radio-group v-model="currentTab" @change="handleTabChange" size="small">
+          <el-radio-button label="buyer">我买的</el-radio-button>
+          <el-radio-button label="seller">我卖的</el-radio-button>
+        </el-radio-group>
       </div>
 
-      <!-- 空列表 -->
-      <el-empty v-else-if="orders.length === 0" description="暂无订单" />
+      <!-- 筛选条件 -->
+      <div class="filter-container">
+        <el-select v-model="statusFilter" placeholder="订单状态" clearable @change="fetchOrders" size="small">
+          <el-option label="全部状态" value="" />
+          <el-option label="待付款" :value="OrderStatus.PENDING_PAYMENT" />
+          <el-option label="待提货" :value="OrderStatus.PENDING_PICKUP" />
+          <el-option label="待确认" :value="OrderStatus.PENDING_CONFIRM" />
+          <el-option label="待评价" :value="OrderStatus.PENDING_REVIEW" />
+          <el-option label="已完成" :value="OrderStatus.COMPLETED" />
+          <el-option label="已取消" :value="OrderStatus.CANCELLED" />
+        </el-select>
+      </div>
 
-      <!-- 订单卡片 -->
-      <div v-else>
-        <div
-          v-for="order in orders"
-          :key="order.id"
-          class="order-card"
-          @click="goToDetail(order.id)"
-        >
-          <!-- 订单头部 -->
-          <div class="order-header">
-            <span class="order-no">订单号：{{ order.orderNo }}</span>
-            <el-tag :type="getOrderStatusColor(order.status)">
-              {{ getOrderStatusText(order.status) }}
-            </el-tag>
-          </div>
+      <!-- 订单列表 -->
+      <div class="order-list">
+        <!-- 加载中 -->
+        <div v-if="loading" class="loading-container">
+          <el-icon class="is-loading"><Loading /></el-icon>
+          <span>加载中...</span>
+        </div>
 
-          <!-- 商品信息 -->
-          <div class="product-info">
-            <div class="product-image">
-              <el-image
-                :src="order.productImage || '/placeholder.png'"
-                fit="cover"
-                class="thumb"
-              />
+        <!-- 空列表 -->
+        <el-empty v-else-if="orders.length === 0" description="暂无订单" />
+
+        <!-- 订单卡片 -->
+        <div v-else>
+          <div
+            v-for="order in orders"
+            :key="order.id"
+            class="order-card"
+          >
+            <!-- 订单头部 -->
+            <div class="order-header">
+              <span class="order-no">订单号：{{ order.orderNo }}</span>
+              <el-tag :type="getOrderStatusColor(order.status)" size="small">
+                {{ getOrderStatusText(order.status) }}
+              </el-tag>
             </div>
-            <div class="product-detail">
-              <div class="product-name">{{ order.productName }}</div>
-              <div class="product-meta">
-                <span>单价：¥{{ order.price }}</span>
-                <span>数量：x{{ order.quantity }}</span>
+
+            <!-- 商品信息 -->
+            <div class="product-info" @click="goToDetail(order.id)">
+              <div class="product-image">
+                <el-image
+                  :src="order.productImage || '/placeholder.png'"
+                  fit="cover"
+                  class="thumb"
+                />
+              </div>
+              <div class="product-detail">
+                <div class="product-name">{{ order.productName }}</div>
+                <div class="product-meta">
+                  <span>单价：¥{{ order.price }}</span>
+                  <span>数量：x{{ order.quantity }}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- 订单金额 -->
-          <div class="order-total">
-            <span class="label">合计：</span>
-            <span class="amount">¥{{ order.totalAmount }}</span>
-          </div>
+            <!-- 订单金额 -->
+            <div class="order-total">
+              <span class="label">合计：</span>
+              <span class="amount">¥{{ order.totalAmount }}</span>
+            </div>
 
-          <!-- 操作按钮 -->
-          <div class="order-actions">
-            <el-button
-              v-if="showPayButton(order.status)"
-              type="primary"
-              size="small"
-              @click.stop="handlePay(order)"
-            >
-              确认付款
-            </el-button>
-            <el-button
-              v-if="showPickupButton(order.status)"
-              type="success"
-              size="small"
-              @click.stop="handlePickup(order)"
-            >
-              确认提货
-            </el-button>
-            <el-button
-              v-if="showConfirmButton(order.status)"
-              type="success"
-              size="small"
-              @click.stop="handleConfirm(order)"
-            >
-              确认收款
-            </el-button>
-            <el-button
-              v-if="showReviewButton(order)"
-              type="primary"
-              size="small"
-              @click.stop="handleReview(order)"
-            >
-              评价
-            </el-button>
-            <el-button
-              v-if="showCancelButton(order.status)"
-              type="danger"
-              size="small"
-              @click.stop="handleCancel(order)"
-            >
-              取消订单
-            </el-button>
+            <!-- 操作按钮 -->
+            <div class="order-actions">
+              <el-button
+                v-if="showCancelButton(order.status)"
+                type="danger"
+                size="small"
+                plain
+                @click="handleCancel(order)"
+              >
+                取消订单
+              </el-button>
+              <el-button
+                v-if="showPayButton(order.status)"
+                type="primary"
+                size="small"
+                @click="handlePay(order)"
+              >
+                确认付款
+              </el-button>
+              <el-button
+                v-if="showPickupButton(order.status)"
+                type="success"
+                size="small"
+                @click="handlePickup(order)"
+              >
+                确认提货
+              </el-button>
+              <el-button
+                v-if="showConfirmButton(order.status)"
+                type="success"
+                size="small"
+                @click="handleConfirm(order)"
+              >
+                确认收款
+              </el-button>
+              <el-button
+                v-if="showReviewButton(order)"
+                type="primary"
+                size="small"
+                @click="handleReview(order)"
+              >
+                评价
+              </el-button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 分页 -->
-    <div v-if="totalPages > 1" class="pagination-container">
-      <el-pagination
-        layout="prev, pager, next"
-        :total="totalElements"
-        :page-size="size"
-        :current-page="page + 1"
-        @current-change="handlePageChange"
-      />
+      <!-- 分页 -->
+      <div v-if="totalPages > 1" class="pagination-container">
+        <el-pagination
+          layout="prev, pager, next"
+          :total="totalElements"
+          :page-size="size"
+          :current-page="page + 1"
+          @current-change="handlePageChange"
+        />
+      </div>
     </div>
-  </div>
+  </MobileLayout>
 </template>
 
 <script setup lang="ts">
@@ -142,6 +139,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
+import MobileLayout from '@/layouts/MobileLayout.vue'
 import {
   getMyBuyerOrders,
   getMySellerOrders,
@@ -313,23 +311,9 @@ onMounted(() => {
 
 <style scoped>
 .order-list-page {
-  min-height: 100vh;
+  min-height: 100%;
   background: #F5F5F5;
   padding-bottom: 20px;
-}
-
-/* 页面标题 */
-.page-header {
-  background: #FFFFFF;
-  padding: 16px;
-  margin-bottom: 12px;
-}
-
-.page-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1F2937;
-  margin: 0;
 }
 
 /* 切换标签 */
@@ -366,12 +350,6 @@ onMounted(() => {
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 12px;
-  cursor: pointer;
-  transition: box-shadow 0.2s;
-}
-
-.order-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* 订单头部 */
@@ -394,6 +372,7 @@ onMounted(() => {
   display: flex;
   gap: 12px;
   margin-bottom: 12px;
+  cursor: pointer;
 }
 
 .product-image .thumb {

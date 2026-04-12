@@ -17,6 +17,10 @@
           <el-icon><ShoppingCart /></el-icon>
           <span>商品管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/orders">
+          <el-icon><Document /></el-icon>
+          <span>订单管理</span>
+        </el-menu-item>
         <el-menu-item index="/admin/products/query" @click="handleQueryClick">
           <el-icon><Search /></el-icon>
           <span>商品查询</span>
@@ -63,7 +67,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  ShoppingCart, Search, Fold
+  ShoppingCart, Document, Search, Fold
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 

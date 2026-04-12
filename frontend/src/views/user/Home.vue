@@ -35,6 +35,27 @@
         </div>
       </div>
 
+      <!-- 订单管理入口 -->
+      <div class="menu-section">
+        <h3 class="menu-title">订单管理</h3>
+        <div class="menu-list">
+          <div class="menu-item" @click="navigateTo('/user/orders/buyer')">
+            <div class="menu-icon">
+              <el-icon :size="24"><Document /></el-icon>
+            </div>
+            <span class="menu-label">我买的订单</span>
+            <el-icon class="menu-arrow"><ArrowRight /></el-icon>
+          </div>
+          <div class="menu-item" @click="navigateTo('/user/orders/seller')">
+            <div class="menu-icon">
+              <el-icon :size="24"><FolderOpened /></el-icon>
+            </div>
+            <span class="menu-label">我卖的订单</span>
+            <el-icon class="menu-arrow"><ArrowRight /></el-icon>
+          </div>
+        </div>
+      </div>
+
       <!-- 收货管理 -->
       <div class="menu-section">
         <h3 class="menu-title">收货管理</h3>
@@ -86,7 +107,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Location, ArrowRight, User, Lock, SwitchButton,
-  ShoppingCart, List
+  ShoppingCart, List, Document, FolderOpened
 } from '@element-plus/icons-vue'
 import MobileLayout from '@/layouts/MobileLayout.vue'
 import { useAuthStore } from '@/stores/auth'

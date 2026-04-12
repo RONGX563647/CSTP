@@ -44,6 +44,14 @@
       </div>
       <div
         class="tab-item"
+        :class="{ active: activeTab === 'orders' }"
+        @click="navigateTo('/user/orders/buyer')"
+      >
+        <el-icon :size="24"><List /></el-icon>
+        <span>订单</span>
+      </div>
+      <div
+        class="tab-item"
         :class="{ active: activeTab === 'address' }"
         @click="navigateTo('/user/addresses')"
       >
@@ -65,7 +73,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowLeft, HomeFilled, Location, User, ShoppingCart } from '@element-plus/icons-vue'
+import { ArrowLeft, HomeFilled, Location, User, ShoppingCart, List } from '@element-plus/icons-vue'
 
 interface Props {
   title?: string
@@ -84,8 +92,9 @@ const activeTab = computed(() => {
   const path = route.path
   if (path === '/user/home' || path === '/') return 'home'
   if (path.includes('products')) return 'products'
+  if (path.includes('orders')) return 'orders'
   if (path.includes('address')) return 'address'
-  if (path === '/user/home') return 'profile'
+  if (path.includes('profile') || path === '/user/home') return 'profile'
   return ''
 })
 
