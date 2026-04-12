@@ -63,13 +63,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/ProductForm.vue'),
     meta: { requiresAuth: true, title: '编辑商品' }
   },
-  // 管理端查看用户商品路由
-  {
-    path: '/admin/products/user/:userId',
-    name: 'AdminUserProducts',
-    component: () => import('@/views/user/ProductList.vue'),
-    meta: { requiresAuth: true, role: 'admin', title: '用户商品' }
-  },
   // 用户认证路由
   {
     path: '/login',
