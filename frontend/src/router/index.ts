@@ -63,6 +63,37 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/ProductForm.vue'),
     meta: { requiresAuth: true, title: '编辑商品' }
   },
+  // 用户端订单路由
+  {
+    path: '/user/orders/buyer',
+    name: 'UserOrderList',
+    component: () => import('@/views/user/OrderList.vue'),
+    meta: { requiresAuth: true, title: '我的订单' }
+  },
+  {
+    path: '/user/orders/seller',
+    name: 'UserSellerOrderList',
+    component: () => import('@/views/user/OrderList.vue'),
+    meta: { requiresAuth: true, title: '我卖的订单' }
+  },
+  {
+    path: '/user/orders/:id',
+    name: 'UserOrderDetail',
+    component: () => import('@/views/user/OrderDetail.vue'),
+    meta: { requiresAuth: true, title: '订单详情' }
+  },
+  {
+    path: '/user/orders/new/:productId',
+    name: 'UserOrderForm',
+    component: () => import('@/views/user/OrderForm.vue'),
+    meta: { requiresAuth: true, title: '确认订单' }
+  },
+  {
+    path: '/user/orders/:id/review',
+    name: 'UserOrderReview',
+    component: () => import('@/views/user/OrderReviewForm.vue'),
+    meta: { requiresAuth: true, title: '订单评价' }
+  },
   // 用户认证路由
   {
     path: '/login',
@@ -111,6 +142,19 @@ const routes: RouteRecordRaw[] = [
     name: 'AdminUserProducts',
     component: () => import('@/views/admin/UserProducts.vue'),
     meta: { requiresAuth: true, role: 'admin', title: '用户商品' }
+  },
+  // 管理端订单路由
+  {
+    path: '/admin/orders',
+    name: 'AdminOrderList',
+    component: () => import('@/views/admin/OrderList.vue'),
+    meta: { requiresAuth: true, role: 'admin', title: '订单管理' }
+  },
+  {
+    path: '/admin/orders/:id',
+    name: 'AdminOrderDetail',
+    component: () => import('@/views/admin/OrderDetail.vue'),
+    meta: { requiresAuth: true, role: 'admin', title: '订单详情' }
   }
 ]
 
