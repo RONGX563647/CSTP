@@ -1,5 +1,6 @@
 package com.aisale.backend.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.aisale.backend.dto.AddressRequest;
 import com.aisale.backend.dto.AddressResponse;
 import com.aisale.backend.entity.Address;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +29,7 @@ public class AddressService {
 
         return addresses.stream()
                 .map(AddressResponse::fromEntity)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public AddressResponse getAddressById(String username, Long addressId) {
@@ -52,14 +52,8 @@ public class AddressService {
             throw new RuntimeException("最多只能添加10个地址");
         }
 
-        Address address = new Address();
+        Address address = BeanUtil.copyProperties(request, Address.class);
         address.setUser(user);
-        address.setReceiverName(request.getReceiverName());
-        address.setReceiverPhone(request.getReceiverPhone());
-        address.setProvince(request.getProvince());
-        address.setCity(request.getCity());
-        address.setDistrict(request.getDistrict());
-        address.setDetailAddress(request.getDetailAddress());
 
         if (request.getIsDefault() || addressCount == 0) {
             clearDefaultAddress(user);
@@ -78,12 +72,7 @@ public class AddressService {
         Address address = addressRepository.findByUserAndIdAndStatus(user, addressId, Address.AddressStatus.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("地址不存在"));
 
-        address.setReceiverName(request.getReceiverName());
-        address.setReceiverPhone(request.getReceiverPhone());
-        address.setProvince(request.getProvince());
-        address.setCity(request.getCity());
-        address.setDistrict(request.getDistrict());
-        address.setDetailAddress(request.getDetailAddress());
+        BeanUtil.copyProperties(request, address);
 
         if (request.getIsDefault()) {
             clearDefaultAddress(user);

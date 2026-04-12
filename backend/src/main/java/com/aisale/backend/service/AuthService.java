@@ -1,5 +1,6 @@
 package com.aisale.backend.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.aisale.backend.dto.AuthResponse;
 import com.aisale.backend.dto.LoginRequest;
 import com.aisale.backend.dto.RegisterRequest;
@@ -38,11 +39,8 @@ public class AuthService {
         }
 
         // 创建用户
-        User user = new User();
-        user.setUsername(request.getUsername());
+        User user = BeanUtil.copyProperties(request, User.class);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
         user.setNickname(request.getNickname() != null ? request.getNickname() : request.getUsername());
 
         // 邮箱验证（预留，当前直接返回true）

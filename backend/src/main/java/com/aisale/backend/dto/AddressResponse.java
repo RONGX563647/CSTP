@@ -1,5 +1,7 @@
 package com.aisale.backend.dto;
 
+import cn.hutool.core.bean.BeanUtil;
+import com.aisale.backend.entity.Address;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,17 +21,10 @@ public class AddressResponse {
     private Boolean isDefault;
     private String fullAddress;
 
-    public static AddressResponse fromEntity(com.aisale.backend.entity.Address address) {
-        AddressResponse response = new AddressResponse();
-        response.setId(address.getId());
-        response.setReceiverName(address.getReceiverName());
-        response.setReceiverPhone(address.getReceiverPhone());
-        response.setProvince(address.getProvince());
-        response.setCity(address.getCity());
-        response.setDistrict(address.getDistrict());
-        response.setDetailAddress(address.getDetailAddress());
-        response.setIsDefault(address.getIsDefault());
-        response.setFullAddress(address.getProvince() + address.getCity() + address.getDistrict() + address.getDetailAddress());
+    public static AddressResponse fromEntity(Address address) {
+        AddressResponse response = BeanUtil.copyProperties(address, AddressResponse.class);
+        response.setFullAddress(address.getProvince() + address.getCity() +
+                               address.getDistrict() + address.getDetailAddress());
         return response;
     }
 }
