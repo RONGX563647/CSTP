@@ -18,6 +18,10 @@ public class ProductResponse {
 
     private Long id;
 
+    private Long sellerId;
+
+    private String sellerName;
+
     private String name;
 
     private String description;
@@ -55,6 +59,8 @@ public class ProductResponse {
     public static ProductResponse fromEntity(Product product) {
         return ProductResponse.builder()
                 .id(product.getId())
+                .sellerId(product.getSellerId())
+                .sellerName(product.getSeller() != null ? product.getSeller().getUsername() : null)
                 .name(product.getName())
                 .description(product.getDescription())
                 .price(product.getPrice())

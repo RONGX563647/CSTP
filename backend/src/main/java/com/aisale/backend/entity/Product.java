@@ -60,6 +60,13 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductStatus status = ProductStatus.ON_SALE;
 
+    @Column(name = "seller_id")
+    private Long sellerId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id", insertable = false, updatable = false)
+    private User seller;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

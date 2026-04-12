@@ -40,12 +40,12 @@ public class SecurityConfig {
                                 "/doc.html",
                                 "/webjars/**"
                         ).permitAll()
+                        // 用户端商品接口 - 允许 USER 或管理员访问
+                        .requestMatchers("/api/user/products/**").hasAnyRole("USER", "SUPER_ADMIN", "ADMIN")
                         // 需要认证的个人接口
                         .requestMatchers("/api/auth/**").authenticated()
-                        // Admin endpoints
+                        // Admin endpoints - 管理端接口需要管理员权限
                         .requestMatchers("/api/admin/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                        // User endpoints - 允许 USER 或管理员访问
-                        .requestMatchers("/api/user/**").hasAnyRole("USER", "SUPER_ADMIN", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

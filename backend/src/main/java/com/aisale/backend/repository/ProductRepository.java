@@ -24,20 +24,28 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Page<Product> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
 
+    Page<Product> findBySellerId(Long sellerId, Pageable pageable);
+
+    List<Product> findBySellerId(Long sellerId);
+
     @Query("SELECT p FROM Product p WHERE " +
            "(:name IS NULL OR p.name LIKE %:name%) AND " +
            "(:category IS NULL OR p.category = :category) AND " +
            "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
            "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
-           "(:status IS NULL OR p.status = :status)")
+           "(:status IS NULL OR p.status = :status) AND " +
+           "(:sellerId IS NULL OR p.sellerId = :sellerId)")
     Page<Product> searchProducts(
             @Param("name") String name,
             @Param("category") String category,
             @Param("minPrice") java.math.BigDecimal minPrice,
             @Param("maxPrice") java.math.BigDecimal maxPrice,
             @Param("status") ProductStatus status,
+            @Param("sellerId") Long sellerId,
             Pageable pageable
     );
 
     long countByStatus(ProductStatus status);
+
+    long countBySellerId(Long sellerId);
 }
