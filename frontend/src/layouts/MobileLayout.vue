@@ -29,10 +29,18 @@
       <div
         class="tab-item"
         :class="{ active: activeTab === 'home' }"
-        @click="navigateTo('/home')"
+        @click="navigateTo('/user/home')"
       >
         <el-icon :size="24"><HomeFilled /></el-icon>
         <span>首页</span>
+      </div>
+      <div
+        class="tab-item"
+        :class="{ active: activeTab === 'products' }"
+        @click="navigateTo('/user/products')"
+      >
+        <el-icon :size="24"><ShoppingCart /></el-icon>
+        <span>商品</span>
       </div>
       <div
         class="tab-item"
@@ -45,7 +53,7 @@
       <div
         class="tab-item"
         :class="{ active: activeTab === 'profile' }"
-        @click="navigateTo('/user/profile')"
+        @click="navigateTo('/user/home')"
       >
         <el-icon :size="24"><User /></el-icon>
         <span>我的</span>
@@ -57,7 +65,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowLeft, HomeFilled, Location, User } from '@element-plus/icons-vue'
+import { ArrowLeft, HomeFilled, Location, User, ShoppingCart } from '@element-plus/icons-vue'
 
 interface Props {
   title?: string
@@ -75,8 +83,9 @@ const route = useRoute()
 const activeTab = computed(() => {
   const path = route.path
   if (path === '/user/home' || path === '/') return 'home'
+  if (path.includes('products')) return 'products'
   if (path.includes('address')) return 'address'
-  if (path.includes('profile')) return 'profile'
+  if (path === '/user/home') return 'profile'
   return ''
 })
 
@@ -84,7 +93,7 @@ const handleBack = () => {
   if (window.history.length > 1) {
     router.back()
   } else {
-    router.push('/home')
+    router.push('/user/home')
   }
 }
 

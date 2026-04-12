@@ -104,14 +104,20 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/admin/products/new',
     name: 'AdminProductNew',
-    component: () => import('@/views/user/ProductForm.vue'),
+    component: () => import('@/views/admin/ProductForm.vue'),
     meta: { requiresAuth: true, role: 'admin', title: '新增商品' }
   },
   {
     path: '/admin/products/:id/edit',
     name: 'AdminProductEdit',
-    component: () => import('@/views/user/ProductForm.vue'),
+    component: () => import('@/views/admin/ProductForm.vue'),
     meta: { requiresAuth: true, role: 'admin', title: '编辑商品' }
+  },
+  {
+    path: '/admin/products/user/:userId',
+    name: 'AdminUserProducts',
+    component: () => import('@/views/admin/UserProducts.vue'),
+    meta: { requiresAuth: true, role: 'admin', title: '用户商品' }
   }
 ]
 

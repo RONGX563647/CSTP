@@ -1,7 +1,16 @@
 <template>
-  <div class="product-list-page">
-    <!-- 搜索头部 -->
-    <div class="search-header">
+  <MobileLayout :title="page_title" :show-tab-bar="!isAdminMode">
+    <div class="product-list-page">
+      <!-- 返回按钮（仅管理端显示） -->
+      <div class="back-bar" v-if="isAdminMode">
+        <el-button text @click="goBack">
+          <el-icon><ArrowLeft /></el-icon>
+          返回商品管理
+        </el-button>
+      </div>
+
+      <!-- 搜索头部 -->
+      <div class="search-header">
       <div class="search-box">
         <el-input
           v-model="searchForm.name"
@@ -105,14 +114,16 @@
       <span>没有更多了</span>
     </div>
   </div>
+  </MobileLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Search, Loading } from '@element-plus/icons-vue'
+import { Search, Loading, ArrowLeft } from '@element-plus/icons-vue'
 import { searchPublicProducts } from '@/api/product'
 import { Product, ProductStatus, ProductStatusText, ProductStatusColor } from '@/api/types'
+import MobileLayout from '@/layouts/MobileLayout.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -123,6 +134,14 @@ const isAdminMode = computed(() => route.path.startsWith('/admin/products/user')
 const sellerIdFromRoute = computed(() => {
   const id = route.params.userId
   return id ? Number(id) : undefined
+})
+
+// 页面标题
+const page_title = computed(() => {
+  if (isAdminMode) {
+    return '用户商品列表'
+  }
+  return '商品市场'
 })
 
 // 搜索表单
@@ -185,6 +204,11 @@ const handleSearch = () => {
   fetchProducts(true)
 }
 
+// 返回
+const goBack = () => {
+  router.push('/admin/products')
+}
+
 // 跳转详情页
 const goToDetail = (id: number) => {
   router.push(`/user/products/${id}`)
@@ -207,9 +231,16 @@ onMounted(() => {
 
 <style scoped>
 .product-list-page {
-  min-height: 100vh;
+  min-height: calc(100vh - 110px);
   background: #F5F5F5;
   padding-bottom: 20px;
+}
+
+/* 返回栏 */
+.back-bar {
+  padding: 12px 16px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E5E5;
 }
 
 /* 搜索头部 */

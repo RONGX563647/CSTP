@@ -125,6 +125,7 @@ const handleQueryClick = () => {
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid #374151;
+  flex-shrink: 0;
 }
 
 .sidebar-header h1 {
@@ -133,6 +134,7 @@ const handleQueryClick = () => {
   color: #FDE68A;
   margin: 0;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .sidebar.collapsed .sidebar-header h1 {
@@ -141,6 +143,11 @@ const handleQueryClick = () => {
 
 .sidebar :deep(.el-menu) {
   border-right: none;
+  overflow: hidden;
+}
+
+.sidebar :deep(.el-menu-item) {
+  height: 50px;
 }
 
 /* 主内容区 */

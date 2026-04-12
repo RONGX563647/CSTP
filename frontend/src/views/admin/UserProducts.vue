@@ -1,78 +1,50 @@
 <template>
   <AdminLayout>
-    <div class="admin-product-list-page">
+    <div class="admin-user-products-page">
     <div class="page-header">
-      <h1 class="page-title">商品管理</h1>
-      <el-button type="primary" @click="goToCreate">
-        <el-icon><Plus /></el-icon>
-        新增商品
-      </el-button>
+      <div class="header-left">
+        <el-button text @click="goBack">
+          <el-icon><ArrowLeft /></el-icon>
+          返回商品管理
+        </el-button>
+        <h1>用户商品列表</h1>
+      </div>
     </div>
 
-    <!-- 筛选栏 -->
-    <div class="filter-section">
-      <el-form :inline="true" :model="filterForm">
-        <el-form-item label="商品名称">
-          <el-input v-model="filterForm.name" placeholder="请输入商品名称" clearable />
-        </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="filterForm.category" placeholder="全部分类" clearable>
-            <el-option label="手机数码" value="手机数码" />
-            <el-option label="电脑办公" value="电脑办公" />
-            <el-option label="家用电器" value="家用电器" />
-            <el-option label="娱乐玩具" value="娱乐玩具" />
-            <el-option label="其他" value="其他" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="filterForm.status" placeholder="全部状态" clearable>
-            <el-option label="在售" value="ON_SALE" />
-            <el-option label="下架" value="OFF_SALE" />
-            <el-option label="售罄" value="OUT_OF_STOCK" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
-
-    <!-- 统计卡片 -->
-    <el-row :gutter="16" class="stats-row">
-      <el-col :span="6">
-        <el-card shadow="hover">
-          <div class="stat-card">
-            <div class="stat-label">商品总数</div>
+    <!-- 用户信息卡片 -->
+    <el-card class="user-info-card">
+      <div class="user-info">
+        <el-avatar :size="64" :src="userInfo?.avatar || undefined">
+          {{ userInitial }}
+        </el-avatar>
+        <div class="user-details">
+          <h2>{{ userInfo?.nickname || userInfo?.username }}</h2>
+          <p>用户名：{{ userInfo?.username }}</p>
+          <p v-if="userInfo?.phone">手机号：{{ userInfo?.phone }}</p>
+          <el-tag :type="userInfo?.role === 'ADMIN' || userInfo?.role === 'SUPER_ADMIN' ? 'danger' : 'primary'">
+            {{ userInfo?.role === 'ADMIN' || userInfo?.role === 'SUPER_ADMIN' ? '管理员' : '普通用户' }}
+          </el-tag>
+        </div>
+        <div class="user-stats">
+          <div class="stat-item">
             <div class="stat-value">{{ stats.total }}</div>
+            <div class="stat-label">商品总数</div>
           </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card shadow="hover">
-          <div class="stat-card">
-            <div class="stat-label">出售中</div>
+          <div class="stat-item">
             <div class="stat-value on-sale">{{ stats.onSale }}</div>
+            <div class="stat-label">出售中</div>
           </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card shadow="hover">
-          <div class="stat-card">
-            <div class="stat-label">已下架</div>
+          <div class="stat-item">
             <div class="stat-value off-sale">{{ stats.offSale }}</div>
+            <div class="stat-label">已下架</div>
           </div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card shadow="hover">
-          <div class="stat-card">
-            <div class="stat-label">已售罄</div>
+          <div class="stat-item">
             <div class="stat-value sold-out">{{ stats.soldOut }}</div>
+            <div class="stat-label">已售罄</div>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
+        </div>
+      </div>
+    </el-card>
 
     <!-- 商品表格 -->
     <el-card class="table-card">
@@ -128,20 +100,13 @@
             />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="250" fixed="right">
+        <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button size="small" text type="primary" @click="goToEdit(row.id)">
               编辑
             </el-button>
             <el-button size="small" text type="danger" @click="handleDelete(row.id)">
               删除
-            </el-button>
-            <el-button
-              size="small"
-              text
-              @click="viewUserProducts(row.sellerId)"
-            >
-              查看卖家
             </el-button>
           </template>
         </el-table-column>
@@ -165,21 +130,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
-import { getAllProducts, deleteProductForAdmin, setSaleStatus, setFeaturedStatus } from '@/api/product'
+import { ArrowLeft } from '@element-plus/icons-vue'
+import { getProductsByUser, getUserProductStats, deleteProductForAdmin, setSaleStatus, setFeaturedStatus } from '@/api/product'
 import { Product, ProductStatus, ProductStatusText, ProductStatusColor } from '@/api/types'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 
 const router = useRouter()
+const route = useRoute()
 
-const filterForm = reactive({
-  name: '',
-  category: '',
-  status: ''
-})
+const userId = computed(() => Number(route.params.userId))
 
 const tableData = ref<Product[]>([])
 const loading = ref(false)
@@ -196,21 +158,34 @@ const stats = reactive({
   soldOut: 0
 })
 
+// 模拟用户信息（实际应从后端获取）
+const userInfo = ref({
+  id: userId.value,
+  username: '用户' + userId.value,
+  nickname: '用户' + userId.value,
+  avatar: '',
+  role: 'USER',
+  phone: ''
+})
+
+const userInitial = computed(() => {
+  const name = userInfo.value?.nickname || userInfo.value?.username || ''
+  return name.charAt(0).toUpperCase()
+})
+
 // 获取商品列表
 const fetchProducts = async () => {
   loading.value = true
   try {
-    const params = {
+    const res = await getProductsByUser(userId.value, {
       page: pagination.page - 1,
-      size: pagination.size,
-      name: filterForm.name || undefined,
-      category: filterForm.category || undefined,
-      status: filterForm.status as ProductStatus | undefined
-    }
-    const res = await getAllProducts(params)
+      size: pagination.size
+    })
     const { content, totalElements } = res.data.data
     tableData.value = content
     pagination.total = totalElements
+
+    // 更新统计
     stats.total = totalElements
     stats.onSale = content.filter((p: Product) => p.status === ProductStatus.ON_SALE).length
     stats.offSale = content.filter((p: Product) => p.status === ProductStatus.OFF_SALE).length
@@ -222,29 +197,14 @@ const fetchProducts = async () => {
   }
 }
 
-// 搜索
-const handleSearch = () => {
-  pagination.page = 1
-  fetchProducts()
-}
-
-// 重置
-const handleReset = () => {
-  filterForm.name = ''
-  filterForm.category = ''
-  filterForm.status = ''
-  pagination.page = 1
-  fetchProducts()
-}
-
-// 获取状态文本
-const getStatusText = (status: ProductStatus) => {
-  return ProductStatusText[status] || ''
-}
-
-// 获取状态颜色
-const getStatusColor = (status: ProductStatus) => {
-  return ProductStatusColor[status] || 'info'
+// 获取用户统计
+const fetchStats = async () => {
+  try {
+    const res = await getUserProductStats(userId.value)
+    stats.total = res.data.data.totalProducts
+  } catch (error) {
+    console.error('获取统计失败:', error)
+  }
 }
 
 // 上下架商品
@@ -284,29 +244,37 @@ const handleDelete = (id: number) => {
   }).catch(() => {})
 }
 
-// 查看卖家商品
-const viewUserProducts = (userId: number) => {
-  router.push(`/admin/products/user/${userId}`)
-}
-
-// 去新增
-const goToCreate = () => {
-  router.push('/admin/products/new')
-}
-
 // 去编辑
 const goToEdit = (id: number) => {
   router.push(`/admin/products/${id}/edit`)
 }
 
+// 返回
+const goBack = () => {
+  router.push('/admin/products')
+}
+
+// 获取状态文本
+const getStatusText = (status: ProductStatus) => {
+  return ProductStatusText[status] || ''
+}
+
+// 获取状态颜色
+const getStatusColor = (status: ProductStatus) => {
+  return ProductStatusColor[status] || 'info'
+}
+
 onMounted(() => {
   fetchProducts()
+  fetchStats()
 })
 </script>
 
 <style scoped>
-.admin-product-list-page {
+.admin-user-products-page {
   padding: 20px;
+  background: #F5F5F6;
+  min-height: calc(100vh - 100px);
 }
 
 /* 页面头部 */
@@ -317,38 +285,59 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.page-title {
-  font-size: 24px;
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-left h1 {
+  font-size: 20px;
   font-weight: 600;
   color: #1F2937;
   margin: 0;
 }
 
-/* 筛选栏 */
-.filter-section {
-  background: #FFFFFF;
-  padding: 20px;
+/* 用户信息卡片 */
+.user-info-card {
+  margin-bottom: 20px;
   border-radius: 8px;
-  margin-bottom: 20px;
 }
 
-/* 统计卡片 */
-.stats-row {
-  margin-bottom: 20px;
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
 
-.stat-card {
+.user-details {
+  flex: 1;
+}
+
+.user-details h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 8px 0;
+}
+
+.user-details p {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 4px 0;
+}
+
+.user-stats {
+  display: flex;
+  gap: 32px;
+}
+
+.stat-item {
   text-align: center;
 }
 
-.stat-label {
-  font-size: 14px;
-  color: #6B7280;
-  margin-bottom: 8px;
-}
-
 .stat-value {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
   color: #1F2937;
 }
@@ -363,6 +352,12 @@ onMounted(() => {
 
 .stat-value.sold-out {
   color: #EF4444;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #9CA3AF;
+  margin-top: 4px;
 }
 
 /* 表格卡片 */

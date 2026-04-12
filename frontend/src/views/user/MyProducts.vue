@@ -1,7 +1,8 @@
 <template>
-  <div class="my-products-page">
-    <!-- 统计卡片 -->
-    <div class="stats-card">
+  <MobileLayout title="我的商品" :show-tab-bar="true">
+    <div class="my-products-page">
+      <!-- 统计卡片 -->
+      <div class="stats-card">
       <div class="stats-item">
         <div class="stats-value">{{ stats.total }}</div>
         <div class="stats-label">商品总数</div>
@@ -95,6 +96,7 @@
       <span>加载中...</span>
     </div>
   </div>
+  </MobileLayout>
 </template>
 
 <script setup lang="ts">
@@ -104,6 +106,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Loading } from '@element-plus/icons-vue'
 import { getMyProducts, deleteProduct, updateProductStatus } from '@/api/product'
 import { Product, ProductStatus, ProductStatusText, ProductStatusColor } from '@/api/types'
+import MobileLayout from '@/layouts/MobileLayout.vue'
 
 const router = useRouter()
 
@@ -212,7 +215,7 @@ onMounted(() => {
 
 <style scoped>
 .my-products-page {
-  min-height: 100vh;
+  min-height: calc(100vh - 110px);
   background: #F5F5F5;
   padding: 16px;
 }
