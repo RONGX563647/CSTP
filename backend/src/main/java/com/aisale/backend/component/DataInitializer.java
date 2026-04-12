@@ -2,10 +2,16 @@ package com.aisale.backend.component;
 
 import com.aisale.backend.entity.Address;
 import com.aisale.backend.entity.Admin;
+import com.aisale.backend.entity.Order;
+import com.aisale.backend.entity.OrderLog;
+import com.aisale.backend.entity.OrderReview;
 import com.aisale.backend.entity.Product;
 import com.aisale.backend.entity.User;
 import com.aisale.backend.repository.AddressRepository;
 import com.aisale.backend.repository.AdminRepository;
+import com.aisale.backend.repository.OrderLogRepository;
+import com.aisale.backend.repository.OrderRepository;
+import com.aisale.backend.repository.OrderReviewRepository;
 import com.aisale.backend.repository.ProductRepository;
 import com.aisale.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +38,9 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
+    private final OrderReviewRepository orderReviewRepository;
+    private final OrderLogRepository orderLogRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -42,6 +51,7 @@ public class DataInitializer implements CommandLineRunner {
         initUsers();
         initAddresses();
         initProducts();
+        initOrders();
 
         log.info("测试数据初始化完成!");
     }
@@ -301,5 +311,279 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         return productRepository.save(product);
+    }
+
+    /**
+     * 初始化订单数据
+     */
+    private void initOrders() {
+        log.info("开始初始化订单数据...");
+
+        User zhangsan = userRepository.findByUsername("zhangsan").orElse(null);
+        User lisi = userRepository.findByUsername("lisi").orElse(null);
+        User wangwu = userRepository.findByUsername("wangwu").orElse(null);
+
+        if (zhangsan == null || lisi == null || wangwu == null) {
+            log.warn("用户数据不完整，跳过订单初始化");
+            return;
+        }
+
+        // 获取用户 ID
+        Long zhangsanId = zhangsan.getId();
+        Long lisiId = lisi.getId();
+        Long wangwuId = wangwu.getId();
+
+        // 获取商品列表
+        var zhangsanProducts = productRepository.findBySellerId(zhangsanId);
+        var lisiProducts = productRepository.findBySellerId(lisiId);
+        var wangwuProducts = productRepository.findBySellerId(wangwuId);
+
+        if (zhangsanProducts.isEmpty() || lisiProducts.isEmpty()) {
+            log.warn("商品数据不完整，跳过订单初始化");
+            return;
+        }
+
+        // 订单 1: 李四购买张三的 iPhone 14 Pro - 已完成（双方已评价）
+        createOrderWithReview(
+                lisi, zhangsan, zhangsanProducts.get(0), // iPhone
+                Order.OrderStatus.COMPLETED,
+                "图书馆门口",
+                "周末下午 2 点",
+                "希望面交时提前联系",
+                true, true // 双方已评价
+        );
+
+        // 订单 2: 王五购买张三的 MacBook Air - 待评价（仅买家评价）
+        createOrderWithReview(
+                wangwu, zhangsan, zhangsanProducts.get(1), // MacBook
+                Order.OrderStatus.PENDING_REVIEW,
+                "教学楼 A 栋一楼",
+                "工作日下午 5 点",
+                null,
+                true, false // 买家已评价，卖家未评价
+        );
+
+        // 订单 3: 张三购买李四的佳能相机 - 待确认（卖家确认收款）
+        createOrder(
+                zhangsan, lisi, lisiProducts.get(0), // 佳能相机
+                Order.OrderStatus.PENDING_CONFIRM,
+                "食堂门口",
+                "周六上午 10 点",
+                "第一次买相机，希望能详细教一下使用"
+        );
+
+        // 订单 4: 李四购买王五的 Airpods - 待提货
+        createOrder(
+                lisi, wangwu, wangwuProducts.get(0), // Airpods
+                Order.OrderStatus.PENDING_PICKUP,
+                "快递中心",
+                "周日下午 3 点",
+                null
+        );
+
+        // 订单 5: 王五购买张三的索尼耳机 - 待付款
+        createOrder(
+                wangwu, zhangsan, zhangsanProducts.get(2), // 索尼耳机
+                Order.OrderStatus.PENDING_PAYMENT,
+                "学生宿舍区",
+                "晚上 7 点后",
+                "学生党预算有限，能小刀吗"
+        );
+
+        // 订单 6: 张三购买李四的戴森吸尘器 - 已取消（买家取消）
+        createCancelledOrder(
+                zhangsan, lisi, lisiProducts.get(1), // 戴森
+                Order.OrderStatus.CANCELLED,
+                "临时改变主意，不需要了",
+                Order.CancelRole.BUYER
+        );
+
+        // 订单 7: 李四购买张三的 iPad Pro - 已完成
+        createOrderWithReview(
+                lisi, zhangsan, zhangsanProducts.get(3), // iPad
+                Order.OrderStatus.COMPLETED,
+                "咖啡厅",
+                "周六下午 2 点",
+                "喜欢喝咖啡的时候谈交易",
+                true, true
+        );
+
+        // 订单 8: 王五购买李四的罗技鼠标 - 待评价
+        createOrderWithReview(
+                wangwu, lisi, lisiProducts.get(2), // 罗技鼠标
+                Order.OrderStatus.PENDING_REVIEW,
+                "实验室楼下",
+                "工作日中午",
+                null,
+                false, false // 双方都未评价
+        );
+
+        // 订单 9: 张三购买王五的小米手机 - 待提货
+        createOrder(
+                zhangsan, wangwu, wangwuProducts.get(1), // 小米手机
+                Order.OrderStatus.PENDING_PICKUP,
+                "校门口",
+                "周日早上 10 点",
+                "需要检查手机外观"
+        );
+
+        // 订单 10: 李四购买张三的 Switch - 已取消（卖家取消）
+        createCancelledOrder(
+                lisi, zhangsan, zhangsanProducts.get(4), // Switch
+                Order.OrderStatus.CANCELLED,
+                "已经有其他买家出价更高",
+                Order.CancelRole.SELLER
+        );
+
+        log.info("订单数据初始化完成，共创建 10 个订单");
+    }
+
+    /**
+     * 创建订单（通用方法）
+     */
+    private Order createOrder(User buyer, User seller, Product product,
+                              Order.OrderStatus status,
+                              String meetLocation, String meetTimeStr,
+                              String buyerRemark) {
+        // 检查是否已有订单
+        if (orderRepository.hasActiveOrder(product.getId())) {
+            log.info("商品 {} 已有未完成订单，跳过", product.getName());
+            return null;
+        }
+
+        String orderNo = generateOrderNo();
+        java.time.LocalDateTime meetTime = null;
+        if (meetTimeStr != null) {
+            try {
+                meetTime = java.time.LocalDateTime.parse(meetTimeStr + "T14:00:00");
+            } catch (Exception e) {
+                meetTime = java.time.LocalDateTime.now().plusDays(3);
+            }
+        }
+
+        Order order = new Order();
+        order.setOrderNo(orderNo);
+        order.setBuyerId(buyer.getId());
+        order.setSellerId(seller.getId());
+        order.setProductId(product.getId());
+        order.setProductName(product.getName());
+        order.setProductImage(product.getMainImage());
+        order.setPrice(product.getPrice());
+        order.setQuantity(1);
+        order.setTotalAmount(product.getPrice());
+        order.setMeetLocation(meetLocation);
+        order.setMeetTime(meetTime);
+        order.setBuyerRemark(buyerRemark);
+        order.setStatus(status);
+
+        // 根据状态设置时间
+        if (status == Order.OrderStatus.PENDING_PICKUP ||
+            status == Order.OrderStatus.PENDING_CONFIRM ||
+            status == Order.OrderStatus.PENDING_REVIEW ||
+            status == Order.OrderStatus.COMPLETED) {
+            order.setPaymentTime(java.time.LocalDateTime.now().minusDays(2));
+        }
+        if (status == Order.OrderStatus.PENDING_CONFIRM ||
+            status == Order.OrderStatus.PENDING_REVIEW ||
+            status == Order.OrderStatus.COMPLETED) {
+            order.setPickupTime(java.time.LocalDateTime.now().minusDays(1));
+        }
+        if (status == Order.OrderStatus.PENDING_REVIEW ||
+            status == Order.OrderStatus.COMPLETED) {
+            order.setConfirmTime(java.time.LocalDateTime.now());
+        }
+
+        order = orderRepository.save(order);
+        logOrderAction(order.getId(), buyer.getId(), OrderLog.OperatorRole.BUYER,
+                       "CREATE_ORDER", null, status, "订单创建");
+        return order;
+    }
+
+    /**
+     * 创建带评价的订单
+     */
+    private void createOrderWithReview(User buyer, User seller, Product product,
+                                       Order.OrderStatus status,
+                                       String meetLocation, String meetTimeStr,
+                                       String buyerRemark,
+                                       boolean hasBuyerReview, boolean hasSellerReview) {
+        Order order = createOrder(buyer, seller, product, status, meetLocation, meetTimeStr, buyerRemark);
+        if (order == null) return;
+
+        // 添加买家评价
+        if (hasBuyerReview) {
+            OrderReview buyerReview = new OrderReview();
+            buyerReview.setOrderId(order.getId());
+            buyerReview.setReviewerId(buyer.getId());
+            buyerReview.setRevieweeId(seller.getId());
+            buyerReview.setProductId(product.getId());
+            buyerReview.setRating(5);
+            buyerReview.setContent("商品很好，和描述一致，卖家态度也很好！");
+            buyerReview.setReviewType(OrderReview.ReviewType.BUYER_REVIEW);
+            orderReviewRepository.save(buyerReview);
+        }
+
+        // 添加卖家评价
+        if (hasSellerReview) {
+            OrderReview sellerReview = new OrderReview();
+            sellerReview.setOrderId(order.getId());
+            sellerReview.setReviewerId(seller.getId());
+            sellerReview.setRevieweeId(buyer.getId());
+            sellerReview.setProductId(product.getId());
+            sellerReview.setRating(5);
+            sellerReview.setContent("很好的买家，交易愉快！");
+            sellerReview.setReviewType(OrderReview.ReviewType.SELLER_REVIEW);
+            orderReviewRepository.save(sellerReview);
+        }
+    }
+
+    /**
+     * 创建已取消的订单
+     */
+    private void createCancelledOrder(User buyer, User seller, Product product,
+                                      Order.OrderStatus status,
+                                      String cancelReason, Order.CancelRole cancelRole) {
+        Order order = createOrder(buyer, seller, product, status, null, null, null);
+        if (order == null) return;
+
+        order.setCancelReason(cancelReason);
+        order.setCancelRole(cancelRole);
+        order.setCancelTime(java.time.LocalDateTime.now());
+        orderRepository.save(order);
+
+        logOrderAction(order.getId(), cancelRole == Order.CancelRole.BUYER ? buyer.getId() : seller.getId(),
+                       cancelRole == Order.CancelRole.BUYER ? OrderLog.OperatorRole.BUYER : OrderLog.OperatorRole.SELLER,
+                       "CANCEL_ORDER", Order.OrderStatus.PENDING_PAYMENT, Order.OrderStatus.CANCELLED, cancelReason);
+    }
+
+    /**
+     * 记录订单日志
+     */
+    private void logOrderAction(Long orderId, Long operatorId, OrderLog.OperatorRole role,
+                                String action, Order.OrderStatus fromStatus,
+                                Order.OrderStatus toStatus, String remark) {
+        OrderLog log = new OrderLog();
+        log.setOrderId(orderId);
+        log.setOperatorId(operatorId);
+        log.setOperatorRole(role);
+        log.setAction(action);
+        log.setFromStatus(fromStatus);
+        log.setToStatus(toStatus);
+        log.setRemark(remark);
+        orderLogRepository.save(log);
+    }
+
+    /**
+     * 生成订单号
+     */
+    private String generateOrderNo() {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        String timestamp = now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        java.util.Random random = new java.util.Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 6; i++) {
+            sb.append(random.nextInt(10));
+        }
+        return timestamp + sb;
     }
 }
