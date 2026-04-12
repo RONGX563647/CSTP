@@ -29,6 +29,63 @@ public class UserProductController {
     private final ProductService productService;
     private final JwtRequestUtils jwtRequestUtils;
 
+    // ==================== 公共浏览接口（无需登录）====================
+
+    @Operation(summary = "获取公开在售商品列表")
+    @GetMapping("/public/on-sale")
+    public ApiResponse<Page<ProductResponse>> getPublicOnSaleProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<ProductResponse> products = productService.getPublicOnSaleProducts(pageable);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = "获取公开商品详情")
+    @GetMapping("/public/{id}")
+    public ApiResponse<ProductResponse> getPublicProductById(@PathVariable Long id) {
+        ProductResponse product = productService.getPublicProductById(id);
+        return ApiResponse.success(product);
+    }
+
+    @Operation(summary = "获取推荐商品")
+    @GetMapping("/public/featured")
+    public ApiResponse<List<ProductResponse>> getPublicFeaturedProducts() {
+        List<ProductResponse> products = productService.getFeaturedProducts();
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = "按分类获取商品")
+    @GetMapping("/public/category/{category}")
+    public ApiResponse<Page<ProductResponse>> getProductsByCategory(
+            @PathVariable String category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductResponse> products = productService.getProductsByCategoryPublic(category, pageable);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = "搜索商品（公开）")
+    @GetMapping("/public/search")
+    public ApiResponse<Page<ProductResponse>> searchPublicProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductResponse> products = productService.searchPublicProducts(
+                name, category, minPrice, maxPrice, pageable);
+        return ApiResponse.success(products);
+    }
+
+    // ==================== 已登录用户接口 ====================
+
     @Operation(summary = "发布商品")
     @PostMapping
     public ApiResponse<ProductResponse> createProduct(

@@ -265,4 +265,124 @@ public class ProductService {
     public long countOnSaleProducts() {
         return productRepository.countByStatus(Product.ProductStatus.ON_SALE);
     }
+
+    // ==================== 公共浏览方法（无需登录）====================
+
+    /**
+     * 获取公开在售商品列表
+     */
+    public Page<ProductResponse> getPublicOnSaleProducts(Pageable pageable) {
+        return productRepository.findByIsOnSaleTrueAndStatus(Product.ProductStatus.ON_SALE, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    /**
+     * 获取公开商品详情（不增加浏览量，不检查权限）
+     */
+    public ProductResponse getPublicProductById(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("商品不存在"));
+        return ProductResponse.fromEntity(product);
+    }
+
+    /**
+     * 按分类获取公开商品
+     */
+    public Page<ProductResponse> getProductsByCategoryPublic(String category, Pageable pageable) {
+        return productRepository.findByCategory(category, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    /**
+     * 公开搜索商品
+     */
+    public Page<ProductResponse> searchPublicProducts(String name, String category,
+                                                       BigDecimal minPrice, BigDecimal maxPrice,
+                                                       Pageable pageable) {
+        return productRepository.searchProducts(name, category, minPrice, maxPrice,
+                        Product.ProductStatus.ON_SALE, null, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    // ==================== 管理员 - 用户商品管理 ====================
+
+    /**
+     * 获取指定用户的商品列表
+     */
+    public Page<ProductResponse> getProductsBySellerId(Long sellerId, Pageable pageable) {
+        return productRepository.findBySellerId(sellerId, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    /**
+     * 统计指定用户的商品数量
+     */
+    public long countProductsBySellerId(Long sellerId) {
+        return productRepository.countBySellerId(sellerId);
+    }
+
+    // ==================== 管理员 - 商品上下架管理 ====================
+
+    /**
+     * 设置商品上下架状态（管理员权限）
+     */
+    @Transactional
+    public ProductResponse setSaleStatus(Long id, Boolean isOnSale) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("商品不存在"));
+        product.setIsOnSale(isOnSale);
+
+        // 更新商品状态
+        if (!isOnSale) {
+            product.setStatus(Product.ProductStatus.OFF_SALE);
+        } else if (product.getStock() > 0) {
+            product.setStatus(Product.ProductStatus.ON_SALE);
+        } else {
+            product.setStatus(Product.ProductStatus.OUT_OF_STOCK);
+        }
+
+        product = productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    /**
+     * 设置商品推荐状态（管理员权限）
+     */
+    @Transactional
+    public ProductResponse setFeaturedStatus(Long id, Boolean isFeatured) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("商品不存在"));
+        product.setIsFeatured(isFeatured);
+        product = productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    // ==================== 管理员 - 高级查询 ====================
+
+    /**
+     * 查询售罄商品
+     */
+    public Page<ProductResponse> getOutOfStockProducts(Pageable pageable) {
+        return productRepository.findByStatus(Product.ProductStatus.OUT_OF_STOCK, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    /**
+     * 查询下架商品
+     */
+    public Page<ProductResponse> getOffSaleProducts(Pageable pageable) {
+        return productRepository.findByStatus(Product.ProductStatus.OFF_SALE, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    /**
+     * 管理员多条件查询（支持 sellerId）
+     */
+    public Page<ProductResponse> searchProductsWithSeller(String name, String category,
+                                                           BigDecimal minPrice, BigDecimal maxPrice,
+                                                           Product.ProductStatus status,
+                                                           Long sellerId, Pageable pageable) {
+        return productRepository.searchProducts(name, category, minPrice, maxPrice, status, sellerId, pageable)
+                .map(ProductResponse::fromEntity);
+    }
 }

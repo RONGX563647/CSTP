@@ -35,15 +35,15 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/send-verification",
                                 "/api/admin/auth/login",
+                                // 用户端公共浏览接口
+                                "/api/user/products/public/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/doc.html",
                                 "/webjars/**"
                         ).permitAll()
-                        // 用户端商品接口 - 允许 USER 或管理员访问
-                        .requestMatchers("/api/user/products/**").hasAnyRole("USER", "SUPER_ADMIN", "ADMIN")
-                        // 需要认证的个人接口
-                        .requestMatchers("/api/auth/**").authenticated()
+                        // 用户端已登录接口 - 需要认证
+                        .requestMatchers("/api/user/**").authenticated()
                         // Admin endpoints - 管理端接口需要管理员权限
                         .requestMatchers("/api/admin/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
                         .anyRequest().authenticated()
