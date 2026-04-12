@@ -32,7 +32,6 @@ logs/
 *.temp
 
 # Test
-backend/tests/
 
 #node_modules
 frontend/node_modules/
