@@ -168,6 +168,19 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/admin/UserProducts.vue'),
     meta: { requiresAuth: true, role: 'admin', title: '用户商品' }
   },
+  // 管理端用户管理路由
+  {
+    path: '/admin/users',
+    name: 'AdminUserList',
+    component: () => import('@/views/admin/UserList.vue'),
+    meta: { requiresAuth: true, role: 'admin', title: '用户管理' }
+  },
+  {
+    path: '/admin/users/:id',
+    name: 'AdminUserDetail',
+    component: () => import('@/views/admin/UserDetail.vue'),
+    meta: { requiresAuth: true, role: 'admin', title: '用户详情' }
+  },
   // 管理端订单路由
   {
     path: '/admin/orders',

@@ -13,6 +13,10 @@
         :collapse="sidebarCollapsed"
         router
       >
+        <el-menu-item index="/admin/users">
+          <el-icon><User /></el-icon>
+          <span>用户管理</span>
+        </el-menu-item>
         <el-menu-item index="/admin/products">
           <el-icon><ShoppingCart /></el-icon>
           <span>商品管理</span>
@@ -67,7 +71,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  ShoppingCart, Document, Search, Fold
+  ShoppingCart, Document, Search, Fold, User
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 
