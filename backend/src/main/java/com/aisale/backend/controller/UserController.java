@@ -2,21 +2,22 @@ package com.aisale.backend.controller;
 
 import com.aisale.backend.dto.ApiResponse;
 import com.aisale.backend.dto.ChangePasswordRequest;
+import com.aisale.backend.dto.ImageUploadResponse;
 import com.aisale.backend.dto.UpdateProfileRequest;
 import com.aisale.backend.dto.UserProfileResponse;
+import com.aisale.backend.service.OssService;
 import com.aisale.backend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-/**
- * 用户管理控制器
- */
 @Tag(name = "用户管理", description = "用户信息管理、密码修改、账号注销")
 @RestController
 @RequestMapping("/api/user")
@@ -25,6 +26,15 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final OssService ossService;
+
+    @Operation(summary = "上传用户头像")
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ImageUploadResponse> uploadAvatar(
+            @RequestParam("file") MultipartFile file) {
+        ImageUploadResponse response = ossService.uploadImage(file, "avatars");
+        return ApiResponse.success("头像上传成功", response);
+    }
 
     @Operation(summary = "获取当前用户详细信息")
     @GetMapping("/profile")

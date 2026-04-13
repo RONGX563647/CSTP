@@ -1,6 +1,7 @@
 package com.aisale.backend.service;
 
 import com.aisale.backend.config.OssProperties;
+import com.aisale.backend.dto.ImageUploadResponse;
 import com.aisale.backend.exception.BusinessException;
 import com.aisale.backend.exception.ErrorCode;
 import com.aliyun.oss.OSS;
@@ -28,6 +29,43 @@ public class OssService {
 
     @Autowired
     private OssProperties ossProperties;
+
+    public boolean isOssEnabled() {
+        return ossClient != null;
+    }
+
+    public ImageUploadResponse uploadImage(MultipartFile file, String directory) {
+        if (!isOssEnabled()) {
+            throw new BusinessException(ErrorCode.FILE_UPLOAD_ERROR, "OSS服务未配置");
+        }
+        
+        validateFile(file);
+        
+        String originalFilename = file.getOriginalFilename();
+        String extension = getFileExtension(originalFilename);
+        String fileName = generateFileName(directory, extension);
+        
+        try (InputStream inputStream = file.getInputStream()) {
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(file.getSize());
+            metadata.setContentType(file.getContentType());
+            
+            PutObjectResult result = ossClient.putObject(
+                ossProperties.getBucketName(),
+                fileName,
+                inputStream,
+                metadata
+            );
+            
+            log.info("File uploaded successfully: {}, ETag: {}", fileName, result.getETag());
+            
+            String url = getFileUrl(fileName);
+            return new ImageUploadResponse(url, originalFilename, file.getSize());
+        } catch (IOException e) {
+            log.error("Failed to upload file: {}", fileName, e);
+            throw new BusinessException(ErrorCode.FILE_UPLOAD_ERROR, e.getMessage());
+        }
+    }
 
     public String uploadFile(MultipartFile file, String directory) {
         validateFile(file);
