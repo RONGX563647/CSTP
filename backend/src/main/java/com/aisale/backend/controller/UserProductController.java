@@ -1,9 +1,11 @@
 package com.aisale.backend.controller;
 
 import com.aisale.backend.dto.ApiResponse;
+import com.aisale.backend.dto.ImageUploadResponse;
 import com.aisale.backend.dto.ProductRequest;
 import com.aisale.backend.dto.ProductResponse;
 import com.aisale.backend.entity.Product;
+import com.aisale.backend.service.OssService;
 import com.aisale.backend.service.ProductService;
 import com.aisale.backend.util.JwtRequestUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,9 +17,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Tag(name = "用户端商品", description = "用户管理自己的二手商品")
@@ -28,6 +33,7 @@ public class UserProductController {
 
     private final ProductService productService;
     private final JwtRequestUtils jwtRequestUtils;
+    private final OssService ossService;
 
     // ==================== 公共浏览接口（无需登录）====================
 
@@ -86,6 +92,26 @@ public class UserProductController {
     }
 
     // ==================== 已登录用户接口 ====================
+
+    @Operation(summary = "上传商品主图")
+    @PostMapping(value = "/upload/main-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ImageUploadResponse> uploadMainImage(
+            @RequestParam("file") MultipartFile file) {
+        ImageUploadResponse response = ossService.uploadImage(file, "products/main");
+        return ApiResponse.success("图片上传成功", response);
+    }
+
+    @Operation(summary = "上传商品详情图片（批量）")
+    @PostMapping(value = "/upload/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<List<ImageUploadResponse>> uploadImages(
+            @RequestParam("files") MultipartFile[] files) {
+        List<ImageUploadResponse> responses = new ArrayList<>();
+        for (MultipartFile file : files) {
+            ImageUploadResponse response = ossService.uploadImage(file, "products/detail");
+            responses.add(response);
+        }
+        return ApiResponse.success("图片上传成功", responses);
+    }
 
     @Operation(summary = "发布商品")
     @PostMapping

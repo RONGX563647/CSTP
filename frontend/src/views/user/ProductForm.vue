@@ -91,45 +91,25 @@
         </el-select>
       </el-form-item>
 
-      <!-- 主图 -->
+      <!-- 主图上传 -->
       <el-form-item label="商品主图" prop="mainImage">
-        <el-input
+        <ImageUpload
           v-model="form.mainImage"
-          placeholder="请输入主图 URL"
+          upload-type="product-main"
+          :max-size="10"
+          placeholder="点击上传商品主图"
+          @success="handleMainImageSuccess"
         />
-        <div class="image-preview" v-if="form.mainImage">
-          <el-image :src="form.mainImage" fit="cover" class="preview-image" />
-        </div>
       </el-form-item>
 
-      <!-- 商品图片列表 -->
-      <el-form-item label="商品图片" prop="images">
-        <el-input
-          v-model="imagesInput"
-          type="textarea"
-          :rows="3"
-          placeholder="每行一个图片 URL"
+      <!-- 商品图片列表上传 -->
+      <el-form-item label="商品详情图片" prop="images">
+        <MultiImageUpload
+          v-model="form.images"
+          :max-size="10"
+          :max-count="9"
+          placeholder="点击上传详情图片（可多选）"
         />
-        <div class="image-list" v-if="form.images && form.images.length > 0">
-          <div
-            v-for="(img, index) in form.images"
-            :key="index"
-            class="image-item"
-          >
-            <el-image :src="img" fit="cover" class="preview-image-small" />
-            <el-button
-              size="small"
-              text
-              type="danger"
-              @click="removeImage(index)"
-            >
-              <el-icon><Delete /></el-icon>
-            </el-button>
-          </div>
-        </div>
-        <el-button @click="parseImages" style="margin-top: 8px">
-          解析图片 URL
-        </el-button>
       </el-form-item>
 
       <!-- 标签 -->
@@ -169,7 +149,9 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { ArrowLeft, Delete } from '@element-plus/icons-vue'
+import { ArrowLeft } from '@element-plus/icons-vue'
+import ImageUpload from '@/components/ImageUpload.vue'
+import MultiImageUpload from '@/components/MultiImageUpload.vue'
 import {
   createProduct,
   updateProduct,
@@ -186,10 +168,8 @@ const route = useRoute()
 const formRef = ref<FormInstance>()
 const submitting = ref(false)
 const isEdit = computed(() => !!route.params.id)
-// 判断是否为管理端模式
 const isAdminMode = computed(() => route.path.startsWith('/admin'))
 
-// 表单数据
 const form = reactive<ProductCreateRequest>({
   name: '',
   description: '',
@@ -204,10 +184,8 @@ const form = reactive<ProductCreateRequest>({
   isFeatured: false
 })
 
-const imagesInput = ref('')
 const tagsInput = ref('')
 
-// 表单验证规则
 const rules: FormRules = {
   name: [
     { required: true, message: '请输入商品名称', trigger: 'blur' },
@@ -220,14 +198,17 @@ const rules: FormRules = {
     { required: true, message: '请输入商品库存', trigger: 'blur' }
   ],
   mainImage: [
-    { required: true, message: '请输入商品主图', trigger: 'blur' }
+    { required: true, message: '请上传商品主图', trigger: 'change' }
   ],
   category: [
     { required: true, message: '请选择商品分类', trigger: 'change' }
   ]
 }
 
-// 添加标签
+const handleMainImageSuccess = (data: { url: string; fileName: string; size: number }) => {
+  console.log('主图上传成功:', data)
+}
+
 const addTag = () => {
   const tag = tagsInput.value.trim()
   if (tag) {
@@ -236,27 +217,10 @@ const addTag = () => {
   }
 }
 
-// 删除标签
 const removeTag = (index: number) => {
   form.tags?.splice(index, 1)
 }
 
-// 解析图片 URL
-const parseImages = () => {
-  const urls = imagesInput.value.split('\n').filter(url => url.trim())
-  if (urls.length > 0) {
-    form.images = [...(form.images || []), ...urls]
-    imagesInput.value = ''
-    ElMessage.success(`已添加 ${urls.length} 张图片`)
-  }
-}
-
-// 删除图片
-const removeImage = (index: number) => {
-  form.images?.splice(index, 1)
-}
-
-// 加载商品数据（编辑模式）
 const loadProduct = async () => {
   if (!route.params.id) return
   try {
@@ -283,7 +247,6 @@ const loadProduct = async () => {
   }
 }
 
-// 提交表单
 const handleSubmit = async () => {
   if (!formRef.value) return
 
@@ -309,7 +272,6 @@ const handleSubmit = async () => {
           ElMessage.success('商品发布成功')
         }
       }
-      // 管理端返回列表到商品管理页，用户端返回到我的商品页
       router.push(isAdminMode.value ? '/admin/products' : '/user/products/my')
     } catch (error) {
       console.error('提交失败:', error)
@@ -319,7 +281,6 @@ const handleSubmit = async () => {
   })
 }
 
-// 返回
 const goBack = () => {
   router.push(isAdminMode.value ? '/admin/products' : '/user/products/my')
 }
@@ -337,7 +298,6 @@ onMounted(() => {
   background: #F5F5F5;
 }
 
-/* 表单头部 */
 .form-header {
   position: sticky;
   top: 0;
@@ -357,57 +317,11 @@ onMounted(() => {
   margin: 0;
 }
 
-/* 表单内容 */
 .product-form {
   padding: 16px;
   background: #FFFFFF;
 }
 
-/* 图片预览 */
-.image-preview {
-  margin-top: 12px;
-  display: flex;
-  justify-content: center;
-  background: #F9FAFB;
-  padding: 16px;
-  border-radius: 8px;
-}
-
-.preview-image {
-  max-width: 300px;
-  max-height: 300px;
-  border-radius: 8px;
-}
-
-/* 图片列表 */
-.image-list {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.image-item {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #F9FAFB;
-}
-
-.image-item .el-button {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.preview-image-small {
-  width: 100%;
-  height: 100%;
-}
-
-/* 标签列表 */
 .tags-list {
   display: flex;
   flex-wrap: wrap;

@@ -44,6 +44,9 @@ public class SecurityConfig {
                                 "/api/admin/auth/login",
                                 // 用户端公共浏览接口
                                 "/api/user/products/public/**",
+                                // WebSocket endpoints
+                                "/ws/**",
+                                "/ws",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/doc.html",

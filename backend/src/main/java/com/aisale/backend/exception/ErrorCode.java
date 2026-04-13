@@ -46,6 +46,14 @@ public enum ErrorCode {
     DATABASE_ERROR("10990002", "数据库操作失败", 500),
     EXTERNAL_SERVICE_ERROR("10990003", "外部服务调用失败", 503),
 
+    // 文件上传错误 (1004xxxx)
+    FILE_UPLOAD_ERROR("10040001", "文件上传失败", 500),
+    FILE_DOWNLOAD_ERROR("10040002", "文件下载失败", 500),
+    FILE_DELETE_ERROR("10040003", "文件删除失败", 500),
+    FILE_EMPTY("10040004", "上传文件不能为空", 400),
+    FILE_SIZE_EXCEEDED("10040005", "文件大小超过限制", 400),
+    FILE_TYPE_NOT_ALLOWED("10040006", "不支持的文件类型", 400),
+
     // ==================== 用户模块 (20xxxxxx) ====================
 
     // 用户认证错误 (2001xxxx)
