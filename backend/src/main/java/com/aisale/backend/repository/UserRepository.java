@@ -17,4 +17,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     boolean existsByPhone(String phone);
+
+    /**
+     * 检查邮箱是否已被其他用户使用
+     */
+    boolean existsByEmailAndIdNot(String email, Long id);
+
+    /**
+     * 检查手机号是否已被其他用户使用
+     */
+    boolean existsByPhoneAndIdNot(String phone, Long id);
 }
