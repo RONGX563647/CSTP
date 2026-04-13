@@ -49,7 +49,7 @@ const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
   uploadType: 'avatar',
   maxSize: 10,
-  accept: 'image/jpeg,image/png,image/gif,image/webp',
+  accept: 'image/jpeg,image/png,image/gif,image/webp,image/bmp,image/x-icon,image/svg+xml,image/tiff,image/tif,image/psd,image/raw,image/heif,image/heic',
   placeholder: '点击上传图片',
   showPreview: true,
   disabled: false

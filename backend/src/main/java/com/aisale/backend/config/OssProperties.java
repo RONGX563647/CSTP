@@ -21,5 +21,5 @@ public class OssProperties {
 
     private Long maxFileSize = 10 * 1024 * 1024L;
 
-    private String[] allowedExtensions = {"jpg", "jpeg", "png", "gif", "bmp", "webp"};
+    private String[] allowedExtensions = {"jpg", "jpeg", "png", "gif", "bmp", "webp", "ico", "svg", "tiff", "tif", "psd", "raw", "heif", "heic"};
 }
