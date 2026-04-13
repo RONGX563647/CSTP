@@ -162,7 +162,7 @@ const handleRegister = async () => {
     try {
       // 注意：这里需要调用后端的管理员创建 API
       // 目前后端只有 /api/admin/auth/create 需要认证权限
-      await request.post('/api/admin/auth/create', {
+      await request.post('/admin/auth/create', {
         username: registerForm.username,
         password: registerForm.password,
         nickname: registerForm.nickname || undefined,

@@ -75,7 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
    * 用户登录
    */
   const login = async (params: LoginParams) => {
-    const response = await request.post('/api/auth/login', { username: params.username, password: params.password })
+    const response = await request.post('/auth/login', { username: params.username, password: params.password })
     const res = response.data as unknown as ApiResponse<AuthResponse>
     const authData = res.data
     setToken(authData.tokenType + ' ' + authData.token)
@@ -93,7 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
    * 管理员登录
    */
   const adminLogin = async (params: LoginParams) => {
-    const response = await request.post('/api/admin/auth/login', { username: params.username, password: params.password })
+    const response = await request.post('/admin/auth/login', { username: params.username, password: params.password })
     const res = response.data as unknown as ApiResponse<AuthResponse>
     const authData = res.data
     setToken(authData.tokenType + ' ' + authData.token)
@@ -111,7 +111,7 @@ export const useAuthStore = defineStore('auth', () => {
    * 用户注册
    */
   const register = async (params: RegisterParams) => {
-    const response = await request.post('/api/auth/register', params)
+    const response = await request.post('/auth/register', params)
     const res = response.data as unknown as ApiResponse<AuthResponse>
     const authData = res.data
     setToken(authData.tokenType + ' ' + authData.token)
@@ -132,7 +132,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return
 
     try {
-      const response = await request.get<UserInfo>('/api/auth/me')
+      const response = await request.get<UserInfo>('/auth/me')
       const res = response.data as unknown as ApiResponse<UserInfo>
       setUserInfo(res.data)
       return res
@@ -147,7 +147,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const updateProfile = async (data: { nickname: string; avatar?: string; email?: string; phone?: string }) => {
     try {
-      const response = await request.put<UserInfo>('/api/user/profile', data)
+      const response = await request.put<UserInfo>('/user/profile', data)
       const res = response.data as unknown as ApiResponse<UserInfo>
       setUserInfo(res.data)
       return res
