@@ -5,9 +5,10 @@ import com.aisale.backend.entity.ChatMessage;
 import com.aisale.backend.entity.User;
 import com.aisale.backend.repository.ChatMessageRepository;
 import com.aisale.backend.repository.UserRepository;
+import com.aisale.backend.websocket.ChatWebSocketHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +22,16 @@ public class ChatService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final ApplicationContext applicationContext;
+
+    private ChatWebSocketHandler webSocketHandler;
+
+    private ChatWebSocketHandler getWebSocketHandler() {
+        if (webSocketHandler == null) {
+            webSocketHandler = applicationContext.getBean(ChatWebSocketHandler.class);
+        }
+        return webSocketHandler;
+    }
 
     @Transactional
     public ChatMessageResponse sendMessage(Long senderId, Long receiverId, String content) {
@@ -43,11 +53,7 @@ public class ChatService {
 
         ChatMessageResponse response = ChatMessageResponse.fromEntity(savedMessage, sender.getUsername(), receiver.getUsername());
 
-        messagingTemplate.convertAndSendToUser(
-            String.valueOf(receiverId),
-            "/queue/messages",
-            response
-        );
+        getWebSocketHandler().sendMessageToUser(receiverId, response);
         log.info("Message sent to user {} via WebSocket", receiverId);
 
         return response;

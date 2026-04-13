@@ -132,6 +132,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/DeleteAccount.vue'),
     meta: { requiresAuth: true, title: '注销账号' }
   },
+  // 用户聊天路由
+  {
+    path: '/user/chat',
+    name: 'UserChat',
+    component: () => import('@/views/user/Chat.vue'),
+    meta: { requiresAuth: true, title: '即时消息' }
+  },
   // 管理端路由
   {
     path: '/admin/login',
