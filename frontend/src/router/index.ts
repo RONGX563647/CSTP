@@ -107,6 +107,31 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/Register.vue'),
     meta: { guest: true, title: '用户注册' }
   },
+  // 用户个人信息管理路由
+  {
+    path: '/user/profile',
+    name: 'UserProfile',
+    component: () => import('@/views/user/Profile.vue'),
+    meta: { requiresAuth: true, title: '个人信息' }
+  },
+  {
+    path: '/user/profile/edit',
+    name: 'UserProfileEdit',
+    component: () => import('@/views/user/ProfileEdit.vue'),
+    meta: { requiresAuth: true, title: '编辑资料' }
+  },
+  {
+    path: '/user/password',
+    name: 'UserChangePassword',
+    component: () => import('@/views/user/ChangePassword.vue'),
+    meta: { requiresAuth: true, title: '修改密码' }
+  },
+  {
+    path: '/user/delete-account',
+    name: 'UserDeleteAccount',
+    component: () => import('@/views/user/DeleteAccount.vue'),
+    meta: { requiresAuth: true, title: '注销账号' }
+  },
   // 管理端路由
   {
     path: '/admin/login',

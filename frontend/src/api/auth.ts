@@ -35,6 +35,18 @@ export interface UserInfo {
   status: string
 }
 
+export interface UpdateProfileRequest {
+  nickname: string
+  avatar?: string
+  email?: string
+  phone?: string
+}
+
+export interface ChangePasswordRequest {
+  oldPassword: string
+  newPassword: string
+}
+
 /**
  * 用户登录
  */
@@ -75,5 +87,38 @@ export const adminLogin = (data: LoginRequest) => {
     url: '/admin/auth/login',
     method: 'post',
     data
+  })
+}
+
+/**
+ * 更新用户信息
+ */
+export const updateProfile = (data: UpdateProfileRequest) => {
+  return request<ApiResponse<UserInfo>>({
+    url: '/user/profile',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 修改密码
+ */
+export const changePassword = (data: ChangePasswordRequest) => {
+  return request<ApiResponse<void>>({
+    url: '/user/password',
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除账号
+ */
+export const deleteAccount = (password: string) => {
+  return request<ApiResponse<void>>({
+    url: '/user/delete-account',
+    method: 'post',
+    params: { password }
   })
 }

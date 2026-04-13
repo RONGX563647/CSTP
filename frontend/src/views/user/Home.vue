@@ -73,14 +73,14 @@
       <div class="menu-section">
         <h3 class="menu-title">账户设置</h3>
         <div class="menu-list">
-          <div class="menu-item">
+          <div class="menu-item" @click="navigateTo('/user/profile')">
             <div class="menu-icon">
               <el-icon :size="24"><User /></el-icon>
             </div>
             <span class="menu-label">个人信息</span>
             <el-icon class="menu-arrow"><ArrowRight /></el-icon>
           </div>
-          <div class="menu-item">
+          <div class="menu-item" @click="navigateTo('/user/password')">
             <div class="menu-icon">
               <el-icon :size="24"><Lock /></el-icon>
             </div>

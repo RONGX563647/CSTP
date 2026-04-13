@@ -10,6 +10,10 @@ interface UserInfo {
   avatar: string
   role: string
   phone?: string
+  email?: string
+  emailVerified?: boolean
+  status?: string
+  createdAt?: string
 }
 
 // 登录请求参数类型
@@ -139,6 +143,21 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
+   * 更新用户信息
+   */
+  const updateProfile = async (data: { nickname: string; avatar?: string; email?: string; phone?: string }) => {
+    try {
+      const response = await request.put<UserInfo>('/api/user/profile', data)
+      const res = response.data as unknown as ApiResponse<UserInfo>
+      setUserInfo(res.data)
+      return res
+    } catch (error) {
+      console.error('更新用户信息失败:', error)
+      throw error
+    }
+  }
+
+  /**
    * 退出登录
    */
   const logout = () => {
@@ -163,6 +182,7 @@ export const useAuthStore = defineStore('auth', () => {
     adminLogin,
     register,
     getUserInfo,
+    updateProfile,
     logout
   }
 })
