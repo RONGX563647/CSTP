@@ -129,7 +129,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AdminLayout from '@/layouts/AdminLayout.vue'
-import { getUserById, updateUserStatus, resetUserPassword, deleteUser, type User, UserStatus } from '@/api/user'
+import { getUserById, updateUserStatus, resetUserPassword, deleteUser, getUserOrderStats, type User, UserStatus } from '@/api/user'
 
 const route = useRoute()
 const router = useRouter()
@@ -156,6 +156,10 @@ const fetchUserDetail = async () => {
     const response = await getUserById(Number(userId))
     user.value = response.data.data
     newStatus.value = user.value.status
+
+    // 获取订单统计
+    const statsResponse = await getUserOrderStats(Number(userId))
+    userStats.value = statsResponse.data.data
   } catch (error: any) {
     console.error('获取用户详情失败:', error)
   } finally {

@@ -109,3 +109,17 @@ export const getUserStats = () => {
     method: 'get'
   })
 }
+
+/**
+ * 获取用户订单统计
+ */
+export const getUserOrderStats = (id: number) => {
+  return request<ApiResponse<{
+    buyerOrders: number
+    sellerOrders: number
+    completedOrders: number
+  }>>({
+    url: `/admin/users/${id}/order-stats`,
+    method: 'get'
+  })
+}

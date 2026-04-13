@@ -2,8 +2,10 @@ package com.aisale.backend.service;
 
 import com.aisale.backend.dto.UserAdminResponse;
 import com.aisale.backend.dto.UserQueryRequest;
+import com.aisale.backend.entity.Order;
 import com.aisale.backend.entity.User;
 import com.aisale.backend.exception.business.NotFoundException;
+import com.aisale.backend.repository.OrderRepository;
 import com.aisale.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminUserService {
 
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -125,5 +128,33 @@ public class AdminUserService {
             Long activeUsers,
             Long inactiveUsers,
             Long bannedUsers
+    ) {}
+
+    /**
+     * 获取用户订单统计
+     */
+    @Transactional(readOnly = true)
+    public UserOrderStats getUserOrderStats(Long userId) {
+        // 统计作为买家的订单数量
+        long buyerOrders = orderRepository.countByBuyerId(userId);
+
+        // 统计作为卖家的订单数量
+        long sellerOrders = orderRepository.countBySellerId(userId);
+
+        // 统计完成的订单数量（作为买家）
+        long completedAsBuyer = orderRepository.countByBuyerIdAndStatus(userId, Order.OrderStatus.COMPLETED);
+        // 统计完成的订单数量（作为卖家）
+        long completedAsSeller = orderRepository.countBySellerIdAndStatus(userId, Order.OrderStatus.COMPLETED);
+
+        return new UserOrderStats(buyerOrders, sellerOrders, completedAsBuyer + completedAsSeller);
+    }
+
+    /**
+     * 用户订单统计内部类
+     */
+    public record UserOrderStats(
+            Long buyerOrders,
+            Long sellerOrders,
+            Long completedOrders
     ) {}
 }

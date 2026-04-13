@@ -70,4 +70,11 @@ public class AdminUserController {
         AdminUserService.UserStats stats = adminUserService.getUserStats();
         return ApiResponse.success(stats);
     }
+
+    @Operation(summary = "获取用户订单统计")
+    @GetMapping("/{id}/order-stats")
+    public ApiResponse<AdminUserService.UserOrderStats> getUserOrderStats(@PathVariable Long id) {
+        AdminUserService.UserOrderStats stats = adminUserService.getUserOrderStats(id);
+        return ApiResponse.success(stats);
+    }
 }

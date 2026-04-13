@@ -73,6 +73,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     long countBySellerId(Long sellerId);
 
     /**
+     * 统计买家在指定状态下的订单数量
+     */
+    long countByBuyerIdAndStatus(Long buyerId, Order.OrderStatus status);
+
+    /**
+     * 统计卖家在指定状态下的订单数量
+     */
+    long countBySellerIdAndStatus(Long sellerId, Order.OrderStatus status);
+
+    /**
      * 多条件查询订单
      */
     @Query("SELECT o FROM Order o WHERE " +
