@@ -40,6 +40,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false, title: '商品列表' }
   },
   {
+    path: '/user/search',
+    name: 'UserSearch',
+    component: () => import('@/views/user/SearchPage.vue'),
+    meta: { requiresAuth: false, title: '搜索' }
+  },
+  {
     path: '/user/products/:id',
     name: 'UserProductDetail',
     component: () => import('@/views/user/ProductDetail.vue'),

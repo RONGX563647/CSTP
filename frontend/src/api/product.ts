@@ -113,6 +113,70 @@ export const searchPublicProducts = (params?: ProductListParams) => {
   })
 }
 
+export interface ProductSearchResult {
+  product: Product
+  relevanceScore: number
+  matchType: string
+}
+
+export interface SmartSearchParams {
+  keyword?: string
+  category?: string
+  minPrice?: number
+  maxPrice?: number
+  page?: number
+  size?: number
+}
+
+/**
+ * 智能搜索商品（相关性排序）
+ */
+export const smartSearchProducts = (params?: SmartSearchParams) => {
+  return request<ApiResponse<{
+    content: ProductSearchResult[]
+    totalElements: number
+    totalPages: number
+    number: number
+    size: number
+  }>>({
+    url: '/user/products/public/search/smart',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 获取热门搜索关键词
+ */
+export const getHotKeywords = (limit?: number) => {
+  return request<ApiResponse<string[]>>({
+    url: '/user/products/public/search/hot-keywords',
+    method: 'get',
+    params: { limit }
+  })
+}
+
+/**
+ * 获取用户搜索历史
+ */
+export const getUserSearchHistory = (limit?: number) => {
+  return request<ApiResponse<string[]>>({
+    url: '/user/products/search/history',
+    method: 'get',
+    params: { limit }
+  })
+}
+
+/**
+ * 清除用户搜索历史
+ */
+export const clearSearchHistory = () => {
+  return request<ApiResponse<void>>({
+    url: '/user/products/search/history',
+    method: 'delete'
+  })
+}
+
 // ==================== 用户端已登录 API ====================
 
 /**
