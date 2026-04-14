@@ -89,8 +89,12 @@ public class UserProductController {
             @RequestParam(defaultValue = "desc") String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
+        
+        String trimmedName = (name != null && name.trim().isEmpty()) ? null : name;
+        String trimmedCategory = (category != null && category.trim().isEmpty()) ? null : category;
+        
         Page<ProductResponse> products = productService.searchPublicProducts(
-                name, category, minPrice, maxPrice, sellerId, pageable);
+                trimmedName, trimmedCategory, minPrice, maxPrice, sellerId, pageable);
         return ApiResponse.success(products);
     }
 
