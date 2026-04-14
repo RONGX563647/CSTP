@@ -21,7 +21,7 @@
         <java.version>17</java.version>
         <spring-ai.version>1.0.0-M4</spring-ai.version>
         <knife4j.version>4.5.0</knife4j.version>
-        <lombok.version>1.18.30</lombok.version>
+        <lombok.version>1.18.36</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
