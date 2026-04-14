@@ -4,8 +4,10 @@ import com.aisale.backend.dto.ApiResponse;
 import com.aisale.backend.dto.ImageUploadResponse;
 import com.aisale.backend.dto.ProductRequest;
 import com.aisale.backend.dto.ProductResponse;
+import com.aisale.backend.dto.ProductSearchResult;
 import com.aisale.backend.entity.Product;
 import com.aisale.backend.service.OssService;
+import com.aisale.backend.service.ProductSearchService;
 import com.aisale.backend.service.ProductService;
 import com.aisale.backend.util.JwtRequestUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +36,7 @@ public class UserProductController {
     private final ProductService productService;
     private final JwtRequestUtils jwtRequestUtils;
     private final OssService ossService;
+    private final ProductSearchService productSearchService;
 
     // ==================== 公共浏览接口（无需登录）====================
 
@@ -95,6 +98,74 @@ public class UserProductController {
         
         Page<ProductResponse> products = productService.searchPublicProducts(
                 trimmedName, trimmedCategory, minPrice, maxPrice, sellerId, pageable);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = "智能搜索商品（相关性排序）")
+    @GetMapping("/public/search/smart")
+    public ApiResponse<Page<ProductSearchResult>> smartSearchProducts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request) {
+        
+        String trimmedKeyword = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
+        String trimmedCategory = (category != null && !category.trim().isEmpty()) ? category.trim() : null;
+        
+        Long userId = null;
+        try {
+            userId = jwtRequestUtils.getCurrentUserId(request);
+        } catch (Exception e) {
+        }
+        
+        Page<ProductSearchResult> results = productSearchService.searchWithRelevance(
+            trimmedKeyword, trimmedCategory, minPrice, maxPrice, userId, page, size);
+        return ApiResponse.success(results);
+    }
+
+    @Operation(summary = "获取热门搜索关键词")
+    @GetMapping("/public/search/hot-keywords")
+    public ApiResponse<List<String>> getHotKeywords(
+            @RequestParam(defaultValue = "10") int limit) {
+        List<String> keywords = productSearchService.getHotKeywords(limit);
+        return ApiResponse.success(keywords);
+    }
+
+    @Operation(summary = "获取用户搜索历史")
+    @GetMapping("/search/history")
+    public ApiResponse<List<String>> getUserSearchHistory(
+            @RequestParam(defaultValue = "10") int limit,
+            HttpServletRequest request) {
+        Long userId = jwtRequestUtils.getCurrentUserId(request);
+        List<String> history = productSearchService.getUserSearchHistory(userId, limit);
+        return ApiResponse.success(history);
+    }
+
+    @Operation(summary = "清除用户搜索历史")
+    @DeleteMapping("/search/history")
+    public ApiResponse<Void> clearSearchHistory(HttpServletRequest request) {
+        Long userId = jwtRequestUtils.getCurrentUserId(request);
+        productSearchService.clearUserSearchHistory(userId);
+        return ApiResponse.success("搜索历史已清除", null);
+    }
+
+    @Operation(summary = "获取热门商品")
+    @GetMapping("/public/hot")
+    public ApiResponse<List<ProductResponse>> getHotProducts(
+            @RequestParam(defaultValue = "10") int limit) {
+        List<ProductResponse> products = productSearchService.getHotProducts(limit);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = "获取分类热门商品")
+    @GetMapping("/public/hot/{category}")
+    public ApiResponse<List<ProductResponse>> getHotProductsByCategory(
+            @PathVariable String category,
+            @RequestParam(defaultValue = "10") int limit) {
+        List<ProductResponse> products = productSearchService.getHotProductsByCategory(category, limit);
         return ApiResponse.success(products);
     }
 

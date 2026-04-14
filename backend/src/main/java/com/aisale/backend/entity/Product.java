@@ -9,7 +9,16 @@ import java.util.List;
 
 @Data
 @Entity
-@Table(name = "products")
+@Table(name = "products", indexes = {
+    @Index(name = "idx_product_name", columnList = "name"),
+    @Index(name = "idx_product_category", columnList = "category"),
+    @Index(name = "idx_product_status", columnList = "status"),
+    @Index(name = "idx_product_sales", columnList = "sales_count"),
+    @Index(name = "idx_product_views", columnList = "view_count"),
+    @Index(name = "idx_product_status_sales", columnList = "status, sales_count DESC"),
+    @Index(name = "idx_product_price", columnList = "price"),
+    @Index(name = "idx_product_created", columnList = "createdAt DESC")
+})
 public class Product {
 
     @Id
