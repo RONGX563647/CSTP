@@ -242,15 +242,38 @@ router.beforeEach(async (to, _from, next) => {
     if (!authStore.isLoggedIn) {
       next({ name: 'UserLogin', query: { redirect: to.fullPath } })
     } else {
-      next()
+      // 检查管理员权限
+      if (to.meta.role === 'admin' && !authStore.isAdmin) {
+        next({ name: 'UserHome' })
+      } else {
+        next()
+      }
     }
   }
   // 仅限访客（已登录用户不能访问登录/注册页）
   else if (to.meta.guest) {
-    if (authStore.isLoggedIn) {
-      next({ name: 'UserHome' })
-    } else {
-      next()
+    // 管理员登录页特殊处理
+    if (to.name === 'AdminLogin') {
+      if (authStore.isLoggedIn) {
+        // 已登录管理员：重定向到管理员首页
+        if (authStore.isAdmin) {
+          next({ name: 'AdminProductList' })
+        } else {
+          // 已登录普通用户：允许访问管理员登录页（可以切换账号）
+          next()
+        }
+      } else {
+        // 未登录：允许访问
+        next()
+      }
+    }
+    // 用户登录/注册页
+    else {
+      if (authStore.isLoggedIn) {
+        next({ name: 'UserHome' })
+      } else {
+        next()
+      }
     }
   }
   else {
