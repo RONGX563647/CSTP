@@ -101,6 +101,14 @@
           返回
         </el-button>
         <el-button
+          v-if="!isOwnProduct && authStore.isLoggedIn"
+          type="warning"
+          @click="contactSeller"
+        >
+          <el-icon><ChatDotRound /></el-icon>
+          联系卖家
+        </el-button>
+        <el-button
           v-if="isOwnProduct"
           type="primary"
           @click="goToEdit"
@@ -136,7 +144,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Loading, ArrowLeft, Edit } from '@element-plus/icons-vue'
+import { Loading, ArrowLeft, Edit, ChatDotRound } from '@element-plus/icons-vue'
 import { getPublicProductById } from '@/api/product'
 import { Product, ProductStatus, ProductStatusText, ProductStatusColor } from '@/api/types'
 import { useAuthStore } from '@/stores/auth'
@@ -193,6 +201,12 @@ const goBack = () => {
 // 去编辑
 const goToEdit = () => {
   router.push(`/user/products/${product.value!.id}/edit`)
+}
+
+// 联系卖家
+const contactSeller = () => {
+  if (!product.value) return
+  router.push(`/user/chat/${product.value.sellerId}`)
 }
 
 // 购买

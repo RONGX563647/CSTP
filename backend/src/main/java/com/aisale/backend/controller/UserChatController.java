@@ -3,6 +3,7 @@ package com.aisale.backend.controller;
 import com.aisale.backend.dto.ApiResponse;
 import com.aisale.backend.dto.ChatMessageRequest;
 import com.aisale.backend.dto.ChatMessageResponse;
+import com.aisale.backend.dto.ChatPartnerResponse;
 import com.aisale.backend.service.ChatService;
 import com.aisale.backend.util.JwtRequestUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,11 +46,19 @@ public class UserChatController {
         return ApiResponse.success(messages);
     }
 
-    @Operation(summary = "获取聊天对象列表")
+    @Operation(summary = "获取聊天对象列表（仅ID）")
     @GetMapping("/partners")
     public ApiResponse<List<Long>> getChatPartners(HttpServletRequest request) {
         Long currentUserId = jwtRequestUtils.getCurrentUserId(request);
         List<Long> partners = chatService.getChatPartners(currentUserId);
+        return ApiResponse.success(partners);
+    }
+
+    @Operation(summary = "获取聊天对象列表（含详情和未读数）")
+    @GetMapping("/partners/detail")
+    public ApiResponse<List<ChatPartnerResponse>> getChatPartnersDetail(HttpServletRequest request) {
+        Long currentUserId = jwtRequestUtils.getCurrentUserId(request);
+        List<ChatPartnerResponse> partners = chatService.getChatPartnersDetail(currentUserId);
         return ApiResponse.success(partners);
     }
 
@@ -65,6 +74,16 @@ public class UserChatController {
     @PutMapping("/read/{messageId}")
     public ApiResponse<Void> markAsRead(@PathVariable Long messageId) {
         chatService.markAsRead(messageId);
+        return ApiResponse.success();
+    }
+
+    @Operation(summary = "标记与某用户的对话全部已读")
+    @PutMapping("/conversation/{userId}/read")
+    public ApiResponse<Void> markConversationAsRead(
+            @PathVariable Long userId,
+            HttpServletRequest request) {
+        Long currentUserId = jwtRequestUtils.getCurrentUserId(request);
+        chatService.markConversationAsRead(currentUserId, userId);
         return ApiResponse.success();
     }
 }

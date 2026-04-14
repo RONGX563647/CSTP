@@ -7,7 +7,6 @@ import com.aisale.backend.dto.RegisterRequest;
 import com.aisale.backend.entity.User;
 import com.aisale.backend.exception.business.ConflictException;
 import com.aisale.backend.exception.business.ForbiddenException;
-import com.aisale.backend.exception.business.NotFoundException;
 import com.aisale.backend.exception.business.UnauthorizedException;
 import com.aisale.backend.repository.UserRepository;
 import com.aisale.backend.util.JwtUtil;

@@ -1,6 +1,7 @@
 package com.aisale.backend.dto;
 
 import com.aisale.backend.entity.ChatMessage;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,8 @@ public class ChatMessageResponse {
     private String content;
     private String messageType;
     private Boolean isRead;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     public static ChatMessageResponse fromEntity(ChatMessage message, String senderName, String receiverName) {

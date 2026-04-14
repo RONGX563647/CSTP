@@ -22,8 +22,9 @@ class WebSocketService {
   private messageCallbacks: MessageCallback[] = []
   private statusCallbacks: ((status: ConnectionStatus) => void)[] = []
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 5
+  private maxReconnectAttempts = 10
   private reconnectDelay = 3000
+  private savedToken: string | null = null
 
   connect(token: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -32,12 +33,13 @@ class WebSocketService {
         return
       }
 
+      this.savedToken = token
       this.setStatus('connecting')
       const wsUrl = `ws://localhost:8090/ws/chat?token=${token}`
-      
+
       try {
         this.ws = new WebSocket(wsUrl)
-        
+
         this.ws.onopen = () => {
           console.log('WebSocket connected')
           this.setStatus('connected')
@@ -48,10 +50,31 @@ class WebSocketService {
         this.ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data)
-            console.log('WebSocket message received:', data)
-            
-            // 处理聊天消息（ChatMessageResponse 格式，包含 senderId 和 content）
+            console.log('WebSocket onmessage raw:', data)
+            if (data.error) {
+              console.warn('WebSocket error message:', data.error)
+              return
+            }
+            // 只处理包含 senderId 和 content 的聊天消息
             if (data.senderId && data.content) {
+              // 兼容多种 createdAt 格式：ISO字符串、数组[2026,4,14,10,30]、数字时间戳
+              let createdAt = data.createdAt
+              if (Array.isArray(createdAt)) {
+                // Jackson LocalDateTime 数组格式: [year, month, day, hour, minute, second, nano]
+                const [y, mo, d, h = 0, mi = 0, s = 0] = createdAt
+                createdAt = new Date(y, mo - 1, d, h, mi, s).toISOString()
+              } else if (typeof createdAt === 'number') {
+                createdAt = new Date(createdAt).toISOString()
+              } else if (typeof createdAt === 'string' && createdAt.includes('T')) {
+                // 已经是 ISO 格式，直接使用
+              } else if (createdAt) {
+                // 其他字符串格式，尝试解析
+                const parsed = new Date(createdAt)
+                createdAt = isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString()
+              } else {
+                createdAt = new Date().toISOString()
+              }
+
               const msg: ChatMessage = {
                 id: data.id,
                 senderId: data.senderId,
@@ -61,12 +84,8 @@ class WebSocketService {
                 content: data.content,
                 messageType: data.messageType || 'TEXT',
                 isRead: data.isRead || false,
-                createdAt: data.createdAt || new Date().toISOString()
+                createdAt
               }
-              this.messageCallbacks.forEach(cb => cb(msg))
-            } else if (data.type === 'message') {
-              // 兼容旧格式
-              const msg: ChatMessage = data
               this.messageCallbacks.forEach(cb => cb(msg))
             }
           } catch (e) {
@@ -84,12 +103,14 @@ class WebSocketService {
           console.log('WebSocket closed')
           this.setStatus('disconnected')
           this.ws = null
-          
-          if (this.reconnectAttempts < this.maxReconnectAttempts) {
+
+          if (this.reconnectAttempts < this.maxReconnectAttempts && this.savedToken) {
             this.reconnectAttempts++
             console.log(`Attempting reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
             setTimeout(() => {
-              this.connect(token)
+              if (this.savedToken) {
+                this.connect(this.savedToken)
+              }
             }, this.reconnectDelay)
           }
         }
@@ -101,19 +122,26 @@ class WebSocketService {
   }
 
   disconnect() {
+    this.savedToken = null
+    this.reconnectAttempts = this.maxReconnectAttempts
     if (this.ws) {
       this.ws.close()
       this.ws = null
     }
     this.setStatus('disconnected')
-    this.reconnectAttempts = this.maxReconnectAttempts
     console.log('WebSocket disconnected')
   }
 
-  reconnect(token: string) {
+  reconnect(token?: string) {
     this.reconnectAttempts = 0
-    this.disconnect()
-    return this.connect(token)
+    const t = token || this.savedToken
+    if (!t) return Promise.reject('No token')
+    if (this.ws) {
+      this.savedToken = null
+      this.ws.close()
+      this.ws = null
+    }
+    return this.connect(t)
   }
 
   isConnected(): boolean {
@@ -131,7 +159,7 @@ class WebSocketService {
 
   sendMessage(receiverId: number, content: string): boolean {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.error('WebSocket not connected')
+      console.warn('WebSocket not connected, cannot send message')
       return false
     }
 
@@ -142,6 +170,7 @@ class WebSocketService {
       messageType: 'TEXT'
     }
 
+    console.log('Sending via WebSocket:', message)
     this.ws.send(JSON.stringify(message))
     return true
   }

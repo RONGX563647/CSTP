@@ -5,7 +5,6 @@ import com.aisale.backend.dto.OrderRequest;
 import com.aisale.backend.dto.OrderResponse;
 import com.aisale.backend.dto.OrderReviewRequest;
 import com.aisale.backend.dto.OrderReviewResponse;
-import com.aisale.backend.entity.Order;
 import com.aisale.backend.entity.OrderReview;
 import com.aisale.backend.service.OrderReviewService;
 import com.aisale.backend.service.OrderService;

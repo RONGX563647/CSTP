@@ -1,17 +1,20 @@
 package com.aisale.backend.service;
 
 import com.aisale.backend.dto.ChatMessageResponse;
+import com.aisale.backend.dto.ChatPartnerResponse;
 import com.aisale.backend.entity.ChatMessage;
 import com.aisale.backend.entity.User;
 import com.aisale.backend.repository.ChatMessageRepository;
 import com.aisale.backend.repository.UserRepository;
-import com.aisale.backend.websocket.ChatWebSocketHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,16 +25,7 @@ public class ChatService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
-    private final ApplicationContext applicationContext;
-
-    private ChatWebSocketHandler webSocketHandler;
-
-    private ChatWebSocketHandler getWebSocketHandler() {
-        if (webSocketHandler == null) {
-            webSocketHandler = applicationContext.getBean(ChatWebSocketHandler.class);
-        }
-        return webSocketHandler;
-    }
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ChatMessageResponse sendMessage(Long senderId, Long receiverId, String content) {
@@ -49,20 +43,24 @@ public class ChatService {
             .build();
 
         ChatMessage savedMessage = chatMessageRepository.saveAndFlush(message);
-        log.info("Message saved: id={}, from={}, to={}", savedMessage.getId(), senderId, receiverId);
+        log.info("Message saved: id={}, from={}({}), to={}({})", 
+            savedMessage.getId(), senderId, sender.getUsername(), receiverId, receiver.getUsername());
 
         ChatMessageResponse response = ChatMessageResponse.fromEntity(savedMessage, sender.getUsername(), receiver.getUsername());
+        log.info("Created response: senderId={}, senderName={}, receiverId={}, receiverName={}", 
+            response.getSenderId(), response.getSenderName(), response.getReceiverId(), response.getReceiverName());
 
-        // 推送消息给接收方
-        getWebSocketHandler().sendMessageToUser(receiverId, response);
-        log.info("Message sent to receiver {} via WebSocket", receiverId);
+        // 通过 Spring 事件机制异步推送给接收方（避免循环依赖）
+        eventPublisher.publishEvent(new ChatMessageEvent(this, receiverId, response));
+        // 同时也给发送方回执（支持发送方多标签页场景）
+        eventPublisher.publishEvent(new ChatMessageEvent(this, senderId, response));
 
         return response;
     }
 
+    @Transactional(readOnly = true)
     public List<ChatMessageResponse> getConversation(Long userId1, Long userId2) {
         List<ChatMessage> messages = chatMessageRepository.findConversation(userId1, userId2);
-        
         return messages.stream()
             .map(msg -> {
                 String senderName = userRepository.findById(msg.getSenderId()).map(User::getUsername).orElse("Unknown");
@@ -76,6 +74,37 @@ public class ChatService {
         return chatMessageRepository.findChatPartners(userId);
     }
 
+    @Transactional(readOnly = true)
+    public List<ChatPartnerResponse> getChatPartnersDetail(Long currentUserId) {
+        List<Long> partnerIds = chatMessageRepository.findAllPartnerIds(currentUserId);
+        List<ChatPartnerResponse> partners = new ArrayList<>();
+
+        for (Long partnerId : partnerIds) {
+            User partner = userRepository.findById(partnerId).orElse(null);
+            if (partner == null) continue;
+
+            ChatMessage latestMsg = chatMessageRepository.findLatestMessage(currentUserId, partnerId, PageRequest.of(0, 1))
+                .stream().findFirst().orElse(null);
+            int unreadCount = chatMessageRepository.countUnreadFromPartner(partnerId, currentUserId);
+
+            ChatPartnerResponse response = ChatPartnerResponse.builder()
+                .userId(partnerId)
+                .username(partner.getUsername())
+                .avatar(partner.getAvatar())
+                .lastMessage(latestMsg != null ? latestMsg.getContent() : null)
+                .lastMessageTime(latestMsg != null ? latestMsg.getCreatedAt().toString() : null)
+                .unreadCount(unreadCount)
+                .build();
+            partners.add(response);
+        }
+
+        partners.sort(Comparator.comparing(
+            (ChatPartnerResponse p) -> p.getLastMessageTime() == null ? "" : p.getLastMessageTime()
+        ).reversed());
+
+        return partners;
+    }
+
     @Transactional
     public void markAsRead(Long messageId) {
         ChatMessage message = chatMessageRepository.findById(messageId)
@@ -84,9 +113,14 @@ public class ChatService {
         chatMessageRepository.save(message);
     }
 
+    @Transactional
+    public void markConversationAsRead(Long currentUserId, Long partnerId) {
+        chatMessageRepository.markConversationAsRead(partnerId, currentUserId);
+    }
+
+    @Transactional(readOnly = true)
     public List<ChatMessageResponse> getUnreadMessages(Long userId) {
         List<ChatMessage> messages = chatMessageRepository.findByReceiverIdAndIsReadFalse(userId);
-        
         return messages.stream()
             .map(msg -> {
                 String senderName = userRepository.findById(msg.getSenderId()).map(User::getUsername).orElse("Unknown");

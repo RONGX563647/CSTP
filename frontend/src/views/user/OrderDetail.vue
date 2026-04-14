@@ -146,6 +146,12 @@
             <span class="label">联系电话</span>
             <span class="value">{{ counterpartyPhone }}</span>
           </div>
+          <div class="contact-action">
+            <el-button type="warning" size="small" @click="contactCounterparty">
+              <el-icon><ChatDotRound /></el-icon>
+              联系{{ isBuyer ? '卖家' : '买家' }}
+            </el-button>
+          </div>
         </div>
 
         <!-- 订单评价 -->
@@ -218,7 +224,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Loading, Clock, CircleCheck, CircleClose, Timer } from '@element-plus/icons-vue'
+import { Loading, Clock, CircleCheck, CircleClose, Timer, ChatDotRound } from '@element-plus/icons-vue'
 import MobileLayout from '@/layouts/MobileLayout.vue'
 import { getOrderById, payOrder, confirmPickup, confirmPayment, cancelOrder, Order, OrderStatus, getOrderStatusText, getOrderReviews, OrderReview } from '@/api/order'
 import { useAuthStore } from '@/stores/auth'
@@ -240,6 +246,11 @@ const isBuyer = computed(() => {
 })
 
 // 对方信息
+const counterpartyId = computed(() => {
+  if (!order.value) return 0
+  return isBuyer.value ? order.value.sellerId : order.value.buyerId
+})
+
 const counterpartyName = computed(() => {
   if (!order.value) return ''
   return isBuyer.value ? order.value.sellerName : order.value.buyerName
@@ -429,6 +440,12 @@ const handleCancel = async () => {
   }
 }
 
+// 联系对方
+const contactCounterparty = () => {
+  if (!counterpartyId.value) return
+  router.push(`/user/chat/${counterpartyId.value}`)
+}
+
 const goBack = () => {
   router.back()
 }
@@ -596,6 +613,13 @@ onMounted(() => {
 
 .timeline-item.cancel {
   color: #EF4444;
+}
+
+/* 联系按钮 */
+.contact-action {
+  padding: 8px 16px 12px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* 评价 */

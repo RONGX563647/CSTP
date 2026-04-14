@@ -5,7 +5,6 @@ import com.aisale.backend.dto.AddressRequest;
 import com.aisale.backend.dto.AddressResponse;
 import com.aisale.backend.entity.Address;
 import com.aisale.backend.entity.User;
-import com.aisale.backend.exception.business.ConflictException;
 import com.aisale.backend.exception.business.NotFoundException;
 import com.aisale.backend.repository.AddressRepository;
 import com.aisale.backend.repository.UserRepository;
