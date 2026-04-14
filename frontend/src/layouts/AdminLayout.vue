@@ -29,6 +29,10 @@
           <el-icon><Search /></el-icon>
           <span>商品查询</span>
         </el-menu-item>
+        <el-menu-item index="/admin/logs">
+          <el-icon><Monitor /></el-icon>
+          <span>日志管理</span>
+        </el-menu-item>
       </el-menu>
     </aside>
 
@@ -71,7 +75,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  ShoppingCart, Document, Search, Fold, User
+  ShoppingCart, Document, Search, Fold, User, Monitor
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 
