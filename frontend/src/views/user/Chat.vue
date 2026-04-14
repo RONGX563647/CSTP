@@ -1,17 +1,26 @@
 <template>
-  <MobileLayout title="即时消息">
+  <MobileLayout :show-header="false" :show-tab-bar="true">
     <div class="chat-page">
+      <!-- 顶部标题栏 -->
+      <div class="chat-top-bar">
+        <h2 class="chat-top-title">消息</h2>
+        <el-button v-if="wsStatus !== 'connected'" size="small" round @click="handleReconnect">
+          <el-icon><Refresh /></el-icon> 重连
+        </el-button>
+      </div>
+
       <!-- 连接状态 -->
-      <div class="connection-status">
-        <el-tag :type="statusType">{{ statusText }}</el-tag>
-        <el-button v-if="wsStatus !== 'connected'" size="small" @click="handleReconnect">重连</el-button>
+      <div class="connection-status" v-if="wsStatus !== 'connected'">
+        <el-tag :type="statusType" size="small">{{ statusText }}</el-tag>
       </div>
 
       <!-- 联系人列表 -->
       <div class="contacts-panel" v-if="!currentChatUser">
         <div class="contacts-header">
           <h3>聊天列表</h3>
-          <el-button size="small" @click="showNewChatDialog = true">新建聊天</el-button>
+          <el-button size="small" round @click="showNewChatDialog = true">
+            <el-icon><Plus /></el-icon> 新建
+          </el-button>
         </div>
         <div class="contacts-list">
           <div 
@@ -85,7 +94,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft } from '@element-plus/icons-vue'
+import { ArrowLeft, Plus, Refresh } from '@element-plus/icons-vue'
 import MobileLayout from '@/layouts/MobileLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 import { wsService, type ChatMessage, type ConnectionStatus } from '@/utils/websocket'
@@ -233,20 +242,36 @@ const formatTime = (time: string) => {
 
 <style scoped>
 .chat-page {
-  height: calc(100vh - 60px);
+  height: calc(100vh - var(--tab-bar-height) - env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
-  background: #f5f5f5;
+  background: var(--bg-color);
+}
+
+/* 顶部标题栏 */
+.chat-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.chat-top-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
 }
 
 .connection-status {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   padding: 8px;
-  background: white;
-  border-bottom: 1px solid #eee;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .contacts-panel {
@@ -259,9 +284,15 @@ const formatTime = (time: string) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  background: white;
-  border-bottom: 1px solid #eee;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.contacts-header h3 {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 .contacts-list {
@@ -273,13 +304,14 @@ const formatTime = (time: string) => {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  background: white;
-  border-bottom: 1px solid #eee;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.contact-item:hover {
-  background: #f9f9f9;
+.contact-item:active {
+  background: var(--bg-color);
 }
 
 .contact-info {
@@ -289,17 +321,20 @@ const formatTime = (time: string) => {
 
 .contact-name {
   font-weight: 500;
+  font-size: 14px;
+  color: var(--text-primary);
 }
 
 .contact-preview {
-  color: #999;
+  color: var(--text-placeholder);
   font-size: 12px;
 }
 
 .no-contacts {
   padding: 40px;
   text-align: center;
-  color: #999;
+  color: var(--text-placeholder);
+  font-size: 13px;
 }
 
 .chat-window {
@@ -311,21 +346,24 @@ const formatTime = (time: string) => {
 .chat-header {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%);
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .chat-title {
   flex: 1;
   text-align: center;
   font-weight: 600;
+  font-size: 15px;
+  color: var(--text-primary);
 }
 
 .messages-container {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-  background: #f5f5f5;
+  background: var(--bg-color);
 }
 
 .message-item {
@@ -343,22 +381,26 @@ const formatTime = (time: string) => {
 
 .message-content {
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 12px;
   word-break: break-word;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .message-item.sent .message-content {
-  background: #F59E0B;
-  color: white;
+  background: var(--primary-color);
+  color: #FFFFFF;
+  border-bottom-right-radius: 4px;
 }
 
 .message-item.received .message-content {
-  background: white;
+  background: var(--bg-card);
+  border-bottom-left-radius: 4px;
 }
 
 .message-time {
-  font-size: 11px;
-  color: #999;
+  font-size: 10px;
+  color: var(--text-placeholder);
   margin-top: 4px;
 }
 
@@ -369,9 +411,9 @@ const formatTime = (time: string) => {
 .input-area {
   display: flex;
   gap: 8px;
-  padding: 12px 16px;
-  background: white;
-  border-top: 1px solid #eee;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-light);
 }
 
 .input-area .el-input {
@@ -392,6 +434,6 @@ const formatTime = (time: string) => {
 }
 
 .user-item:hover {
-  background: #f5f5f5;
+  background: var(--bg-color);
 }
 </style>

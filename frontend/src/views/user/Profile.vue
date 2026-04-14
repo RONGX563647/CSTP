@@ -1,57 +1,72 @@
 <template>
-  <MobileLayout title="个人信息">
+  <MobileLayout :show-header="false" :show-tab-bar="true">
     <div class="profile-page">
-      <!-- 用户信息卡片 -->
-      <div class="profile-header">
-        <div class="avatar-section">
-          <el-avatar :size="80" :src="userInfo?.avatar || undefined">
+      <!-- 用户卡片 -->
+      <div class="user-card">
+        <div class="user-avatar">
+          <el-avatar :size="56" :src="authStore.userInfo?.avatar || undefined">
             {{ userInitial }}
           </el-avatar>
         </div>
-        <div class="user-name-section">
-          <h2>{{ userInfo?.nickname || userInfo?.username }}</h2>
-          <p>{{ userInfo?.username }}</p>
+        <div class="user-info">
+          <h2 class="user-name">{{ authStore.userInfo?.nickname || authStore.userInfo?.username }}</h2>
+          <p class="user-id">ID: {{ authStore.userInfo?.id }}</p>
+        </div>
+        <div class="edit-btn" @click="navigateTo('/user/profile/edit')">
+          <el-icon :size="16"><Edit /></el-icon>
         </div>
       </div>
 
-      <!-- 信息列表 -->
-      <div class="profile-list">
-        <div class="profile-item">
-          <span class="item-label">昵称</span>
-          <span class="item-value">{{ userInfo?.nickname || '-' }}</span>
+      <!-- 快捷入口 -->
+      <div class="quick-actions">
+        <div class="action-item" @click="navigateTo('/user/products/my')">
+          <div class="action-icon">
+            <el-icon :size="22"><Goods /></el-icon>
+          </div>
+          <span>我的商品</span>
         </div>
-        <div class="profile-item">
-          <span class="item-label">用户名</span>
-          <span class="item-value">{{ userInfo?.username }}</span>
+        <div class="action-item" @click="navigateTo('/user/orders/buyer')">
+          <div class="action-icon">
+            <el-icon :size="22"><ShoppingBag /></el-icon>
+          </div>
+          <span>我买的</span>
         </div>
-        <div class="profile-item">
-          <span class="item-label">邮箱</span>
-          <span class="item-value">
-            {{ userInfo?.email || '-' }}
-            <el-tag v-if="userInfo?.email && !emailVerified" size="small" type="warning" style="margin-left: 8px;">未验证</el-tag>
-            <el-tag v-if="userInfo?.email && emailVerified" size="small" type="success" style="margin-left: 8px;">已验证</el-tag>
-          </span>
+        <div class="action-item" @click="navigateTo('/user/orders/seller')">
+          <div class="action-icon">
+            <el-icon :size="22"><Sell /></el-icon>
+          </div>
+          <span>我卖的</span>
         </div>
-        <div class="profile-item">
-          <span class="item-label">手机号</span>
-          <span class="item-value">{{ userInfo?.phone || '-' }}</span>
-        </div>
-        <div class="profile-item">
-          <span class="item-label">注册时间</span>
-          <span class="item-value">{{ formattedCreatedAt }}</span>
+        <div class="action-item" @click="navigateTo('/user/addresses')">
+          <div class="action-icon">
+            <el-icon :size="22"><Location /></el-icon>
+          </div>
+          <span>地址</span>
         </div>
       </div>
 
-      <!-- 操作按钮 -->
-      <div class="action-buttons">
-        <el-button type="primary" block size="large" @click="goToEdit">
-          编辑资料
-        </el-button>
-        <el-button type="warning" block size="large" @click="goToChangePassword">
-          修改密码
-        </el-button>
-        <el-button type="danger" plain block size="large" @click="goToDeleteAccount">
-          注销账号
+      <!-- 设置列表 -->
+      <div class="menu-section">
+        <div class="menu-item" @click="navigateTo('/user/password')">
+          <div class="menu-left">
+            <el-icon :size="18"><Lock /></el-icon>
+            <span class="menu-label">修改密码</span>
+          </div>
+          <el-icon class="menu-arrow"><ArrowRight /></el-icon>
+        </div>
+        <div class="menu-item" @click="navigateTo('/user/delete-account')">
+          <div class="menu-left">
+            <el-icon :size="18" class="danger"><Warning /></el-icon>
+            <span class="menu-label danger">注销账号</span>
+          </div>
+          <el-icon class="menu-arrow"><ArrowRight /></el-icon>
+        </div>
+      </div>
+
+      <!-- 退出 -->
+      <div class="logout-section">
+        <el-button type="danger" plain block @click="handleLogout">
+          退出登录
         </el-button>
       </div>
     </div>
@@ -59,116 +74,185 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  Edit, ArrowRight, Location, Lock, Warning,
+  Goods, ShoppingBag, Sell
+} from '@element-plus/icons-vue'
 import MobileLayout from '@/layouts/MobileLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const userInfo = computed(() => authStore.userInfo)
-const emailVerified = computed(() => authStore.userInfo?.emailVerified)
-
 const userInitial = computed(() => {
-  const name = userInfo.value?.nickname || userInfo.value?.username || ''
+  const name = authStore.userInfo?.nickname || authStore.userInfo?.username || ''
   return name.charAt(0).toUpperCase()
 })
 
-const formattedCreatedAt = computed(() => {
-  if (!userInfo.value?.createdAt) return '-'
-  return new Date(userInfo.value.createdAt).toLocaleDateString('zh-CN')
-})
-
-const goToEdit = () => {
-  router.push('/user/profile/edit')
+const navigateTo = (path: string) => {
+  router.push(path)
 }
 
-const goToChangePassword = () => {
-  router.push('/user/password')
+const handleLogout = () => {
+  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    authStore.logout()
+    ElMessage.success('已退出登录')
+    router.push('/login')
+  }).catch(() => {})
 }
-
-const goToDeleteAccount = () => {
-  router.push('/user/delete-account')
-}
-
-onMounted(() => {
-  // 刷新用户信息
-  authStore.getUserInfo()
-})
 </script>
 
 <style scoped>
 .profile-page {
-  min-height: calc(100vh - 60px);
-  background: #F5F5F5;
-  padding-bottom: 24px;
+  min-height: 100vh;
+  background: var(--bg-color);
 }
 
-/* 头部卡片 */
-.profile-header {
+/* 用户卡片 */
+.user-card {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 24px 16px;
-  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%);
-  margin-bottom: 16px;
+  gap: 14px;
+  padding: 20px 16px;
+  background: var(--bg-card);
 }
 
-.avatar-section {
+.user-avatar {
   flex-shrink: 0;
 }
 
-.user-name-section h2 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1F2937;
-  margin: 0 0 4px 0;
+.user-info {
+  flex: 1;
 }
 
-.user-name-section p {
-  font-size: 14px;
-  color: #6B7280;
+.user-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 2px 0;
+}
+
+.user-id {
+  font-size: 12px;
+  color: var(--text-secondary);
   margin: 0;
 }
 
-/* 信息列表 */
-.profile-list {
-  background: #FFFFFF;
-  margin: 0 16px 16px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.profile-item {
+.edit-btn {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #F3F4F6;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--bg-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.profile-item:last-child {
+.edit-btn:active {
+  background: var(--primary-lighter);
+  color: var(--primary-color);
+}
+
+/* 快捷入口 */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 16px 0;
+  margin-bottom: 8px;
+  background: var(--bg-card);
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.action-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--primary-lighter);
+  border-radius: 12px;
+  color: var(--primary-color);
+  transition: transform 0.2s;
+}
+
+.action-item:active .action-icon {
+  transform: scale(0.92);
+}
+
+.action-item span {
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+/* 设置菜单 */
+.menu-section {
+  background: var(--bg-card);
+  margin-bottom: 8px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-item:last-child {
   border-bottom: none;
 }
 
-.item-label {
-  font-size: 14px;
-  color: #6B7280;
+.menu-item:active {
+  background: var(--bg-color);
 }
 
-.item-value {
-  font-size: 15px;
-  color: #1F2937;
+.menu-left {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-/* 操作按钮 */
-.action-buttons {
-  padding: 0 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.menu-label {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.menu-label.danger {
+  color: var(--error-color);
+}
+
+.menu-left .danger {
+  color: var(--error-color);
+}
+
+.menu-arrow {
+  color: var(--text-placeholder);
+  font-size: 14px;
+}
+
+/* 退出 */
+.logout-section {
+  padding: 20px 16px;
 }
 </style>

@@ -1,238 +1,316 @@
 <template>
-  <MobileLayout title="首页" :show-tab-bar="true">
-    <div class="user-home-page">
-      <!-- 用户信息卡片 -->
-      <div class="user-card">
-        <div class="user-avatar">
-          <el-avatar :size="64" :src="authStore.userInfo?.avatar || undefined">
-            {{ userInitial }}
-          </el-avatar>
-        </div>
-        <div class="user-info">
-          <h2 class="user-name">{{ authStore.userInfo?.nickname || authStore.userInfo?.username }}</h2>
-          <p class="user-phone">{{ authStore.userInfo?.phone || '未绑定手机号' }}</p>
-        </div>
-      </div>
-
-      <!-- 商品管理入口 -->
-      <div class="menu-section">
-        <h3 class="menu-title">商品管理</h3>
-        <div class="menu-list">
-          <div class="menu-item" @click="navigateTo('/user/products')">
-            <div class="menu-icon">
-              <el-icon :size="24"><ShoppingCart /></el-icon>
-            </div>
-            <span class="menu-label">商品市场</span>
-            <el-icon class="menu-arrow"><ArrowRight /></el-icon>
-          </div>
-          <div class="menu-item" @click="navigateTo('/user/products/my')">
-            <div class="menu-icon">
-              <el-icon :size="24"><List /></el-icon>
-            </div>
-            <span class="menu-label">我的商品</span>
-            <el-icon class="menu-arrow"><ArrowRight /></el-icon>
-          </div>
+  <MobileLayout :show-header="false" :show-tab-bar="true">
+    <div class="home-page">
+      <!-- 顶部搜索区 -->
+      <div class="search-header">
+        <div class="search-box">
+          <el-input
+            v-model="searchKeyword"
+            placeholder="搜索你想要的宝贝"
+            clearable
+            @keyup.enter="handleSearch"
+            @clear="handleSearch"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
         </div>
       </div>
 
-      <!-- 订单管理入口 -->
-      <div class="menu-section">
-        <h3 class="menu-title">订单管理</h3>
-        <div class="menu-list">
-          <div class="menu-item" @click="navigateTo('/user/orders/buyer')">
-            <div class="menu-icon">
-              <el-icon :size="24"><Document /></el-icon>
-            </div>
-            <span class="menu-label">我买的订单</span>
-            <el-icon class="menu-arrow"><ArrowRight /></el-icon>
-          </div>
-          <div class="menu-item" @click="navigateTo('/user/orders/seller')">
-            <div class="menu-icon">
-              <el-icon :size="24"><FolderOpened /></el-icon>
-            </div>
-            <span class="menu-label">我卖的订单</span>
-            <el-icon class="menu-arrow"><ArrowRight /></el-icon>
-          </div>
+      <!-- 分类横滑 -->
+      <div class="category-nav">
+        <div
+          v-for="cat in categories"
+          :key="cat.value"
+          class="category-item"
+          :class="{ active: currentCategory === cat.value }"
+          @click="selectCategory(cat.value)"
+        >
+          <span>{{ cat.label }}</span>
         </div>
       </div>
 
-      <!-- 收货管理 -->
-      <div class="menu-section">
-        <h3 class="menu-title">收货管理</h3>
-        <div class="menu-list">
-          <div class="menu-item" @click="navigateTo('/user/addresses')">
-            <div class="menu-icon">
-              <el-icon :size="24"><Location /></el-icon>
+      <!-- 商品列表 -->
+      <div class="product-grid">
+        <div
+          v-for="product in productList"
+          :key="product.id"
+          class="product-card"
+          @click="goToDetail(product.id)"
+        >
+          <div class="product-image">
+            <el-image
+              :src="product.mainImage"
+              fit="cover"
+              :lazy="true"
+            >
+              <template #placeholder>
+                <div class="image-placeholder">
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+              <template #error>
+                <div class="image-placeholder">
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+            </el-image>
+          </div>
+          <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <div class="product-bottom">
+              <span class="price">¥{{ product.price }}</span>
+              <span class="seller">{{ product.sellerNickname || '匿名' }}</span>
             </div>
-            <span class="menu-label">收货地址</span>
-            <el-icon class="menu-arrow"><ArrowRight /></el-icon>
           </div>
         </div>
       </div>
 
-      <div class="menu-section">
-        <h3 class="menu-title">账户设置</h3>
-        <div class="menu-list">
-          <div class="menu-item" @click="navigateTo('/user/profile')">
-            <div class="menu-icon">
-              <el-icon :size="24"><User /></el-icon>
-            </div>
-            <span class="menu-label">个人信息</span>
-            <el-icon class="menu-arrow"><ArrowRight /></el-icon>
-          </div>
-          <div class="menu-item" @click="navigateTo('/user/password')">
-            <div class="menu-icon">
-              <el-icon :size="24"><Lock /></el-icon>
-            </div>
-            <span class="menu-label">修改密码</span>
-            <el-icon class="menu-arrow"><ArrowRight /></el-icon>
-          </div>
-        </div>
+      <el-empty v-if="productList.length === 0 && !loading" description="暂无商品" />
+
+      <div v-if="loading" class="loading-more">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <span>加载中...</span>
       </div>
 
-      <!-- 退出登录 -->
-      <div class="logout-section">
-        <el-button type="danger" size="large" block @click="handleLogout">
-          <el-icon><SwitchButton /></el-icon>
-          退出登录
-        </el-button>
+      <div v-if="noMore && productList.length > 0" class="no-more">
+        <span>没有更多了</span>
       </div>
     </div>
   </MobileLayout>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Location, ArrowRight, User, Lock, SwitchButton,
-  ShoppingCart, List, Document, FolderOpened
-} from '@element-plus/icons-vue'
+import { Search, Picture, Loading } from '@element-plus/icons-vue'
+import { searchPublicProducts } from '@/api/product'
+import { Product } from '@/api/types'
 import MobileLayout from '@/layouts/MobileLayout.vue'
-import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
-const authStore = useAuthStore()
 
-const userInitial = computed(() => {
-  const name = authStore.userInfo?.nickname || authStore.userInfo?.username || ''
-  return name.charAt(0).toUpperCase()
+const categories = [
+  { label: '全部', value: '' },
+  { label: '手机数码', value: '手机数码' },
+  { label: '电脑办公', value: '电脑办公' },
+  { label: '家用电器', value: '家用电器' },
+  { label: '娱乐玩具', value: '娱乐玩具' },
+]
+
+const searchKeyword = ref('')
+const currentCategory = ref('')
+const productList = ref<Product[]>([])
+const loading = ref(false)
+const page = ref(0)
+const size = ref(10)
+const noMore = ref(false)
+
+const fetchProducts = async (reset = false) => {
+  if (loading.value || (noMore.value && !reset)) return
+
+  loading.value = true
+
+  try {
+    const params: any = {
+      name: searchKeyword.value,
+      category: currentCategory.value,
+      page: reset ? 0 : page.value,
+      size: size.value,
+      sortBy: 'createdAt',
+      sortDir: 'desc'
+    }
+
+    const res = await searchPublicProducts(params)
+    const { content, number, totalPages } = res.data.data
+
+    if (reset) {
+      productList.value = content
+      page.value = 1
+    } else {
+      productList.value = [...productList.value, ...content]
+      page.value = number + 1
+    }
+
+    noMore.value = page.value >= totalPages
+  } catch (error) {
+    console.error('获取商品列表失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleSearch = () => {
+  fetchProducts(true)
+}
+
+const selectCategory = (category: string) => {
+  currentCategory.value = category
+  fetchProducts(true)
+}
+
+const goToDetail = (id: number) => {
+  router.push(`/user/products/${id}`)
+}
+
+onMounted(() => {
+  fetchProducts(true)
 })
-
-const navigateTo = (path: string) => {
-  router.push(path)
-}
-
-const handleLogout = () => {
-  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    authStore.logout()
-    ElMessage.success('已退出登录')
-    router.push('/login')
-  }).catch(() => {})
-}
 </script>
 
 <style scoped>
-.user-home-page {
-  min-height: calc(100vh - 110px);
-  background: #F5F5F5;
+.home-page {
+  min-height: 100vh;
+  background: var(--bg-color);
 }
 
-/* 用户信息卡片 */
-.user-card {
+/* 搜索栏 */
+.search-header {
+  background: var(--bg-card);
+  padding: 10px 16px 8px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.search-box :deep(.el-input__wrapper) {
+  background: var(--bg-color);
+  border-radius: 20px;
+  box-shadow: none;
+  padding: 0 16px;
+  height: 36px;
+}
+
+.search-box :deep(.el-input__inner) {
+  font-size: 13px;
+}
+
+/* 分类导航 */
+.category-nav {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 24px 16px;
-  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%);
-  margin-bottom: 16px;
+  gap: 8px;
+  padding: 8px 16px 10px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.user-avatar {
+.category-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.category-item {
   flex-shrink: 0;
-}
-
-.user-info {
-  flex: 1;
-}
-
-.user-name {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1F2937;
-  margin-bottom: 4px;
-}
-
-.user-phone {
-  font-size: 14px;
-  color: #6B7280;
-}
-
-/* 菜单区域 */
-.menu-section {
-  margin-bottom: 16px;
-}
-
-.menu-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: #6B7280;
-  padding: 12px 16px;
-}
-
-.menu-list {
-  background: #FFFFFF;
-  border-radius: 12px;
-  margin: 0 16px;
-  overflow: hidden;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border-bottom: 1px solid #F3F4F6;
+  padding: 5px 14px;
+  border-radius: 14px;
+  background: var(--bg-color);
+  font-size: 12px;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.menu-item:last-child {
-  border-bottom: none;
+.category-item.active {
+  background: var(--primary-color);
+  color: #FFFFFF;
+  font-weight: 500;
 }
 
-.menu-item:hover {
-  background: #F9FAFB;
+/* 商品网格 */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 8px;
 }
 
-.menu-icon {
+.product-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.product-card:active {
+  transform: scale(0.98);
+}
+
+.product-image {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--bg-color);
+}
+
+.product-image .el-image {
+  width: 100%;
+  height: 100%;
+}
+
+.image-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%);
-  border-radius: 10px;
-  color: #FFFFFF;
+  height: 100%;
+  color: var(--text-light);
+  font-size: 28px;
 }
 
-.menu-label {
-  flex: 1;
+.product-info {
+  padding: 8px 10px 10px;
+}
+
+.product-name {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-primary);
+  margin: 0 0 6px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
+}
+
+.product-bottom {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.price {
   font-size: 15px;
-  color: #1F2937;
+  font-weight: 600;
+  color: var(--primary-color);
 }
 
-.menu-arrow {
-  color: #9CA3AF;
+.seller {
+  font-size: 11px;
+  color: var(--text-placeholder);
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* 退出登录 */
-.logout-section {
-  padding: 24px 16px;
+/* 加载状态 */
+.loading-more,
+.no-more {
+  text-align: center;
+  padding: 16px;
+  color: var(--text-placeholder);
+  font-size: 12px;
+}
+
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 </style>

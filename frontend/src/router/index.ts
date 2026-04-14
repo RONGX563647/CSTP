@@ -12,7 +12,7 @@ const routes: RouteRecordRaw[] = [
     path: '/user/home',
     name: 'UserHome',
     component: () => import('@/views/user/Home.vue'),
-    meta: { requiresAuth: true, title: '首页' }
+    meta: { requiresAuth: false, title: '首页' }
   },
   {
     path: '/user/addresses',
@@ -112,7 +112,7 @@ const routes: RouteRecordRaw[] = [
     path: '/user/profile',
     name: 'UserProfile',
     component: () => import('@/views/user/Profile.vue'),
-    meta: { requiresAuth: true, title: '个人信息' }
+    meta: { requiresAuth: true, title: '我的' }
   },
   {
     path: '/user/profile/edit',

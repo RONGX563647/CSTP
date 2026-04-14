@@ -312,27 +312,27 @@ onMounted(() => {
 <style scoped>
 .order-list-page {
   min-height: 100%;
-  background: #F5F5F5;
+  background: var(--bg-color);
   padding-bottom: 20px;
 }
 
 /* 切换标签 */
 .tab-container {
-  background: #FFFFFF;
+  background: var(--bg-card);
   padding: 12px 16px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 /* 筛选容器 */
 .filter-container {
-  background: #FFFFFF;
-  padding: 12px 16px;
-  margin-bottom: 12px;
+  background: var(--bg-card);
+  padding: 8px 16px;
+  margin-bottom: 8px;
 }
 
 /* 订单列表 */
 .order-list {
-  padding: 0 16px;
+  padding: 0 12px;
 }
 
 .loading-container {
@@ -341,15 +341,15 @@ onMounted(() => {
   justify-content: center;
   padding: 60px 0;
   gap: 12px;
-  color: #9CA3AF;
+  color: var(--text-placeholder);
 }
 
 /* 订单卡片 */
 .order-card {
-  background: #FFFFFF;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 8px;
 }
 
 /* 订单头部 */
@@ -357,28 +357,28 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #E5E5E5;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .order-no {
-  font-size: 13px;
-  color: #9CA3AF;
+  font-size: 12px;
+  color: var(--text-placeholder);
 }
 
 /* 商品信息 */
 .product-info {
   display: flex;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   cursor: pointer;
 }
 
 .product-image .thumb {
-  width: 80px;
-  height: 80px;
-  border-radius: 4px;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
 }
 
@@ -391,7 +391,7 @@ onMounted(() => {
 
 .product-name {
   font-size: 14px;
-  color: #1F2937;
+  color: var(--text-primary);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -402,7 +402,7 @@ onMounted(() => {
 
 .product-meta {
   font-size: 12px;
-  color: #9CA3AF;
+  color: var(--text-placeholder);
   display: flex;
   gap: 12px;
 }
@@ -413,17 +413,17 @@ onMounted(() => {
   justify-content: flex-end;
   align-items: baseline;
   padding: 8px 0;
-  border-top: 1px solid #E5E5E5;
+  border-top: 1px solid var(--border-light);
 }
 
 .order-total .label {
   font-size: 13px;
-  color: #6B7280;
+  color: var(--text-secondary);
 }
 
 .order-total .amount {
-  font-size: 18px;
-  color: #F59E0B;
+  font-size: 17px;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -432,7 +432,7 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding-top: 12px;
+  padding-top: 10px;
 }
 
 /* 分页 */
@@ -440,7 +440,8 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   padding: 20px 16px;
-  background: #FFFFFF;
-  margin-top: 12px;
+  background: var(--bg-card);
+  margin-top: 8px;
+  border-radius: var(--radius);
 }
 </style>

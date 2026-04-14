@@ -1,11 +1,10 @@
 <template>
   <div class="mobile-layout">
-    <!-- 顶部导航栏 -->
-    <header class="mobile-header">
+    <header class="mobile-header" v-if="showHeader">
       <div class="header-content">
         <div class="header-left">
           <slot name="left">
-            <el-button text @click="handleBack">
+            <el-button text v-if="showBack" @click="handleBack" class="back-btn">
               <el-icon><ArrowLeft /></el-icon>
             </el-button>
           </slot>
@@ -19,51 +18,49 @@
       </div>
     </header>
 
-    <!-- 主内容区 -->
     <main class="main-content">
       <slot></slot>
     </main>
 
-    <!-- 底部标签栏 -->
     <nav class="tab-bar" v-if="showTabBar">
       <div
         class="tab-item"
         :class="{ active: activeTab === 'home' }"
         @click="navigateTo('/user/home')"
       >
-        <el-icon :size="24"><HomeFilled /></el-icon>
+        <el-icon :size="22"><HomeFilled /></el-icon>
         <span>首页</span>
       </div>
       <div
         class="tab-item"
-        :class="{ active: activeTab === 'products' }"
-        @click="navigateTo('/user/products')"
+        :class="{ active: activeTab === 'message' }"
+        @click="navigateTo('/user/chat')"
       >
-        <el-icon :size="24"><ShoppingCart /></el-icon>
-        <span>商品</span>
+        <el-icon :size="22"><ChatDotRound /></el-icon>
+        <span>消息</span>
+      </div>
+      <div
+        class="tab-item publish-btn"
+        @click="navigateTo('/user/products/new')"
+      >
+        <div class="publish-icon">
+          <el-icon :size="26"><Plus /></el-icon>
+        </div>
       </div>
       <div
         class="tab-item"
         :class="{ active: activeTab === 'orders' }"
         @click="navigateTo('/user/orders/buyer')"
       >
-        <el-icon :size="24"><List /></el-icon>
+        <el-icon :size="22"><Document /></el-icon>
         <span>订单</span>
       </div>
       <div
         class="tab-item"
-        :class="{ active: activeTab === 'address' }"
-        @click="navigateTo('/user/addresses')"
-      >
-        <el-icon :size="24"><Location /></el-icon>
-        <span>地址</span>
-      </div>
-      <div
-        class="tab-item"
         :class="{ active: activeTab === 'profile' }"
-        @click="navigateTo('/user/home')"
+        @click="navigateTo('/user/profile')"
       >
-        <el-icon :size="24"><User /></el-icon>
+        <el-icon :size="22"><User /></el-icon>
         <span>我的</span>
       </div>
     </nav>
@@ -73,16 +70,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowLeft, HomeFilled, Location, User, ShoppingCart, List } from '@element-plus/icons-vue'
+import { ArrowLeft, HomeFilled, User, Plus, ChatDotRound, Document } from '@element-plus/icons-vue'
 
 interface Props {
   title?: string
   showTabBar?: boolean
+  showHeader?: boolean
+  showBack?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   title: '',
-  showTabBar: false
+  showTabBar: false,
+  showHeader: true,
+  showBack: true
 })
 
 const router = useRouter()
@@ -91,10 +92,10 @@ const route = useRoute()
 const activeTab = computed(() => {
   const path = route.path
   if (path === '/user/home' || path === '/') return 'home'
-  if (path.includes('products')) return 'products'
-  if (path.includes('orders')) return 'orders'
-  if (path.includes('address')) return 'address'
-  if (path.includes('profile') || path === '/user/home') return 'profile'
+  if (path.includes('/user/products/new')) return 'publish'
+  if (path.includes('/user/chat')) return 'message'
+  if (path.includes('/user/orders')) return 'orders'
+  if (path.includes('/user/profile') || path.includes('/user/products/my')) return 'profile'
   return ''
 })
 
@@ -116,29 +117,28 @@ const navigateTo = (path: string) => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #F5F5F5;
+  background: var(--bg-color);
 }
 
-/* 顶部导航栏 */
 .mobile-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%);
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 50px;
-  padding: 0 16px;
+  height: var(--header-height);
+  padding: 0 12px;
 }
 
 .header-left,
 .header-right {
-  width: 48px;
+  width: 40px;
   display: flex;
   align-items: center;
 }
@@ -146,31 +146,33 @@ const navigateTo = (path: string) => {
 .header-title {
   flex: 1;
   text-align: center;
-  font-size: 17px;
-  font-weight: 600;
-  color: #1F2937;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.header-left .el-button {
-  color: #1F2937;
+.back-btn {
+  color: var(--text-primary);
+  padding: 8px;
 }
 
-/* 主内容区 */
 .main-content {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-/* 底部标签栏 */
 .tab-bar {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  height: 60px;
-  background: #FFFFFF;
-  border-top: 1px solid #E5E5E5;
-  padding-bottom: env(safe-area-inset-bottom);
+  height: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-light);
 }
 
 .tab-item {
@@ -178,19 +180,38 @@ const navigateTo = (path: string) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 8px 16px;
-  color: #9CA3AF;
-  font-size: 12px;
+  gap: 1px;
+  padding: 4px 0;
+  color: var(--text-secondary);
+  font-size: 10px;
   cursor: pointer;
   transition: color 0.2s;
+  flex: 1;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tab-item.active {
-  color: #F59E0B;
+  color: var(--primary-color);
 }
 
-.tab-item .el-icon {
-  margin-bottom: 2px;
+.tab-item.publish-btn {
+  flex: 1;
+}
+
+.publish-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  border-radius: 50%;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(255, 149, 0, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.publish-icon:active {
+  transform: scale(0.95);
 }
 </style>
