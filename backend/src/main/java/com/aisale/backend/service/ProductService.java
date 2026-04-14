@@ -159,26 +159,31 @@ public class ProductService {
         return ProductResponse.fromEntity(product);
     }
 
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
         return productRepository.findAll(pageable)
                 .map(ProductResponse::fromEntity);
     }
 
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getProductsByStatus(Product.ProductStatus status, Pageable pageable) {
         return productRepository.findByStatus(status, pageable)
                 .map(ProductResponse::fromEntity);
     }
 
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getProductsByCategory(String category, Pageable pageable) {
         return productRepository.findByCategory(category, pageable)
                 .map(ProductResponse::fromEntity);
     }
 
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getOnSaleProducts(Pageable pageable) {
         return productRepository.findByIsOnSaleTrueAndStatus(Product.ProductStatus.ON_SALE, pageable)
                 .map(ProductResponse::fromEntity);
     }
 
+    @Transactional(readOnly = true)
     public List<ProductResponse> getFeaturedProducts() {
         return productRepository.findByIsFeaturedTrueAndStatus(Product.ProductStatus.ON_SALE)
                 .stream()
@@ -186,6 +191,7 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Page<ProductResponse> searchProductsForAdmin(String name, String category,
                                                         BigDecimal minPrice, BigDecimal maxPrice,
                                                         Product.ProductStatus status, Pageable pageable) {
@@ -195,6 +201,7 @@ public class ProductService {
 
     // ==================== 用户端方法（带权限检查）====================
 
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getMyProducts(Long sellerId, Pageable pageable) {
         return productRepository.findBySellerId(sellerId, pageable)
                 .map(ProductResponse::fromEntity);
@@ -275,6 +282,7 @@ public class ProductService {
     /**
      * 获取公开在售商品列表
      */
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getPublicOnSaleProducts(Pageable pageable) {
         return productRepository.findByIsOnSaleTrueAndStatus(Product.ProductStatus.ON_SALE, pageable)
                 .map(ProductResponse::fromEntity);
@@ -283,6 +291,7 @@ public class ProductService {
     /**
      * 获取公开商品详情（不增加浏览量，不检查权限）
      */
+    @Transactional(readOnly = true)
     public ProductResponse getPublicProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("商品不存在"));
@@ -292,6 +301,7 @@ public class ProductService {
     /**
      * 按分类获取公开商品
      */
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getProductsByCategoryPublic(String category, Pageable pageable) {
         return productRepository.findByCategory(category, pageable)
                 .map(ProductResponse::fromEntity);
@@ -300,6 +310,7 @@ public class ProductService {
     /**
      * 公开搜索商品
      */
+    @Transactional(readOnly = true)
     public Page<ProductResponse> searchPublicProducts(String name, String category,
                                                        BigDecimal minPrice, BigDecimal maxPrice,
                                                        Long sellerId,
@@ -314,6 +325,7 @@ public class ProductService {
     /**
      * 获取指定用户的商品列表
      */
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getProductsBySellerId(Long sellerId, Pageable pageable) {
         return productRepository.findBySellerId(sellerId, pageable)
                 .map(ProductResponse::fromEntity);
@@ -367,6 +379,7 @@ public class ProductService {
     /**
      * 查询售罄商品
      */
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getOutOfStockProducts(Pageable pageable) {
         return productRepository.findByStatus(Product.ProductStatus.OUT_OF_STOCK, pageable)
                 .map(ProductResponse::fromEntity);
@@ -375,6 +388,7 @@ public class ProductService {
     /**
      * 查询下架商品
      */
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getOffSaleProducts(Pageable pageable) {
         return productRepository.findByStatus(Product.ProductStatus.OFF_SALE, pageable)
                 .map(ProductResponse::fromEntity);
@@ -383,6 +397,7 @@ public class ProductService {
     /**
      * 管理员多条件查询（支持 sellerId）
      */
+    @Transactional(readOnly = true)
     public Page<ProductResponse> searchProductsWithSeller(String name, String category,
                                                            BigDecimal minPrice, BigDecimal maxPrice,
                                                            Product.ProductStatus status,

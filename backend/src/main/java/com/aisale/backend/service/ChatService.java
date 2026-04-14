@@ -48,13 +48,14 @@ public class ChatService {
             .isRead(false)
             .build();
 
-        ChatMessage savedMessage = chatMessageRepository.save(message);
+        ChatMessage savedMessage = chatMessageRepository.saveAndFlush(message);
         log.info("Message saved: id={}, from={}, to={}", savedMessage.getId(), senderId, receiverId);
 
         ChatMessageResponse response = ChatMessageResponse.fromEntity(savedMessage, sender.getUsername(), receiver.getUsername());
 
+        // 推送消息给接收方
         getWebSocketHandler().sendMessageToUser(receiverId, response);
-        log.info("Message sent to user {} via WebSocket", receiverId);
+        log.info("Message sent to receiver {} via WebSocket", receiverId);
 
         return response;
     }

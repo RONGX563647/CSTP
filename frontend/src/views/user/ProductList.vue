@@ -85,7 +85,7 @@
               </span>
             </div>
             <div class="product-meta">
-              <span class="seller">{{ product.sellerNickname || '匿名' }}</span>
+              <span class="seller">{{ product.sellerName || '匿名' }}</span>
               <span class="sales">{{ product.salesCount }}人想要</span>
             </div>
           </div>

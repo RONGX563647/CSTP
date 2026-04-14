@@ -60,7 +60,7 @@ public class ProductResponse {
         return ProductResponse.builder()
                 .id(product.getId())
                 .sellerId(product.getSellerId())
-                .sellerName(product.getSeller() != null ? product.getSeller().getUsername() : null)
+                .sellerName(getSellerNameSafe(product))
                 .name(product.getName())
                 .description(product.getDescription())
                 .price(product.getPrice())
@@ -79,5 +79,16 @@ public class ProductResponse {
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .build();
+    }
+
+    private static String getSellerNameSafe(Product product) {
+        try {
+            if (product.getSeller() != null) {
+                return product.getSeller().getUsername();
+            }
+        } catch (Exception e) {
+            // LazyInitializationException or other access errors
+        }
+        return null;
     }
 }

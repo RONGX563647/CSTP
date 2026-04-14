@@ -55,15 +55,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             
             ChatMessageRequest request = objectMapper.readValue(payload, ChatMessageRequest.class);
             
+            // chatService.sendMessage() 内部会保存消息并通过 sendMessageToUser 推送给接收方
             ChatMessageResponse response = chatService.sendMessage(senderId, request.getReceiverId(), request.getContent());
             
-            WebSocketSession receiverSession = userSessionMap.get(request.getReceiverId());
-            if (receiverSession != null && receiverSession.isOpen()) {
-                String responseJson = objectMapper.writeValueAsString(response);
-                receiverSession.sendMessage(new TextMessage(responseJson));
-                log.info("Message sent to userId {} via WebSocket", request.getReceiverId());
-            }
-            
+            // 只给发送方回传消息确认
             String responseJson = objectMapper.writeValueAsString(response);
             session.sendMessage(new TextMessage(responseJson));
             

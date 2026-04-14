@@ -50,7 +50,22 @@ class WebSocketService {
             const data = JSON.parse(event.data)
             console.log('WebSocket message received:', data)
             
-            if (data.type === 'message' || data.content) {
+            // 处理聊天消息（ChatMessageResponse 格式，包含 senderId 和 content）
+            if (data.senderId && data.content) {
+              const msg: ChatMessage = {
+                id: data.id,
+                senderId: data.senderId,
+                senderName: data.senderName || '',
+                receiverId: data.receiverId,
+                receiverName: data.receiverName || '',
+                content: data.content,
+                messageType: data.messageType || 'TEXT',
+                isRead: data.isRead || false,
+                createdAt: data.createdAt || new Date().toISOString()
+              }
+              this.messageCallbacks.forEach(cb => cb(msg))
+            } else if (data.type === 'message') {
+              // 兼容旧格式
               const msg: ChatMessage = data
               this.messageCallbacks.forEach(cb => cb(msg))
             }

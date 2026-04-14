@@ -67,7 +67,7 @@
             placeholder="输入消息..."
             @keyup.enter="sendMessage"
           />
-          <el-button type="primary" @click="sendMessage" :disabled="!inputMessage.trim() || wsStatus !== 'connected'">
+          <el-button type="primary" @click="sendMessage" :disabled="!inputMessage.trim()">
             发送
           </el-button>
         </div>
@@ -151,14 +151,25 @@ const connectWebSocket = async () => {
 
   try {
     await wsService.connect(token.replace('Bearer ', ''))
-    ElMessage.success('WebSocket连接成功')
     
     wsService.onMessage((msg: ChatMessage) => {
-      if (currentChatUser.value && msg.senderId === currentChatUser.value.id) {
-        messages.value.push(msg)
-        scrollToBottom()
+      // 判断消息是否与当前聊天窗口相关
+      const partnerId = currentChatUser.value?.id
+      if (partnerId) {
+        // 消息来自当前聊天对象 或 消息发往当前聊天对象
+        if (msg.senderId === partnerId || msg.receiverId === partnerId) {
+          // 避免重复添加（HTTP发送已通过response添加过）
+          const exists = messages.value.some(m => m.id === msg.id)
+          if (!exists) {
+            messages.value.push(msg)
+            scrollToBottom()
+          }
+        }
       }
-      ElMessage.success(`收到来自 ${msg.senderName} 的消息`)
+      // 如果不在当前聊天窗口，显示通知
+      if (!currentChatUser.value || (msg.senderId !== partnerId && msg.receiverId !== partnerId)) {
+        ElMessage.info(`收到来自 ${msg.senderName || '用户'} 的新消息`)
+      }
     })
 
     wsService.onStatusChange((status) => {
@@ -166,7 +177,6 @@ const connectWebSocket = async () => {
     })
   } catch (e) {
     console.error('WebSocket连接失败:', e)
-    ElMessage.error('WebSocket连接失败')
   }
 }
 
@@ -220,7 +230,12 @@ const sendMessage = async () => {
       content
     })
     
-    messages.value.push(res.data.data)
+    // HTTP发送的消息直接添加到列表
+    const msg = res.data.data
+    const exists = messages.value.some(m => m.id === msg.id)
+    if (!exists) {
+      messages.value.push(msg)
+    }
     scrollToBottom()
   } catch (e) {
     ElMessage.error('消息发送失败')

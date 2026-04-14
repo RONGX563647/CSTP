@@ -61,7 +61,7 @@
             <h3 class="product-name">{{ product.name }}</h3>
             <div class="product-bottom">
               <span class="price">¥{{ product.price }}</span>
-              <span class="seller">{{ product.sellerNickname || '匿名' }}</span>
+              <span class="seller">{{ product.sellerName || '匿名' }}</span>
             </div>
           </div>
         </div>

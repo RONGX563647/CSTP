@@ -84,8 +84,11 @@ public class UserProductController {
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) Long sellerId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
         Page<ProductResponse> products = productService.searchPublicProducts(
                 name, category, minPrice, maxPrice, sellerId, pageable);
         return ApiResponse.success(products);
