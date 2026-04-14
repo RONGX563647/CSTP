@@ -14,23 +14,27 @@
 ### 1. 前端数据流分析
 
 #### 登录流程
-```
-用户登录 → authStore.login() 
-  ↓
-调用 /api/auth/login 接口
-  ↓
-返回 AuthResponse (包含 id, username, nickname, avatar, token)
-  ↓
-setToken(token) → localStorage.setItem('token', token) ✅
-setUserInfo(userInfo) → userInfo.value = userInfo ✅
+
+```mermaid
+flowchart TD
+    A["用户登录"] --> B["authStore.login()"]
+    B --> C["调用 /api/auth/login 接口"]
+    C --> D["返回 AuthResponse (包含 id, username, nickname, avatar, token)"]
+    D --> E["setToken(token)"]
+    E --> F["localStorage.setItem('token', token) ✅"]
+    D --> G["setUserInfo(userInfo)"]
+    G --> H["userInfo.value = userInfo ✅"]
 ```
 
 #### 页面刷新流程
-```
-页面刷新 → Pinia Store重新初始化
-  ↓
-token.value = localStorage.getItem('token') || '' ✅ (从localStorage恢复)
-userInfo.value = null ❌ (没有持久化，丢失)
+
+```mermaid
+flowchart TD
+    A["页面刷新"] --> B["Pinia Store重新初始化"]
+    B --> C["token.value = localStorage.getItem('token') || ''"]
+    C --> D["✅ 从localStorage恢复"]
+    B --> E["userInfo.value = null"]
+    E --> F["❌ 没有持久化，丢失"]
 ```
 
 ### 2. 根本原因
@@ -185,17 +189,23 @@ public ApiResponse<User> getCurrentUser(@AuthenticationPrincipal UserDetails use
 ## 修复效果
 
 ### 修复前
-```
-页面刷新 → userInfo丢失 → Profile页面显示空白
+
+```mermaid
+flowchart TD
+    A["页面刷新"] --> B["userInfo丢失"]
+    B --> C["Profile页面显示空白"]
 ```
 
 ### 修复后
-```
-页面刷新 → token存在但userInfo为null → 路由守卫自动调用getUserInfo() 
-  ↓
-调用 /api/auth/me → 返回用户信息 → setUserInfo(userInfo)
-  ↓
-Profile页面正常显示用户ID和头像 ✅
+
+```mermaid
+flowchart TD
+    A["页面刷新"] --> B["token存在但userInfo为null"]
+    B --> C["路由守卫自动调用getUserInfo()"]
+    C --> D["调用 /api/auth/me"]
+    D --> E["返回用户信息"]
+    E --> F["setUserInfo(userInfo)"]
+    F --> G["Profile页面正常显示用户ID和头像 ✅"]
 ```
 
 ## 测试验证
