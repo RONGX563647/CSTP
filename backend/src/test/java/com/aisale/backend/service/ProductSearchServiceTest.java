@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -47,6 +48,21 @@ class ProductSearchServiceTest {
     private Product testProduct2;
     private SearchHistory testSearchHistory;
     private final Long USER_ID = 1L;
+
+    /**
+     * 辅助方法：根据关键词映射动态设置 searchMultiField 的返回值
+     * 解决 Mockito 同一方法多次 stubbing 时 anyString() 与 eq() 冲突的问题
+     */
+    private void setupSearchMultiField(Map<String, Page<Product>> keywordToResult) {
+        when(productRepository.searchMultiField(any(), any(), any(), any(), any(), any()))
+            .thenAnswer(invocation -> {
+                String keyword = invocation.getArgument(0);
+                if (keyword != null && keywordToResult.containsKey(keyword)) {
+                    return keywordToResult.get(keyword);
+                }
+                return new PageImpl<>(List.of());
+            });
+    }
 
     @BeforeEach
     void setUp() {
@@ -100,10 +116,10 @@ class ProductSearchServiceTest {
     @Test
     @DisplayName("智能搜索 - 关键词匹配名称")
     void searchWithRelevance_NameMatch() {
-        // Given
-        Page<Product> searchResult = new PageImpl<>(List.of(testProduct1));
-        when(productRepository.searchMultiField(eq("iPhone"), isNull(), isNull(), isNull(), eq(ProductStatus.ON_SALE), any(Pageable.class)))
-            .thenReturn(searchResult);
+        // Given: "iPhone" 搜到商品，其他关键词返回空（同义词扩展不会补充）
+        Map<String, Page<Product>> mapping = new HashMap<>();
+        mapping.put("iPhone", new PageImpl<>(List.of(testProduct1)));
+        setupSearchMultiField(mapping);
 
         // When
         Page<ProductSearchResult> results = productSearchService.searchWithRelevance(
@@ -121,18 +137,10 @@ class ProductSearchServiceTest {
     @DisplayName("智能搜索 - 同义词扩展搜索")
     void searchWithRelevance_SynonymExpansion() {
         // Given: 搜索"电话"，原始搜索无结果，同义词"手机"能搜到商品
-        Page<Product> emptyResult = new PageImpl<>(List.of());
-        Page<Product> synonymResult = new PageImpl<>(List.of(testProduct1));
-
-        // 第一次搜索（"电话"）返回空
-        when(productRepository.searchMultiField(eq("电话"), isNull(), isNull(), isNull(), eq(ProductStatus.ON_SALE), any(Pageable.class)))
-            .thenReturn(emptyResult);
-        // 同义词搜索（"手机"）返回结果
-        when(productRepository.searchMultiField(eq("手机"), isNull(), isNull(), isNull(), eq(ProductStatus.ON_SALE), any(Pageable.class)))
-            .thenReturn(synonymResult);
-        // 其他同义词搜索也返回空
-        when(productRepository.searchMultiField(anyString(), isNull(), isNull(), isNull(), eq(ProductStatus.ON_SALE), any(Pageable.class)))
-            .thenReturn(emptyResult);
+        Map<String, Page<Product>> mapping = new HashMap<>();
+        mapping.put("电话", new PageImpl<>(List.of()));  // 原始搜索无结果
+        mapping.put("手机", new PageImpl<>(List.of(testProduct1)));  // 同义词搜索有结果
+        setupSearchMultiField(mapping);
 
         // When
         Page<ProductSearchResult> results = productSearchService.searchWithRelevance(
@@ -140,15 +148,17 @@ class ProductSearchServiceTest {
 
         // Then: 通过同义词扩展能搜到手机商品
         assertNotNull(results);
+        assertFalse(results.getContent().isEmpty());
     }
 
     @Test
     @DisplayName("智能搜索 - 记录搜索历史")
     void searchWithRelevance_RecordsHistory() {
         // Given
-        Page<Product> searchResult = new PageImpl<>(List.of(testProduct1));
-        when(productRepository.searchMultiField(anyString(), isNull(), isNull(), isNull(), eq(ProductStatus.ON_SALE), any(Pageable.class)))
-            .thenReturn(searchResult);
+        Map<String, Page<Product>> mapping = new HashMap<>();
+        mapping.put("iPhone", new PageImpl<>(List.of(testProduct1)));
+        setupSearchMultiField(mapping);
+
         when(searchHistoryRepository.findByUserIdAndKeyword(USER_ID, "iPhone"))
             .thenReturn(Optional.empty());
         when(searchHistoryRepository.save(any(SearchHistory.class)))
@@ -169,9 +179,10 @@ class ProductSearchServiceTest {
     @DisplayName("智能搜索 - 更新已有搜索历史计数")
     void searchWithRelevance_UpdatesExistingHistory() {
         // Given
-        Page<Product> searchResult = new PageImpl<>(List.of(testProduct1));
-        when(productRepository.searchMultiField(anyString(), isNull(), isNull(), isNull(), eq(ProductStatus.ON_SALE), any(Pageable.class)))
-            .thenReturn(searchResult);
+        Map<String, Page<Product>> mapping = new HashMap<>();
+        mapping.put("手机", new PageImpl<>(List.of(testProduct1)));
+        setupSearchMultiField(mapping);
+
         when(searchHistoryRepository.findByUserIdAndKeyword(USER_ID, "手机"))
             .thenReturn(Optional.of(testSearchHistory));
 
@@ -187,10 +198,11 @@ class ProductSearchServiceTest {
     @Test
     @DisplayName("智能搜索 - 空关键词不记录历史")
     void searchWithRelevance_EmptyKeyword_NoHistory() {
-        // Given
-        Page<Product> searchResult = new PageImpl<>(List.of(testProduct1));
-        when(productRepository.searchMultiField(isNull(), isNull(), isNull(), isNull(), eq(ProductStatus.ON_SALE), any(Pageable.class)))
-            .thenReturn(searchResult);
+        // Given: 空关键词，使用 any() 匹配（因为空字符串经过 trim 后可能传入 null 或 ""）
+        Map<String, Page<Product>> mapping = new HashMap<>();
+        // 空关键词时 service 传入 keyword="" 给 repository
+        when(productRepository.searchMultiField(any(), any(), any(), any(), any(), any()))
+            .thenReturn(new PageImpl<>(List.of(testProduct1)));
 
         // When
         productSearchService.searchWithRelevance("", null, null, null, USER_ID, 0, 10);
@@ -202,10 +214,10 @@ class ProductSearchServiceTest {
     @Test
     @DisplayName("智能搜索 - 分类过滤")
     void searchWithRelevance_CategoryFilter() {
-        // Given
-        Page<Product> searchResult = new PageImpl<>(List.of(testProduct1));
-        when(productRepository.searchMultiField(eq("iPhone"), eq("手机数码"), isNull(), isNull(), eq(ProductStatus.ON_SALE), any(Pageable.class)))
-            .thenReturn(searchResult);
+        // Given: 带分类过滤的搜索，因为category不为null，同义词扩展也会传入相同category
+        Map<String, Page<Product>> mapping = new HashMap<>();
+        mapping.put("iPhone", new PageImpl<>(List.of(testProduct1)));
+        setupSearchMultiField(mapping);
 
         // When
         Page<ProductSearchResult> results = productSearchService.searchWithRelevance(
@@ -242,9 +254,9 @@ class ProductSearchServiceTest {
         descMatchProduct.setCreatedAt(LocalDateTime.now());
         descMatchProduct.setSellerId(3L);
 
-        Page<Product> searchResult = new PageImpl<>(List.of(nameMatchProduct, descMatchProduct));
-        when(productRepository.searchMultiField(eq("手机"), isNull(), isNull(), isNull(), eq(ProductStatus.ON_SALE), any(Pageable.class)))
-            .thenReturn(searchResult);
+        Map<String, Page<Product>> mapping = new HashMap<>();
+        mapping.put("手机", new PageImpl<>(List.of(nameMatchProduct, descMatchProduct)));
+        setupSearchMultiField(mapping);
 
         // When
         Page<ProductSearchResult> results = productSearchService.searchWithRelevance(
