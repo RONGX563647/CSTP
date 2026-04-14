@@ -9,21 +9,11 @@
       </div>
 
       <div class="search-header">
-        <div class="search-box">
-          <el-input
-            v-model="searchForm.name"
-            placeholder="搜索商品"
-            clearable
-            @clear="handleSearch"
-            @keyup.enter="handleSearch"
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-            <template #append>
-              <el-button @click="handleSearch">搜索</el-button>
-            </template>
-          </el-input>
+        <div class="search-box" @click="goToSearch">
+          <div class="search-box-inner">
+            <el-icon class="search-icon"><Search /></el-icon>
+            <span class="search-placeholder">搜索商品名称、描述、标签...</span>
+          </div>
         </div>
       </div>
 
@@ -144,6 +134,10 @@ const page = ref(0)
 const size = ref(10)
 const noMore = ref(false)
 
+const goToSearch = () => {
+  router.push('/user/search')
+}
+
 const fetchProducts = async (reset = false) => {
   if (loading.value || (noMore.value && !reset)) return
 
@@ -223,18 +217,37 @@ onMounted(() => {
 .search-header {
   background: var(--bg-card);
   padding: 12px 16px;
+  transition: all 0.3s ease;
 }
 
-.search-box :deep(.el-input__wrapper) {
+.search-box {
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.search-box-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
   background: var(--bg-color);
   border-radius: 20px;
-  box-shadow: none;
+  color: var(--text-placeholder);
+  font-size: 14px;
 }
 
-.search-box :deep(.el-input-group__append) {
-  background: var(--primary-color);
-  color: #FFFFFF;
-  border-radius: 0 20px 20px 0;
+.search-icon {
+  font-size: 16px;
+}
+
+.search-placeholder {
+  flex: 1;
+}
+
+.search-box:hover .search-box-inner {
+  background: #E5E7EB;
+  transition: background 0.2s;
 }
 
 .filter-bar {
