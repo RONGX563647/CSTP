@@ -86,4 +86,11 @@ public class UserController {
         userService.deleteAccountByUsername(username, password);
         return ApiResponse.success();
     }
+
+    @Operation(summary = "获取指定用户基本信息（公开）")
+    @GetMapping("/public/{id}")
+    public ApiResponse<UserProfileResponse> getUserPublicInfo(@PathVariable Long id) {
+        UserProfileResponse profile = userService.getUserPublicInfo(id);
+        return ApiResponse.success(profile);
+    }
 }

@@ -1,6 +1,5 @@
 package com.aisale.backend.service;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.aisale.backend.dto.ChangePasswordRequest;
 import com.aisale.backend.dto.UpdateProfileRequest;
 import com.aisale.backend.dto.UserProfileResponse;
@@ -208,5 +207,16 @@ public class UserService {
         userRepository.save(user);
 
         log.info("用户账号注销成功 - 用户 ID: {}", user.getId());
+    }
+
+    /**
+     * 获取用户公开信息（用于聊天等场景）
+     */
+    @Transactional(readOnly = true)
+    public UserProfileResponse getUserPublicInfo(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("用户不存在"));
+
+        return UserProfileResponse.fromUser(user);
     }
 }
