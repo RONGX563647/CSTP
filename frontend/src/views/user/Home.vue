@@ -3,18 +3,11 @@
     <div class="home-page">
       <!-- 顶部搜索区 -->
       <div class="search-header">
-        <div class="search-box">
-          <el-input
-            v-model="searchKeyword"
-            placeholder="搜索你想要的宝贝"
-            clearable
-            @keyup.enter="handleSearch"
-            @clear="handleSearch"
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
+        <div class="search-box" @click="goToSearch">
+          <div class="search-box-inner">
+            <el-icon class="search-icon"><Search /></el-icon>
+            <span class="search-placeholder">搜索你想要的宝贝</span>
+          </div>
         </div>
       </div>
 
@@ -99,13 +92,16 @@ const categories = [
   { label: '娱乐玩具', value: '娱乐玩具' },
 ]
 
-const searchKeyword = ref('')
 const currentCategory = ref('')
 const productList = ref<Product[]>([])
 const loading = ref(false)
 const page = ref(0)
 const size = ref(10)
 const noMore = ref(false)
+
+const goToSearch = () => {
+  router.push('/user/search')
+}
 
 const fetchProducts = async (reset = false) => {
   if (loading.value || (noMore.value && !reset)) return
@@ -114,7 +110,6 @@ const fetchProducts = async (reset = false) => {
 
   try {
     const params: any = {
-      name: searchKeyword.value,
       category: currentCategory.value,
       page: reset ? 0 : page.value,
       size: size.value,
@@ -139,10 +134,6 @@ const fetchProducts = async (reset = false) => {
   } finally {
     loading.value = false
   }
-}
-
-const handleSearch = () => {
-  fetchProducts(true)
 }
 
 const selectCategory = (category: string) => {
@@ -174,16 +165,33 @@ onMounted(() => {
   z-index: 100;
 }
 
-.search-box :deep(.el-input__wrapper) {
-  background: var(--bg-color);
-  border-radius: 20px;
-  box-shadow: none;
-  padding: 0 16px;
-  height: 36px;
+.search-box {
+  cursor: pointer;
 }
 
-.search-box :deep(.el-input__inner) {
+.search-box-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--bg-color);
+  border-radius: 20px;
+  height: 36px;
+  color: var(--text-placeholder);
   font-size: 13px;
+  transition: background 0.2s;
+}
+
+.search-box:hover .search-box-inner {
+  background: #E5E7EB;
+}
+
+.search-icon {
+  font-size: 14px;
+}
+
+.search-placeholder {
+  flex: 1;
 }
 
 /* 分类导航 */
