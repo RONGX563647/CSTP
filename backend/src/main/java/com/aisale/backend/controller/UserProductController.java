@@ -7,6 +7,7 @@ import com.aisale.backend.dto.ProductResponse;
 import com.aisale.backend.dto.ProductSearchResult;
 import com.aisale.backend.entity.Product;
 import com.aisale.backend.service.OssService;
+import com.aisale.backend.service.ProductRecommendService;
 import com.aisale.backend.service.ProductSearchService;
 import com.aisale.backend.service.ProductService;
 import com.aisale.backend.util.JwtRequestUtils;
@@ -37,6 +38,7 @@ public class UserProductController {
     private final JwtRequestUtils jwtRequestUtils;
     private final OssService ossService;
     private final ProductSearchService productSearchService;
+    private final ProductRecommendService productRecommendService;
 
     // ==================== 公共浏览接口（无需登录）====================
 
@@ -64,6 +66,54 @@ public class UserProductController {
     @GetMapping("/public/featured")
     public ApiResponse<List<ProductResponse>> getPublicFeaturedProducts() {
         List<ProductResponse> products = productService.getFeaturedProducts();
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = "获取首页推荐商品")
+    @GetMapping("/public/recommend")
+    public ApiResponse<List<ProductResponse>> getHomeRecommend(
+            @RequestParam(defaultValue = "20") int limit) {
+        List<ProductResponse> products = productRecommendService.getHomeRecommend(limit);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = "获取分类推荐商品")
+    @GetMapping("/public/recommend/{category}")
+    public ApiResponse<List<ProductResponse>> getCategoryRecommend(
+            @PathVariable String category,
+            @RequestParam(defaultValue = "20") int limit) {
+        List<ProductResponse> products = productRecommendService.getCategoryRecommend(category, limit);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = "猜你喜欢（个性化推荐）")
+    @GetMapping("/public/recommend/personalized")
+    public ApiResponse<List<ProductResponse>> getPersonalizedRecommend(
+            @RequestParam(defaultValue = "20") int limit,
+            HttpServletRequest request) {
+        Long userId = null;
+        try {
+            userId = jwtRequestUtils.getCurrentUserId(request);
+        } catch (Exception e) {
+            // 未登录用户也返回推荐
+        }
+        List<ProductResponse> products = productRecommendService.getPersonalizedRecommend(userId, limit);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = "获取新品推荐")
+    @GetMapping("/public/recommend/new")
+    public ApiResponse<List<ProductResponse>> getNewProducts(
+            @RequestParam(defaultValue = "10") int limit) {
+        List<ProductResponse> products = productRecommendService.getNewProducts(limit);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = "获取折扣推荐")
+    @GetMapping("/public/recommend/discount")
+    public ApiResponse<List<ProductResponse>> getDiscountProducts(
+            @RequestParam(defaultValue = "10") int limit) {
+        List<ProductResponse> products = productRecommendService.getDiscountProducts(limit);
         return ApiResponse.success(products);
     }
 
