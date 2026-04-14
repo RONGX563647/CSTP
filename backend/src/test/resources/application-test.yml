@@ -20,3 +20,12 @@ spring:
     openai:
       api-key: test-key
       base-url: https://api.openai.com
+
+# Aliyun OSS 配置（测试环境使用占位值）
+aliyun:
+  oss:
+    endpoint: oss-cn-hangzhou.aliyuncs.com
+    access-key-id: test-access-key-id
+    access-key-secret: test-access-key-secret
+    bucket-name: test-bucket
+    base-url: https://test-bucket.oss-cn-hangzhou.aliyuncs.com
