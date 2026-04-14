@@ -102,10 +102,18 @@ const handleLogin = async () => {
 
     loading.value = true
     try {
-      await authStore.adminLogin({
+      const response = await authStore.adminLogin({
         username: loginForm.username,
         password: loginForm.password
       })
+
+      // 验证返回的角色是否为管理员角色
+      const role = response.data.data.role
+      if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
+        ElMessage.error('权限不足，请使用管理员账号登录')
+        authStore.logout()
+        return
+      }
 
       ElMessage.success('登录成功')
 
@@ -114,6 +122,7 @@ const handleLogin = async () => {
       router.push(redirect || '/admin/products')
     } catch (error) {
       console.error('登录失败:', error)
+      ElMessage.error('登录失败，请检查账号密码')
     } finally {
       loading.value = false
     }

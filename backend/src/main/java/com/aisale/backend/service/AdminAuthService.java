@@ -32,15 +32,15 @@ public class AdminAuthService {
             throw new RuntimeException("账号已停用");
         }
 
-        // 更新最后登录时间
-        admin.setLastLoginAt(LocalDateTime.now());
-        adminRepository.save(admin);
-
         String role = admin.getRole() == Admin.AdminRole.SUPER_ADMIN ? "SUPER_ADMIN" : "ADMIN";
         String token = jwtUtil.generateToken(admin.getUsername(), role, admin.getId());
 
+        admin.setLastLoginAt(LocalDateTime.now());
+        adminRepository.save(admin);
+
         return AuthResponse.builder()
                 .token(token)
+                .tokenType("Bearer")
                 .id(admin.getId())
                 .username(admin.getUsername())
                 .nickname(admin.getNickname())
