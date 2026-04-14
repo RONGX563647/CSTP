@@ -46,6 +46,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false, title: '搜索' }
   },
   {
+    path: '/user/recommend',
+    name: 'UserRecommend',
+    component: () => import('@/views/user/RecommendPage.vue'),
+    meta: { requiresAuth: false, title: '推荐' }
+  },
+  {
     path: '/user/products/:id',
     name: 'UserProductDetail',
     component: () => import('@/views/user/ProductDetail.vue'),

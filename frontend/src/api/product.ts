@@ -80,6 +80,61 @@ export const getPublicFeaturedProducts = () => {
 }
 
 /**
+ * 获取首页推荐商品
+ */
+export const getHomeRecommend = (limit?: number) => {
+  return request<ApiResponse<Product[]>>({
+    url: '/user/products/public/recommend',
+    method: 'get',
+    params: { limit }
+  })
+}
+
+/**
+ * 获取分类推荐商品
+ */
+export const getCategoryRecommend = (category: string, limit?: number) => {
+  return request<ApiResponse<Product[]>>({
+    url: `/user/products/public/recommend/${category}`,
+    method: 'get',
+    params: { limit }
+  })
+}
+
+/**
+ * 猜你喜欢（个性化推荐）
+ */
+export const getPersonalizedRecommend = (limit?: number) => {
+  return request<ApiResponse<Product[]>>({
+    url: '/user/products/public/recommend/personalized',
+    method: 'get',
+    params: { limit }
+  })
+}
+
+/**
+ * 获取新品推荐
+ */
+export const getNewProducts = (limit?: number) => {
+  return request<ApiResponse<Product[]>>({
+    url: '/user/products/public/recommend/new',
+    method: 'get',
+    params: { limit }
+  })
+}
+
+/**
+ * 获取折扣推荐
+ */
+export const getDiscountProducts = (limit?: number) => {
+  return request<ApiResponse<Product[]>>({
+    url: '/user/products/public/recommend/discount',
+    method: 'get',
+    params: { limit }
+  })
+}
+
+/**
  * 按分类获取商品
  */
 export const getProductsByCategory = (category: string, params?: { page?: number; size?: number }) => {
