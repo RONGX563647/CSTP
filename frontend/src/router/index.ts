@@ -139,6 +139,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/Chat.vue'),
     meta: { requiresAuth: true, title: '即时消息' }
   },
+  {
+    path: '/user/chat/:userId',
+    name: 'UserChatWith',
+    component: () => import('@/views/user/Chat.vue'),
+    meta: { requiresAuth: true, title: '即时消息' }
+  },
   // 管理端路由
   {
     path: '/admin/login',
@@ -209,7 +215,7 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
 
   // 设置页面标题
@@ -217,6 +223,18 @@ router.beforeEach((to, _from, next) => {
     document.title = `${to.meta.title} - AiSale`
   } else {
     document.title = 'AiSale'
+  }
+
+  // 如果有token但没有userInfo，自动获取用户信息
+  if (authStore.isLoggedIn && !authStore.userInfo) {
+    try {
+      await authStore.getUserInfo()
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+      authStore.logout()
+      next({ name: 'UserLogin', query: { redirect: to.fullPath } })
+      return
+    }
   }
 
   // 需要认证的路由
