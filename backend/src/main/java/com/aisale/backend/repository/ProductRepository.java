@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
@@ -38,12 +39,40 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> searchProducts(
             @Param("name") String name,
             @Param("category") String category,
-            @Param("minPrice") java.math.BigDecimal minPrice,
-            @Param("maxPrice") java.math.BigDecimal maxPrice,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
             @Param("status") ProductStatus status,
             @Param("sellerId") Long sellerId,
             Pageable pageable
     );
+
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN p.tags t WHERE " +
+           "p.status = :status AND " +
+           "(:keyword IS NULL OR " +
+           "  LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "  LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "  LOWER(p.category) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "  LOWER(t) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(:category IS NULL OR p.category = :category) AND " +
+           "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
+           "(:maxPrice IS NULL OR p.price <= :maxPrice)")
+    Page<Product> searchMultiField(
+            @Param("keyword") String keyword,
+            @Param("category") String category,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
+            @Param("status") ProductStatus status,
+            Pageable pageable
+    );
+
+    @Query("SELECT p FROM Product p WHERE p.status = :status ORDER BY p.salesCount DESC")
+    List<Product> findTopBySalesCount(@Param("status") ProductStatus status, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.status = :status ORDER BY p.viewCount DESC")
+    List<Product> findTopByViewCount(@Param("status") ProductStatus status, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.status = :status AND p.category = :category ORDER BY p.salesCount DESC")
+    List<Product> findTopByCategoryAndSalesCount(@Param("status") ProductStatus status, @Param("category") String category, Pageable pageable);
 
     long countByStatus(ProductStatus status);
 
