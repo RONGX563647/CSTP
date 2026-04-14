@@ -121,11 +121,9 @@ public class OperationLogService {
      * 获取最近日志
      */
     public List<OperationLog> getRecentLogs(int limit) {
-        Pageable pageable = PageRequest.of(0, limit);
-        return operationLogRepository.findAll(
-            Sort.by(Sort.Direction.DESC, "createTime"), 
-            pageable
-        ).getContent();
+        Sort sort = Sort.by(Sort.Direction.DESC, "createTime");
+        PageRequest pageRequest = PageRequest.of(0, limit, sort);
+        return operationLogRepository.findAll(pageRequest).getContent();
     }
 
     /**
