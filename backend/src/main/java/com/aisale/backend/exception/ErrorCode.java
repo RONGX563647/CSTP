@@ -18,6 +18,7 @@ import lombok.Getter;
  * - 40: 订单模块
  * - 50: 地址模块
  * - 60: 评价模块
+ * - 70: 签到模块
  */
 @Getter
 @AllArgsConstructor
@@ -117,7 +118,13 @@ public enum ErrorCode {
     REVIEW_NOT_ALLOWED("60010003", "当前订单状态不允许评价", 400),
 
     // 评价操作错误 (6002xxxx)
-    REVIEW_OPERATION_DENIED("60020001", "无权操作此评价", 403);
+    REVIEW_OPERATION_DENIED("60020001", "无权操作此评价", 403),
+
+    // ==================== 签到模块 (70xxxxxx) ====================
+
+    // 签到相关错误 (7001xxxx)
+    CHECK_IN_ALREADY_DONE("70010001", "今日已签到", 409),
+    CHECK_IN_NOT_FOUND("70010002", "签到记录不存在", 404);
 
     /**
      * 错误码
