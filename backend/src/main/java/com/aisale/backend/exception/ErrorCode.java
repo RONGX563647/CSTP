@@ -19,6 +19,7 @@ import lombok.Getter;
  * - 50: 地址模块
  * - 60: 评价模块
  * - 70: 签到模块
+ * - 80: 积分模块
  */
 @Getter
 @AllArgsConstructor
@@ -124,7 +125,13 @@ public enum ErrorCode {
 
     // 签到相关错误 (7001xxxx)
     CHECK_IN_ALREADY_DONE("70010001", "今日已签到", 409),
-    CHECK_IN_NOT_FOUND("70010002", "签到记录不存在", 404);
+    CHECK_IN_NOT_FOUND("70010002", "签到记录不存在", 404),
+
+    // ==================== 积分模块 (80xxxxxx) ====================
+
+    // 积分相关错误 (8001xxxx)
+    POINT_INSUFFICIENT("80010001", "积分不足", 400),
+    POINT_ACCOUNT_NOT_FOUND("80010002", "积分账户不存在", 404);
 
     /**
      * 错误码
