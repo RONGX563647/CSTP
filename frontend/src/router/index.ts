@@ -164,6 +164,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/CheckIn.vue'),
     meta: { requiresAuth: true, title: '每日签到' }
   },
+  // 用户积分路由
+  {
+    path: '/user/points',
+    name: 'UserPoints',
+    component: () => import('@/views/user/Points.vue'),
+    meta: { requiresAuth: true, title: '我的积分' }
+  },
   // 管理端路由
   {
     path: '/admin/login',
