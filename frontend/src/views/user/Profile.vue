@@ -19,6 +19,12 @@
 
       <!-- 快捷入口 -->
       <div class="quick-actions">
+        <div class="action-item" @click="navigateTo('/user/checkin')">
+          <div class="action-icon checkin-icon">
+            <el-icon :size="22"><Calendar /></el-icon>
+          </div>
+          <span>签到</span>
+        </div>
         <div class="action-item" @click="navigateTo('/user/products/my')">
           <div class="action-icon">
             <el-icon :size="22"><Goods /></el-icon>
@@ -79,7 +85,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Edit, ArrowRight, Location, Lock, Warning,
-  Goods, ShoppingBag, Sell
+  Goods, ShoppingBag, Sell, Calendar
 } from '@element-plus/icons-vue'
 import MobileLayout from '@/layouts/MobileLayout.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -167,7 +173,7 @@ const handleLogout = () => {
 /* 快捷入口 */
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   padding: 16px 0;
   margin-bottom: 8px;
   background: var(--bg-card);
@@ -201,6 +207,11 @@ const handleLogout = () => {
 .action-item span {
   font-size: 12px;
   color: var(--text-primary);
+}
+
+.action-icon.checkin-icon {
+  background: linear-gradient(135deg, var(--primary-color), #6c5ce7);
+  color: #fff;
 }
 
 /* 设置菜单 */
