@@ -43,8 +43,16 @@ public class AdminUserController {
     @PutMapping("/{id}/status")
     public ApiResponse<UserAdminResponse> updateUserStatus(
             @PathVariable Long id,
-            @RequestParam User.UserStatus status) {
-        UserAdminResponse user = adminUserService.updateUserStatus(id, status);
+            @RequestParam String status) {
+        // 验证并解析状态参数
+        User.UserStatus userStatus;
+        try {
+            userStatus = User.UserStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("无效的用户状态: " + status + ", 可选值: ACTIVE, INACTIVE, BANNED");
+        }
+
+        UserAdminResponse user = adminUserService.updateUserStatus(id, userStatus);
         return ApiResponse.success("用户状态已更新", user);
     }
 

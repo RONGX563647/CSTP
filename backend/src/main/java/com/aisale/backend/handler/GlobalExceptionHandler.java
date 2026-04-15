@@ -13,8 +13,11 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.stream.Collectors;
@@ -150,6 +153,38 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * 处理方法参数类型不匹配异常
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
+            MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        log.warn("参数类型不匹配：参数 '{}' 期望类型 '{}', 但实际接收到了值 '{}'",
+                ex.getName(), ex.getRequiredType().getSimpleName(), ex.getValue());
+        ErrorResponse error = ErrorResponse.of(
+                "PARAM_TYPE_MISMATCH",
+                String.format("参数 '%s' 类型错误，期望 %s 类型，但接收到的值为 '%s'",
+                        ex.getName(), ex.getRequiredType().getSimpleName(), ex.getValue()),
+                request.getRequestURI()
+        );
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    /**
+     * 处理非法参数异常
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+            IllegalArgumentException ex, HttpServletRequest request) {
+        log.warn("非法参数异常：{}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.of(
+                "ILLEGAL_ARGUMENT",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.badRequest().body(error);
     }
 
     /**

@@ -49,14 +49,25 @@ public class AdminOrderController {
             @RequestParam(required = false) String orderNo,
             @RequestParam(required = false) Long buyerId,
             @RequestParam(required = false) Long sellerId,
-            @RequestParam(required = false) Order.OrderStatus status,
+            @RequestParam(required = false) String status,
             @RequestParam(required = false) LocalDateTime startTime,
             @RequestParam(required = false) LocalDateTime endTime,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
+
+        Order.OrderStatus orderStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                orderStatus = Order.OrderStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("无效的订单状态: " + status +
+                    ", 可选值: PENDING_PAYMENT, PENDING_PICKUP, PENDING_CONFIRM, PENDING_REVIEW, COMPLETED, CANCELLED, REFUNDED");
+            }
+        }
+
         Pageable pageable = PageRequest.of(page, size);
         Page<OrderResponse> orders = orderService.searchOrders(
-                orderNo, buyerId, sellerId, status, startTime, endTime, pageable);
+                orderNo, buyerId, sellerId, orderStatus, startTime, endTime, pageable);
         return ApiResponse.success(orders);
     }
 
@@ -64,9 +75,18 @@ public class AdminOrderController {
     @PutMapping("/{id}/status")
     public ApiResponse<OrderResponse> updateOrderStatus(
             @PathVariable Long id,
-            @RequestParam Order.OrderStatus status) {
+            @RequestParam String status) {
+        // 验证并解析状态参数
+        Order.OrderStatus orderStatus;
+        try {
+            orderStatus = Order.OrderStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("无效的订单状态: " + status +
+                ", 可选值: PENDING_PAYMENT, PENDING_PICKUP, PENDING_CONFIRM, PENDING_REVIEW, COMPLETED, CANCELLED, REFUNDED");
+        }
+
         // 管理员 ID 暂时传 null，实际应该从登录信息获取
-        OrderResponse order = orderService.updateOrderStatus(id, status, null);
+        OrderResponse order = orderService.updateOrderStatus(id, orderStatus, null);
         return ApiResponse.success("订单状态已更新", order);
     }
 

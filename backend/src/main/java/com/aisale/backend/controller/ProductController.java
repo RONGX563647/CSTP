@@ -81,8 +81,16 @@ public class ProductController {
     @PutMapping("/{id}/status")
     public ApiResponse<ProductResponse> updateStatus(
             @PathVariable Long id,
-            @RequestParam Product.ProductStatus status) {
-        ProductResponse product = productService.updateStatusForAdmin(id, status);
+            @RequestParam String status) {
+        // 验证并解析状态参数
+        Product.ProductStatus productStatus;
+        try {
+            productStatus = Product.ProductStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("无效的商品状态: " + status + ", 可选值: ON_SALE, OFF_SALE, OUT_OF_STOCK");
+        }
+
+        ProductResponse product = productService.updateStatusForAdmin(id, productStatus);
         return ApiResponse.success("状态更新成功", product);
     }
 
@@ -144,13 +152,23 @@ public class ProductController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
-            @RequestParam(required = false) Product.ProductStatus status,
+            @RequestParam(required = false) String status,
             @RequestParam(required = false) Long sellerId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
+
+        Product.ProductStatus productStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                productStatus = Product.ProductStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("无效的商品状态: " + status + ", 可选值: ON_SALE, OFF_SALE, OUT_OF_STOCK");
+            }
+        }
+
         Pageable pageable = PageRequest.of(page, size);
         Page<ProductResponse> products = productService.searchProductsWithSeller(
-                name, category, minPrice, maxPrice, status, sellerId, pageable);
+                name, category, minPrice, maxPrice, productStatus, sellerId, pageable);
         return ApiResponse.success(products);
     }
 

@@ -312,10 +312,18 @@ public class UserProductController {
     @PutMapping("/{id}/status")
     public ApiResponse<ProductResponse> updateStatus(
             @PathVariable Long id,
-            @RequestParam Product.ProductStatus status,
+            @RequestParam String status,
             HttpServletRequest request) {
+        // 验证并解析状态参数
+        Product.ProductStatus productStatus;
+        try {
+            productStatus = Product.ProductStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("无效的商品状态: " + status + ", 可选值: ON_SALE, OFF_SALE, OUT_OF_STOCK");
+        }
+
         Long sellerId = jwtRequestUtils.getCurrentUserId(request);
-        ProductResponse product = productService.updateStatus(id, status, sellerId);
+        ProductResponse product = productService.updateStatus(id, productStatus, sellerId);
         return ApiResponse.success("状态更新成功", product);
     }
 

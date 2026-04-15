@@ -38,7 +38,11 @@ public class AdminUserService {
 
         User.UserStatus status = null;
         if (queryRequest.getStatus() != null && !queryRequest.getStatus().isEmpty()) {
-            status = User.UserStatus.valueOf(queryRequest.getStatus().toUpperCase());
+            try {
+                status = User.UserStatus.valueOf(queryRequest.getStatus().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("无效的用户状态: " + queryRequest.getStatus() + ", 可选值: ACTIVE, INACTIVE, BANNED");
+            }
         }
 
         Page<User> userPage = userRepository.findByConditions(
