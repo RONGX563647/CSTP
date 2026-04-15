@@ -446,10 +446,6 @@ const contactCounterparty = () => {
   router.push(`/user/chat/${counterpartyId.value}`)
 }
 
-const goBack = () => {
-  router.back()
-}
-
 onMounted(() => {
   fetchOrder()
 })

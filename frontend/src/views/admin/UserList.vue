@@ -157,7 +157,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox, ElDialog } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import {
@@ -256,27 +256,24 @@ const viewDetail = (id: number) => {
 }
 
 // 显示修改状态对话框
-const showChangeStatusDialog = (row: User) => {
-  ElMessageBox.prompt('请选择新的用户状态：', '修改用户状态', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    inputType: 'select',
-    inputValue: row.status,
-    inputOptions: [
-      { label: '正常', value: 'ACTIVE' },
-      { label: '未激活', value: 'INACTIVE' },
-      { label: '已禁用', value: 'BANNED' }
-    ]
-  }).then(async ({ value }) => {
-    try {
-      await updateUserStatus(row.id, value as UserStatus)
-      ElMessage.success('状态已更新')
-      fetchUserList()
-      fetchUserStats()
-    } catch (error: any) {
+const showChangeStatusDialog = async (row: User) => {
+  try {
+    const { value } = await ElMessageBox.prompt('请输入新的状态（ACTIVE/INACTIVE/BANNED）', '修改用户状态', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      inputValue: row.status,
+      inputPattern: /^(ACTIVE|INACTIVE|BANNED)$/,
+      inputErrorMessage: '请输入有效的状态：ACTIVE、INACTIVE 或 BANNED'
+    })
+    await updateUserStatus(row.id, value as UserStatus)
+    ElMessage.success('状态已更新')
+    fetchUserList()
+    fetchUserStats()
+  } catch (error: any) {
+    if (error !== 'cancel') {
       console.error('更新状态失败:', error)
     }
-  }).catch(() => {})
+  }
 }
 
 // 显示重置密码对话框

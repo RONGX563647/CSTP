@@ -78,16 +78,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Picture, Loading } from '@element-plus/icons-vue'
 import {
   getHomeRecommend,
-  getCategoryRecommend,
   getPersonalizedRecommend,
   getNewProducts,
-  getDiscountProducts,
-  getHotKeywords
+  getDiscountProducts
 } from '@/api/product'
 import { Product } from '@/api/types'
 import MobileLayout from '@/layouts/MobileLayout.vue'

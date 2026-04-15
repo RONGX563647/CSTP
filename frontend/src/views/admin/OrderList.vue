@@ -184,7 +184,7 @@
               <el-button size="small" text type="warning" @click="showLogModal(row)">
                 日志
               </el-button>
-              <el-dropdown size="small" @command="(cmd) => handleStatusChange(cmd, row)">
+              <el-dropdown size="small" @command="(cmd: OrderStatus) => handleStatusChange(cmd, row)">
                 <el-button size="small" text type="info">
                   修改状态<el-icon class="el-icon--right"><ArrowDown /></el-icon>
                 </el-button>
@@ -252,12 +252,12 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   ArrowDown, Search, Refresh, Document, Clock, ShoppingCart,
   Check, ChatDotRound, CircleCheck, Right
 } from '@element-plus/icons-vue'
-import { getAllOrders, searchOrders, updateOrderStatus, getOrderLogs, Order, OrderStatus, OrderLog, getOrderStatusText, getOrderStatusColor } from '@/api/order'
+import { searchOrders, updateOrderStatus, getOrderLogs, Order, OrderStatus, OrderLog, getOrderStatusText, getOrderStatusColor } from '@/api/order'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 
 const router = useRouter()

@@ -319,7 +319,7 @@ import {
 } from '@element-plus/icons-vue'
 import {
   getAdminOrderById, updateAdminRemark, updateOrderStatus,
-  getOrderLogs, Order, OrderLog, OrderReview, OrderStatus,
+  getOrderLogs, Order, OrderLog, OrderStatus,
   getOrderStatusText, getOrderStatusColor
 } from '@/api/order'
 import AdminLayout from '@/layouts/AdminLayout.vue'
@@ -404,14 +404,6 @@ const getOperatorRoleText = (role: string) => {
   return roleMap[role] || role
 }
 
-// 格式化日期
-const formatDate = (dateStr?: string) => {
-  if (!dateStr) return '未设定'
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('zh-CN')
-}
-
-// 格式化日期时间
 const formatDateTime = (dateStr?: string) => {
   if (!dateStr) return '未记录'
   const date = new Date(dateStr)
