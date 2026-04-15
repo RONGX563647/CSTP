@@ -60,8 +60,8 @@ public class PointService {
                 .totalPoints(account.getTotalPoints())
                 .availablePoints(account.getAvailablePoints())
                 .usedPoints(account.getUsedPoints())
-                .checkInPoints((int) checkInCount)
-                .orderPoints((int) orderCount)
+                .checkInCount((int) checkInCount)
+                .orderCount((int) orderCount)
                 .build();
     }
 

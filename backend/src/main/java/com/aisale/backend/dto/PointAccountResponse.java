@@ -16,8 +16,8 @@ public class PointAccountResponse {
     private Integer totalPoints;
     private Integer availablePoints;
     private Integer usedPoints;
-    /** 签到累计获得积分 */
-    private Integer checkInPoints;
-    /** 订单奖励累计获得积分 */
-    private Integer orderPoints;
+    /** 签到累计次数 */
+    private Integer checkInCount;
+    /** 订单奖励累计次数 */
+    private Integer orderCount;
 }
