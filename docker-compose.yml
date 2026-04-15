@@ -1,4 +1,41 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aisale-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-aisale}
+      POSTGRES_USER: ${DB_USERNAME:-aisale}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-aisale123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-aisale} -d ${DB_NAME:-aisale}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aisale-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: aisale-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aisale-net
+
   backend:
     build:
       context: ./backend
@@ -8,14 +45,29 @@ services:
     ports:
       - "8090:8090"
     environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-aisale}
+      - DB_USERNAME=${DB_USERNAME:-aisale}
+      - DB_PASSWORD=${DB_PASSWORD:-aisale123}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_DATABASE=${REDIS_DATABASE:-0}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com}
+      - AI_CHAT_ENABLED=${AI_CHAT_ENABLED:-false}
       - OSS_ENDPOINT=${OSS_ENDPOINT:-}
       - OSS_ACCESS_KEY_ID=${OSS_ACCESS_KEY_ID:-}
       - OSS_ACCESS_KEY_SECRET=${OSS_ACCESS_KEY_SECRET:-}
       - OSS_BUCKET_NAME=${OSS_BUCKET_NAME:-}
       - OSS_BASE_URL=${OSS_BASE_URL:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - aisale-net
 
@@ -33,6 +85,10 @@ services:
       - backend
     networks:
       - aisale-net
+
+volumes:
+  postgres_data:
+  redis_data:
 
 networks:
   aisale-net:
