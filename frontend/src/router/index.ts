@@ -157,6 +157,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/Chat.vue'),
     meta: { requiresAuth: true, title: '即时消息' }
   },
+  // 用户签到路由
+  {
+    path: '/user/checkin',
+    name: 'UserCheckIn',
+    component: () => import('@/views/user/CheckIn.vue'),
+    meta: { requiresAuth: true, title: '每日签到' }
+  },
   // 管理端路由
   {
     path: '/admin/login',
