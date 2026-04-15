@@ -1,0 +1,33 @@
+services:
+  backend:
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${IMAGE_NAME:-aisale/backend}:${TAG:-latest}
+    container_name: aisale-backend
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com}
+      - OSS_ENDPOINT=${OSS_ENDPOINT}
+      - OSS_ACCESS_KEY_ID=${OSS_ACCESS_KEY_ID}
+      - OSS_ACCESS_KEY_SECRET=${OSS_ACCESS_KEY_SECRET}
+      - OSS_BUCKET_NAME=${OSS_BUCKET_NAME}
+      - OSS_BASE_URL=${OSS_BASE_URL}
+    networks:
+      - aisale-net
+
+  frontend:
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${IMAGE_NAME:-aisale/frontend}:${TAG:-latest}
+    container_name: aisale-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - aisale-net
+
+networks:
+  aisale-net:
+    driver: bridge
