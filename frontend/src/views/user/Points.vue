@@ -26,12 +26,12 @@
         <div class="stat-item">
           <el-icon :size="20" color="#6c5ce7"><Calendar /></el-icon>
           <span class="stat-label">签到</span>
-          <span class="stat-value">{{ pointsStore.account?.checkInPoints || 0 }}次</span>
+          <span class="stat-value">{{ pointsStore.account?.checkInCount || 0 }}次</span>
         </div>
         <div class="stat-item">
           <el-icon :size="20" color="#00b894"><ShoppingBag /></el-icon>
           <span class="stat-label">订单奖励</span>
-          <span class="stat-value">{{ pointsStore.account?.orderPoints || 0 }}次</span>
+          <span class="stat-value">{{ pointsStore.account?.orderCount || 0 }}次</span>
         </div>
       </div>
 
@@ -159,7 +159,12 @@ const handleFilterChange = (val: string | number | boolean | null | undefined) =
 
 const loadMore = () => {
   currentPage.value++
-  fetchRecords()
+  pointsStore.fetchRecords({
+    type: filterType.value || undefined,
+    page: currentPage.value,
+    size: pageSize,
+    append: true
+  })
 }
 
 onMounted(async () => {

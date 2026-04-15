@@ -24,11 +24,16 @@ export const usePointsStore = defineStore('points', () => {
     }
   }
 
-  const fetchRecords = async (params?: { type?: string; page?: number; size?: number }) => {
+  const fetchRecords = async (params?: { type?: string; page?: number; size?: number; append?: boolean }) => {
     try {
       loading.value = true
       const page: PointRecordPage = await getRecordsApi(params)
-      records.value = page?.content ?? []
+      const newRecords = page?.content ?? []
+      if (params?.append) {
+        records.value = [...records.value, ...newRecords]
+      } else {
+        records.value = newRecords
+      }
       totalRecords.value = page?.totalElements ?? 0
     } catch (error: any) {
       console.error('获取积分流水失败:', error)

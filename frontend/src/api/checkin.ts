@@ -23,7 +23,7 @@ export interface CheckInStatus {
  */
 export async function checkIn() {
   const res = await request.post('/user/checkin')
-  return res.data
+  return res.data.data
 }
 
 /**
@@ -31,7 +31,7 @@ export async function checkIn() {
  */
 export async function getCheckInStatus() {
   const res = await request.get('/user/checkin/status')
-  return res.data
+  return res.data.data
 }
 
 /**
@@ -39,5 +39,5 @@ export async function getCheckInStatus() {
  */
 export async function getCheckInCalendar(year: number, month: number) {
   const res = await request.get('/user/checkin/calendar', { params: { year, month } })
-  return res.data
+  return res.data.data
 }

@@ -6,8 +6,8 @@ export interface PointAccount {
   totalPoints: number
   availablePoints: number
   usedPoints: number
-  checkInPoints: number
-  orderPoints: number
+  checkInCount: number
+  orderCount: number
 }
 
 export interface PointRecord {
@@ -33,7 +33,7 @@ export interface PointRecordPage {
  */
 export async function getPointAccount() {
   const res = await request.get('/user/points/account')
-  return res.data
+  return res.data.data
 }
 
 /**
@@ -45,7 +45,7 @@ export async function getPointRecords(params?: {
   size?: number
 }) {
   const res = await request.get('/user/points/records', { params })
-  return res.data
+  return res.data.data
 }
 
 /**
@@ -56,5 +56,5 @@ export async function adminAdjustPoints(userId: number, data: {
   reason: string
 }) {
   const res = await request.post(`/admin/points/adjust/${userId}`, data)
-  return res.data
+  return res.data.data
 }
