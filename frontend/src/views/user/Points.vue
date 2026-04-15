@@ -1,5 +1,5 @@
 <template>
-  <MobileLayout :show-header="true" title="我的积分" :show-tab-bar="true">
+  <MobileLayout :show-header="true" title="我的积分" :show-tab-bar="true" :show-back="true">
     <div class="points-page">
       <!-- 积分总览卡片 -->
       <div class="points-card">
@@ -48,7 +48,7 @@
           </el-select>
         </div>
 
-        <div v-if="pointsStore.records.length === 0 && !pointsStore.loading" class="empty-state">
+        <div v-if="!pointsStore.records?.length && !pointsStore.loading" class="empty-state">
           <el-empty description="暂无积分记录" :image-size="80" />
         </div>
 
@@ -96,7 +96,7 @@ const currentPage = ref(0)
 const pageSize = 20
 
 const hasMore = computed(() => {
-  return pointsStore.records.length < pointsStore.totalRecords
+  return (pointsStore.records?.length ?? 0) < pointsStore.totalRecords
 })
 
 const getTypeName = (type: string) => {
@@ -152,7 +152,8 @@ const fetchRecords = (reset = false) => {
   })
 }
 
-const handleFilterChange = () => {
+const handleFilterChange = (val: string | number | boolean | null | undefined) => {
+  filterType.value = val ? String(val) : ''
   fetchRecords(true)
 }
 

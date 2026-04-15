@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { checkIn as checkInApi, getCheckInStatus as getStatusApi } from '@/api/checkin'
 import type { CheckInResult, CheckInStatus } from '@/api/checkin'
 import { ElMessage } from 'element-plus'
+import { usePointsStore } from './points'
 
 export const useCheckInStore = defineStore('checkin', () => {
   const status = ref<CheckInStatus | null>(null)
@@ -30,6 +31,9 @@ export const useCheckInStore = defineStore('checkin', () => {
       const result = await checkInApi()
       // 刷新状态
       await fetchStatus()
+      // 刷新积分账户
+      const pointsStore = usePointsStore()
+      await pointsStore.fetchAccount()
       ElMessage.success(`签到成功！连续签到${result.continuousDays}天，获得${result.rewardPoints}积分`)
       return result
     } catch (error: any) {

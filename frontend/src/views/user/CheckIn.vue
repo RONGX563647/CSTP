@@ -1,5 +1,5 @@
 <template>
-  <MobileLayout :show-header="true" :show-tab-bar="true" header-title="每日签到">
+  <MobileLayout :show-header="true" :show-tab-bar="true" title="每日签到" :show-back="true">
     <div class="checkin-page">
       <!-- 签到卡片 -->
       <div class="checkin-card">

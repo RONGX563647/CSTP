@@ -28,8 +28,8 @@ export const usePointsStore = defineStore('points', () => {
     try {
       loading.value = true
       const page: PointRecordPage = await getRecordsApi(params)
-      records.value = page.content
-      totalRecords.value = page.totalElements
+      records.value = page?.content ?? []
+      totalRecords.value = page?.totalElements ?? 0
     } catch (error: any) {
       console.error('获取积分流水失败:', error)
     } finally {

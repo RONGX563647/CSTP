@@ -7,8 +7,8 @@ import com.aisale.backend.entity.PointAccount;
 import com.aisale.backend.entity.PointRecord;
 import com.aisale.backend.entity.User;
 import com.aisale.backend.exception.ErrorCode;
-import com.aisale.backend.exception.business.BadRequestException;
 import com.aisale.backend.exception.business.NotFoundException;
+import com.aisale.backend.exception.business.ValidationException;
 import com.aisale.backend.repository.PointAccountRepository;
 import com.aisale.backend.repository.PointRecordRepository;
 import com.aisale.backend.repository.UserRepository;
@@ -44,7 +44,7 @@ public class PointService {
     /**
      * 获取用户积分账户概览
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public PointAccountResponse getAccountOverview(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("用户不存在"));
@@ -91,7 +91,7 @@ public class PointService {
     @Transactional
     public PointRecord addPoints(Long userId, PointRecord.PointType type, int points, Long relatedId, String description) {
         if (points <= 0) {
-            throw new BadRequestException("增加积分必须为正数");
+            throw new ValidationException("增加积分必须为正数");
         }
 
         PointAccount account = getOrCreateAccount(userId);
@@ -119,14 +119,14 @@ public class PointService {
     @Transactional
     public PointRecord deductPoints(Long userId, PointRecord.PointType type, int points, Long relatedId, String description) {
         if (points <= 0) {
-            throw new BadRequestException("扣减积分必须为正数");
+            throw new ValidationException("扣减积分必须为正数");
         }
 
         PointAccount account = pointAccountRepository.findByUserId(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.POINT_ACCOUNT_NOT_FOUND));
 
         if (account.getAvailablePoints() < points) {
-            throw new BadRequestException(ErrorCode.POINT_INSUFFICIENT);
+            throw new ValidationException(ErrorCode.POINT_INSUFFICIENT);
         }
 
         account.setAvailablePoints(account.getAvailablePoints() - points);
@@ -153,10 +153,10 @@ public class PointService {
     @Transactional
     public PointRecordResponse adminAdjustPoints(Long targetUserId, AdminPointAdjustRequest request) {
         if (request.getPoints() == null || request.getPoints() == 0) {
-            throw new BadRequestException("调整积分不能为0");
+            throw new ValidationException("调整积分不能为0");
         }
         if (request.getReason() == null || request.getReason().isBlank()) {
-            throw new BadRequestException("调整原因不能为空");
+            throw new ValidationException("调整原因不能为空");
         }
 
         PointRecord record;
