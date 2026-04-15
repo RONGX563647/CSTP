@@ -35,69 +35,22 @@ public class ProductService {
 
     @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request, Long sellerId) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("商品不存在"));
-        // 检查商品是否属于当前用户
-        if (sellerId != null && !product.getSellerId().equals(sellerId)) {
-            throw new ForbiddenException("无权操作此商品");
-        }
-        updateProductFromRequest(product, request);
-        product = productRepository.save(product);
-        return ProductResponse.fromEntity(product);
+        return doUpdateProduct(id, request, sellerId);
     }
 
     @Transactional
     public void deleteProduct(Long id, Long sellerId) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("商品不存在"));
-        // 检查商品是否属于当前用户
-        if (sellerId != null && !product.getSellerId().equals(sellerId)) {
-            throw new ForbiddenException("无权操作此商品");
-        }
-        productRepository.deleteById(id);
+        doDeleteProduct(id, sellerId);
     }
 
     @Transactional
     public ProductResponse updateStock(Long id, Integer stock, Long sellerId) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("商品不存在"));
-        // 检查商品是否属于当前用户
-        if (sellerId != null && !product.getSellerId().equals(sellerId)) {
-            throw new ForbiddenException("无权操作此商品");
-        }
-        product.setStock(stock);
-
-        // 自动更新状态
-        if (stock <= 0) {
-            product.setStatus(Product.ProductStatus.OUT_OF_STOCK);
-        } else if (!product.getIsOnSale()) {
-            product.setStatus(Product.ProductStatus.OFF_SALE);
-        } else {
-            product.setStatus(Product.ProductStatus.ON_SALE);
-        }
-
-        product = productRepository.save(product);
-        return ProductResponse.fromEntity(product);
+        return doUpdateStock(id, stock, sellerId);
     }
 
     @Transactional
     public ProductResponse updateStatus(Long id, Product.ProductStatus status, Long sellerId) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("商品不存在"));
-        // 检查商品是否属于当前用户
-        if (sellerId != null && !product.getSellerId().equals(sellerId)) {
-            throw new ForbiddenException("无权操作此商品");
-        }
-        product.setStatus(status);
-
-        if (status == Product.ProductStatus.OFF_SALE) {
-            product.setIsOnSale(false);
-        } else if (status == Product.ProductStatus.ON_SALE && product.getStock() > 0) {
-            product.setIsOnSale(true);
-        }
-
-        product = productRepository.save(product);
-        return ProductResponse.fromEntity(product);
+        return doUpdateStatus(id, status, sellerId);
     }
 
     // ==================== 管理端方法（不检查权限）====================
@@ -112,51 +65,22 @@ public class ProductService {
 
     @Transactional
     public ProductResponse updateProductForAdmin(Long id, ProductRequest request) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("商品不存在"));
-        updateProductFromRequest(product, request);
-        product = productRepository.save(product);
-        return ProductResponse.fromEntity(product);
+        return doUpdateProduct(id, request, null);
     }
 
     @Transactional
     public void deleteProductForAdmin(Long id) {
-        productRepository.deleteById(id);
+        doDeleteProduct(id, null);
     }
 
     @Transactional
     public ProductResponse updateStockForAdmin(Long id, Integer stock) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("商品不存在"));
-        product.setStock(stock);
-
-        // 自动更新状态
-        if (stock <= 0) {
-            product.setStatus(Product.ProductStatus.OUT_OF_STOCK);
-        } else if (!product.getIsOnSale()) {
-            product.setStatus(Product.ProductStatus.OFF_SALE);
-        } else {
-            product.setStatus(Product.ProductStatus.ON_SALE);
-        }
-
-        product = productRepository.save(product);
-        return ProductResponse.fromEntity(product);
+        return doUpdateStock(id, stock, null);
     }
 
     @Transactional
     public ProductResponse updateStatusForAdmin(Long id, Product.ProductStatus status) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("商品不存在"));
-        product.setStatus(status);
-
-        if (status == Product.ProductStatus.OFF_SALE) {
-            product.setIsOnSale(false);
-        } else if (status == Product.ProductStatus.ON_SALE && product.getStock() > 0) {
-            product.setIsOnSale(true);
-        }
-
-        product = productRepository.save(product);
-        return ProductResponse.fromEntity(product);
+        return doUpdateStatus(id, status, null);
     }
 
     @Transactional(readOnly = true)
@@ -221,6 +145,71 @@ public class ProductService {
         // 增加浏览量
         product.setViewCount(product.getViewCount() + 1);
         productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    private void checkOwnership(Product product, Long sellerId) {
+        if (sellerId != null && !product.getSellerId().equals(sellerId)) {
+            throw new ForbiddenException("无权操作此商品");
+        }
+    }
+
+    private ProductResponse doUpdateProduct(Long id, ProductRequest request, Long sellerId) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
+        
+        checkOwnership(product, sellerId);
+        
+        updateProductFromRequest(product, request);
+        product = productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    private void doDeleteProduct(Long id, Long sellerId) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
+        
+        checkOwnership(product, sellerId);
+        
+        productRepository.deleteById(id);
+    }
+
+    private ProductResponse doUpdateStock(Long id, Integer stock, Long sellerId) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
+        
+        checkOwnership(product, sellerId);
+        
+        product.setStock(stock);
+
+        // 自动更新状态
+        if (stock <= 0) {
+            product.setStatus(Product.ProductStatus.OUT_OF_STOCK);
+        } else if (!product.getIsOnSale()) {
+            product.setStatus(Product.ProductStatus.OFF_SALE);
+        } else {
+            product.setStatus(Product.ProductStatus.ON_SALE);
+        }
+
+        product = productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    private ProductResponse doUpdateStatus(Long id, Product.ProductStatus status, Long sellerId) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("商品不存在"));
+        
+        checkOwnership(product, sellerId);
+        
+        product.setStatus(status);
+
+        if (status == Product.ProductStatus.OFF_SALE) {
+            product.setIsOnSale(false);
+        } else if (status == Product.ProductStatus.ON_SALE && product.getStock() > 0) {
+            product.setIsOnSale(true);
+        }
+
+        product = productRepository.save(product);
         return ProductResponse.fromEntity(product);
     }
 
