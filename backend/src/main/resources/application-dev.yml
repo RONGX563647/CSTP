@@ -22,7 +22,20 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
 
-  # AI 配置 - 开发环境可选
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
   ai:
     openai:
       api-key: ${OPENAI_API_KEY:test-key}
@@ -31,7 +44,6 @@ spring:
         options:
           model: gpt-3.5-turbo
 
-  # DevTools 热部署配置
   devtools:
     restart:
       enabled: true
@@ -40,7 +52,6 @@ spring:
     livereload:
       enabled: true
 
-# Knife4j Configuration
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -59,7 +70,6 @@ knife4j:
     language: zh_cn
     swagger-model-name: AiSale API
 
-# 日志配置
 logging:
   level:
     root: INFO
