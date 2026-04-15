@@ -3,6 +3,7 @@ package com.aisale.backend.service;
 import com.aisale.backend.dto.CheckInResponse;
 import com.aisale.backend.dto.CheckInStatusResponse;
 import com.aisale.backend.entity.CheckIn;
+import com.aisale.backend.entity.PointRecord;
 import com.aisale.backend.entity.User;
 import com.aisale.backend.exception.ErrorCode;
 import com.aisale.backend.exception.business.ConflictException;
@@ -24,6 +25,7 @@ public class CheckInService {
 
     private final CheckInRepository checkInRepository;
     private final UserRepository userRepository;
+    private final PointService pointService;
 
     /**
      * 用户签到
@@ -55,6 +57,11 @@ public class CheckInService {
         checkIn.setRewardPoints(rewardPoints);
 
         checkIn = checkInRepository.save(checkIn);
+
+        // 同步增加积分
+        pointService.addPoints(user.getId(), PointRecord.PointType.CHECK_IN,
+                rewardPoints, checkIn.getId(),
+                "签到奖励：连续签到" + continuousDays + "天");
 
         log.info("用户 {} 签到成功，连续 {} 天，奖励 {} 积分", username, continuousDays, rewardPoints);
 
