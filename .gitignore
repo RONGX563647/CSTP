@@ -32,9 +32,16 @@ logs/
 *.temp
 
 # Test
+test-results/
+.tests/
+frontend/test-results/
+playwright/.cache/
+playwright/test-results/
 
 #node_modules
 frontend/node_modules/
 frontend/dist/
 
 .trae/
+frontend/playwright-report/
+frontend/tests/
