@@ -1,12 +1,17 @@
 package com.aisale.backend.controller;
 
 import com.aisale.backend.dto.ApiResponse;
+import com.aisale.backend.dto.ReputationAccountResponse;
+import com.aisale.backend.dto.ReputationRecordResponse;
+import com.aisale.backend.dto.AdminReputationAdjustRequest;
 import com.aisale.backend.dto.UserAdminResponse;
 import com.aisale.backend.dto.UserQueryRequest;
 import com.aisale.backend.entity.User;
 import com.aisale.backend.service.AdminUserService;
+import com.aisale.backend.service.ReputationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminUserController {
 
     private final AdminUserService adminUserService;
+    private final ReputationService reputationService;
 
     @Operation(summary = "获取用户列表")
     @GetMapping
@@ -84,5 +90,21 @@ public class AdminUserController {
     public ApiResponse<AdminUserService.UserOrderStats> getUserOrderStats(@PathVariable Long id) {
         AdminUserService.UserOrderStats stats = adminUserService.getUserOrderStats(id);
         return ApiResponse.success(stats);
+    }
+
+    @Operation(summary = "获取用户信誉详情")
+    @GetMapping("/{id}/reputation")
+    public ApiResponse<ReputationAccountResponse> getUserReputation(@PathVariable Long id) {
+        ReputationAccountResponse reputation = reputationService.getAccountByUserId(id);
+        return ApiResponse.success(reputation);
+    }
+
+    @Operation(summary = "调整用户信誉分")
+    @PostMapping("/{id}/reputation/adjust")
+    public ApiResponse<ReputationRecordResponse> adjustUserReputation(
+            @PathVariable Long id,
+            @Valid @RequestBody AdminReputationAdjustRequest request) {
+        ReputationRecordResponse record = reputationService.adminAdjust(id, request);
+        return ApiResponse.success("信誉已调整", record);
     }
 }

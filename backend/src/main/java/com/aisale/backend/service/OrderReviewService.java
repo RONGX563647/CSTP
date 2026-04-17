@@ -19,6 +19,7 @@ public class OrderReviewService {
 
     private final OrderReviewRepository orderReviewRepository;
     private final OrderRepository orderRepository;
+    private final ReputationService reputationService;
 
     /**
      * 创建评价
@@ -58,6 +59,9 @@ public class OrderReviewService {
         review.setReviewType(reviewType);
 
         review = orderReviewRepository.save(review);
+
+        // 更新被评价人的信誉
+        reputationService.updateReputationFromReview(review);
 
         // 检查双方是否都已评价
         boolean hasBuyerReview = orderReviewRepository.existsByOrderIdAndReviewType(

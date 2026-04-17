@@ -27,6 +27,13 @@ public class UserProfileResponse {
     private Boolean emailVerified;
     private LocalDateTime createdAt;
 
+    // 信誉信息（公开信息）
+    private Integer reputationScore;
+    private Integer reputationLevel;
+    private String reputationLevelName;
+    private String reputationLevelIcon;
+    private Integer reputationTotalReviews;
+
     /**
      * 从 User 实体转换为 UserProfileResponse
      */
@@ -42,5 +49,20 @@ public class UserProfileResponse {
                 .emailVerified(user.getEmailVerified())
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    /**
+     * 从 User 实体和信誉信息转换为 UserProfileResponse
+     */
+    public static UserProfileResponse fromUserWithReputation(User user, ReputationAccountResponse reputation) {
+        UserProfileResponse response = fromUser(user);
+        if (reputation != null) {
+            response.setReputationScore(reputation.getTotalScore());
+            response.setReputationLevel(reputation.getLevel());
+            response.setReputationLevelName(reputation.getLevelName());
+            response.setReputationLevelIcon(reputation.getLevelIcon());
+            response.setReputationTotalReviews(reputation.getTotalReviews());
+        }
+        return response;
     }
 }

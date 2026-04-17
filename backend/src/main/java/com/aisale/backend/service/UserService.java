@@ -1,6 +1,7 @@
 package com.aisale.backend.service;
 
 import com.aisale.backend.dto.ChangePasswordRequest;
+import com.aisale.backend.dto.ReputationAccountResponse;
 import com.aisale.backend.dto.UpdateProfileRequest;
 import com.aisale.backend.dto.UserProfileResponse;
 import com.aisale.backend.entity.Order;
@@ -30,6 +31,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ReputationService reputationService;
 
     /**
      * 根据 ID 获取用户详细信息
@@ -217,6 +219,9 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("用户不存在"));
 
-        return UserProfileResponse.fromUser(user);
+        // 获取用户信誉信息
+        ReputationAccountResponse reputation = reputationService.getAccountByUserId(userId);
+
+        return UserProfileResponse.fromUserWithReputation(user, reputation);
     }
 }

@@ -133,6 +133,11 @@ public enum ErrorCode {
     POINT_INSUFFICIENT("80010001", "积分不足", 400),
     POINT_ACCOUNT_NOT_FOUND("80010002", "积分账户不存在", 404);
 
+    // ==================== 信誉模块 (90xxxxxx) ====================
+
+    // 信誉相关错误 (9001xxxx)
+    REPUTATION_ACCOUNT_NOT_FOUND("90010001", "信誉账户不存在", 404);
+
     /**
      * 错误码
      */
