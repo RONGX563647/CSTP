@@ -171,6 +171,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/Points.vue'),
     meta: { requiresAuth: true, title: '我的积分' }
   },
+  // 用户信誉路由
+  {
+    path: '/user/reputation',
+    name: 'UserReputation',
+    component: () => import('@/views/user/Reputation.vue'),
+    meta: { requiresAuth: true, title: '我的信誉' }
+  },
   // 管理端路由
   {
     path: '/admin/login',

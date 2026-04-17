@@ -118,6 +118,64 @@
               </el-descriptions-item>
             </el-descriptions>
           </el-card>
+
+          <!-- 用户信誉统计 -->
+          <el-card class="reputation-card" style="margin-top: 20px;">
+            <template #header>
+              <span>信誉统计</span>
+            </template>
+            <div v-if="reputation" class="reputation-content">
+              <div class="reputation-header">
+                <span class="level-icon">{{ reputation.levelIcon }}</span>
+                <span class="level-name">{{ reputation.levelName }}</span>
+                <span class="total-score">{{ reputation.totalScore }}分</span>
+              </div>
+              <el-descriptions :column="3" border style="margin-top: 16px;">
+                <el-descriptions-item label="平均评分">
+                  <el-rate v-model="reputation.avgRating" disabled show-score />
+                </el-descriptions-item>
+                <el-descriptions-item label="评价总数">
+                  {{ reputation.totalReviews }}
+                </el-descriptions-item>
+                <el-descriptions-item label="好评率">
+                  {{ reputation.goodRate.toFixed(1) }}%
+                </el-descriptions-item>
+                <el-descriptions-item label="好评数">
+                  {{ reputation.goodReviews }}
+                </el-descriptions-item>
+                <el-descriptions-item label="中评数">
+                  {{ reputation.neutralReviews }}
+                </el-descriptions-item>
+                <el-descriptions-item label="差评数">
+                  {{ reputation.badReviews }}
+                </el-descriptions-item>
+              </el-descriptions>
+            </div>
+            <el-empty v-else description="暂无信誉数据" :image-size="60" />
+          </el-card>
+
+          <!-- 信誉调整 -->
+          <el-card class="adjust-card" style="margin-top: 20px;">
+            <template #header>
+              <span>信誉调整</span>
+            </template>
+            <div class="adjust-section">
+              <el-form :inline="true">
+                <el-form-item label="调整分数">
+                  <el-input-number v-model="adjustScore" :min="-100" :max="100" style="width: 150px;" />
+                </el-form-item>
+                <el-form-item label="调整原因">
+                  <el-input v-model="adjustReason" placeholder="请输入调整原因" style="width: 300px;" />
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="handleAdjustReputation" :loading="actionLoading">
+                    确认调整
+                  </el-button>
+                </el-form-item>
+              </el-form>
+              <p class="adjust-tip">正数为增加信誉分，负数为扣减信誉分。调整会记录到用户信誉流水。</p>
+            </div>
+          </el-card>
         </el-col>
       </el-row>
     </div>
@@ -130,6 +188,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import { getUserById, updateUserStatus, resetUserPassword, deleteUser, getUserOrderStats, type User, UserStatus } from '@/api/user'
+import { getAdminUserReputation, adjustUserReputation, type ReputationAccount } from '@/api/reputation'
 
 const route = useRoute()
 const router = useRouter()
@@ -139,6 +198,9 @@ const actionLoading = ref(false)
 const user = ref<User | null>(null)
 const newStatus = ref<UserStatus>(UserStatus.ACTIVE)
 const newPassword = ref('')
+const reputation = ref<ReputationAccount | null>(null)
+const adjustScore = ref(0)
+const adjustReason = ref('')
 
 const userStats = ref({
   buyerOrders: 0,
@@ -160,6 +222,10 @@ const fetchUserDetail = async () => {
     // 获取订单统计
     const statsResponse = await getUserOrderStats(Number(userId))
     userStats.value = statsResponse.data.data
+
+    // 获取信誉信息
+    const reputationResponse = await getAdminUserReputation(Number(userId))
+    reputation.value = reputationResponse.data.data
   } catch (error: any) {
     console.error('获取用户详情失败:', error)
   } finally {
@@ -226,6 +292,49 @@ const handleDelete = async () => {
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除用户失败:', error)
+    }
+  } finally {
+    actionLoading.value = false
+  }
+}
+
+// 调整信誉
+const handleAdjustReputation = async () => {
+  if (!user.value) return
+
+  if (adjustScore.value === 0) {
+    ElMessage.warning('调整分数不能为0')
+    return
+  }
+
+  if (!adjustReason.value.trim()) {
+    ElMessage.warning('请输入调整原因')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要调整用户"${user.value.username}"的信誉分 ${adjustScore.value > 0 ? '+' : ''}${adjustScore.value} 分吗？`,
+      '信誉调整确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    actionLoading.value = true
+    await adjustUserReputation(user.value.id, {
+      score: adjustScore.value,
+      reason: adjustReason.value
+    })
+    ElMessage.success('信誉已调整')
+    adjustScore.value = 0
+    adjustReason.value = ''
+    fetchUserDetail()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('调整信誉失败:', error)
     }
   } finally {
     actionLoading.value = false
@@ -305,7 +414,9 @@ onMounted(() => {
 
 .user-info-card,
 .action-card,
-.stats-card {
+.stats-card,
+.reputation-card,
+.adjust-card {
   background: #FFFFFF;
 }
 
@@ -358,6 +469,45 @@ onMounted(() => {
 .danger-tip {
   font-size: 13px;
   color: #EF4444;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+/* 信誉统计 */
+.reputation-content {
+  padding: 8px 0;
+}
+
+.reputation-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+.level-icon {
+  font-size: 24px;
+}
+
+.level-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #67C23A;
+}
+
+.total-score {
+  font-size: 16px;
+  color: #6B7280;
+}
+
+/* 信誉调整 */
+.adjust-section {
+  padding: 8px 0;
+}
+
+.adjust-tip {
+  font-size: 12px;
+  color: #6B7280;
   margin-top: 8px;
   margin-bottom: 0;
 }

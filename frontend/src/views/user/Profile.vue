@@ -31,6 +31,12 @@
           </div>
           <span>积分</span>
         </div>
+        <div class="action-item" @click="navigateTo('/user/reputation')">
+          <div class="action-icon reputation-icon">
+            <el-icon :size="22"><Medal /></el-icon>
+          </div>
+          <span>信誉</span>
+        </div>
         <div class="action-item" @click="navigateTo('/user/products/my')">
           <div class="action-icon">
             <el-icon :size="22"><Goods /></el-icon>
@@ -91,7 +97,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Edit, ArrowRight, Location, Lock, Warning,
-  Goods, ShoppingBag, Sell, Calendar, Star
+  Goods, ShoppingBag, Sell, Calendar, Star, Medal
 } from '@element-plus/icons-vue'
 import MobileLayout from '@/layouts/MobileLayout.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -179,7 +185,7 @@ const handleLogout = () => {
 /* 快捷入口 */
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   padding: 16px 0;
   margin-bottom: 8px;
   background: var(--bg-card);
@@ -222,6 +228,11 @@ const handleLogout = () => {
 
 .action-icon.points-icon {
   background: linear-gradient(135deg, #fdcb6e, #e17055);
+  color: #fff;
+}
+
+.action-icon.reputation-icon {
+  background: linear-gradient(135deg, #00b894, #55a3ff);
   color: #fff;
 }
 

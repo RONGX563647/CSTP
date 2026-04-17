@@ -86,6 +86,10 @@
         <div class="seller-section">
           <span class="section-label">卖家：</span>
           <span class="seller-name">{{ product.sellerName || `用户${product.sellerId}` }}</span>
+          <div v-if="sellerReputation" class="seller-reputation">
+            <span class="reputation-icon">{{ sellerReputation.levelIcon }}</span>
+            <span class="reputation-score">{{ sellerReputation.totalScore }}分</span>
+          </div>
         </div>
 
         <!-- 更新时间 -->
@@ -146,6 +150,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Loading, ArrowLeft, Edit, ChatDotRound } from '@element-plus/icons-vue'
 import { getPublicProductById } from '@/api/product'
+import { getUserReputation, type ReputationAccount } from '@/api/reputation'
 import { Product, ProductStatus, ProductStatusText, ProductStatusColor } from '@/api/types'
 import { useAuthStore } from '@/stores/auth'
 
@@ -155,6 +160,7 @@ const authStore = useAuthStore()
 
 const product = ref<Product | null>(null)
 const loading = ref(true)
+const sellerReputation = ref<ReputationAccount | null>(null)
 
 // 是否是自己的商品
 const isOwnProduct = computed(() => {
@@ -169,6 +175,16 @@ const fetchProduct = async () => {
   try {
     const res = await getPublicProductById(Number(route.params.id))
     product.value = res.data.data
+
+    // 获取卖家信誉
+    if (product.value?.sellerId) {
+      try {
+        const repRes = await getUserReputation(product.value.sellerId)
+        sellerReputation.value = repRes.data.data
+      } catch (error) {
+        console.error('获取卖家信誉失败:', error)
+      }
+    }
   } catch (error) {
     console.error('获取商品详情失败:', error)
     ElMessage.error('商品不存在或已下架')
@@ -385,6 +401,7 @@ onMounted(() => {
 /* 卖家 */
 .seller-section {
   display: flex;
+  align-items: center;
   gap: 8px;
   padding-top: 12px;
   border-top: 1px solid #E5E5E5;
@@ -393,6 +410,26 @@ onMounted(() => {
 .seller-name {
   font-size: 14px;
   color: #4B5563;
+}
+
+.seller-reputation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: #f0f9eb;
+  border-radius: 12px;
+}
+
+.reputation-icon {
+  font-size: 12px;
+}
+
+.reputation-score {
+  font-size: 12px;
+  color: #67C23A;
+  font-weight: 500;
 }
 
 .update-time {

@@ -142,6 +142,14 @@
             <span class="label">用户名</span>
             <span class="value">{{ counterpartyName }}</span>
           </div>
+          <div class="info-row" v-if="counterpartyReputation">
+            <span class="label">信誉</span>
+            <span class="value reputation-value">
+              <span class="reputation-icon">{{ counterpartyReputation.levelIcon }}</span>
+              <span class="reputation-text">{{ counterpartyReputation.levelName }}</span>
+              <span class="reputation-score">{{ counterpartyReputation.totalScore }}分</span>
+            </span>
+          </div>
           <div class="info-row" v-if="counterpartyPhone">
             <span class="label">联系电话</span>
             <span class="value">{{ counterpartyPhone }}</span>
@@ -170,6 +178,19 @@
               <el-rate v-model="sellerReview.rating" disabled size="small" />
             </div>
             <div class="review-content">{{ sellerReview.content }}</div>
+          </div>
+        </div>
+
+        <!-- 对方信誉提示 -->
+        <div v-if="counterpartyReputation" class="reputation-tip">
+          <div class="tip-header">
+            <el-icon :size="16"><InfoFilled /></el-icon>
+            <span>信誉提示</span>
+          </div>
+          <div class="tip-content">
+            {{ isBuyer ? '卖家' : '买家' }}信誉等级为「{{ counterpartyReputation.levelName }}」，
+            评分 {{ counterpartyReputation.avgRating.toFixed(1) }} 分，
+            好评率 {{ counterpartyReputation.goodRate.toFixed(1) }}%
           </div>
         </div>
       </template>
@@ -224,9 +245,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Loading, Clock, CircleCheck, CircleClose, Timer, ChatDotRound } from '@element-plus/icons-vue'
+import { Loading, Clock, CircleCheck, CircleClose, Timer, ChatDotRound, InfoFilled } from '@element-plus/icons-vue'
 import MobileLayout from '@/layouts/MobileLayout.vue'
 import { getOrderById, payOrder, confirmPickup, confirmPayment, cancelOrder, Order, OrderStatus, getOrderStatusText, getOrderReviews, OrderReview } from '@/api/order'
+import { getUserReputation, type ReputationAccount } from '@/api/reputation'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -237,6 +259,7 @@ const order = ref<Order | null>(null)
 const loading = ref(true)
 const buyerReview = ref({ rating: 0, content: '' })
 const sellerReview = ref({ rating: 0, content: '' })
+const counterpartyReputation = ref<ReputationAccount | null>(null)
 
 const pageTitle = computed(() => `订单详情`)
 
@@ -308,6 +331,16 @@ const fetchOrder = async () => {
         if (sReview) {
           sellerReview.value = { rating: sReview.rating, content: sReview.content }
         }
+      }
+    }
+
+    // 获取对方信誉信息
+    if (counterpartyId.value) {
+      try {
+        const repRes = await getUserReputation(counterpartyId.value)
+        counterpartyReputation.value = repRes.data.data
+      } catch (error) {
+        console.error('获取对方信誉失败:', error)
       }
     }
   } catch (error) {
@@ -645,6 +678,51 @@ onMounted(() => {
   font-size: 14px;
   color: #4B5563;
   line-height: 1.6;
+}
+
+/* 信誉展示 */
+.reputation-value {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reputation-icon {
+  font-size: 14px;
+}
+
+.reputation-text {
+  color: #67C23A;
+  font-weight: 500;
+}
+
+.reputation-score {
+  color: #6B7280;
+  font-size: 12px;
+}
+
+/* 信誉提示 */
+.reputation-tip {
+  background: #f0f9eb;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px;
+}
+
+.tip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #67C23A;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.tip-content {
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.5;
 }
 
 /* 底部操作栏 */
