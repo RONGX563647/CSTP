@@ -405,4 +405,59 @@ class ReputationServiceTest {
             assertTrue(exception.getMessage().contains("不能为空"));
         }
     }
+
+    @Nested
+    @DisplayName("获取信誉流水")
+    class GetRecordsTests {
+
+        @Test
+        @DisplayName("分页查询成功")
+        void getRecords_Success() {
+            // Given
+            ReputationRecord record1 = new ReputationRecord();
+            record1.setId(1L);
+            record1.setUserId(USER_ID);
+            record1.setType(ReputationRecord.RecordType.REVIEW_ADD);
+            record1.setScoreChange(10);
+            record1.setBalanceAfter(110);
+            record1.setRating(5);
+            record1.setDescription("收到买家评价");
+
+            ReputationRecord record2 = new ReputationRecord();
+            record2.setId(2L);
+            record2.setUserId(USER_ID);
+            record2.setType(ReputationRecord.RecordType.ADMIN_ADJUST);
+            record2.setScoreChange(50);
+            record2.setBalanceAfter(160);
+            record2.setDescription("管理员调整：活动奖励");
+
+            List<ReputationRecord> records = List.of(record1, record2);
+            Page<ReputationRecord> page = new PageImpl<>(records);
+
+            when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(testUser));
+            when(reputationRecordRepository.findByUserIdOrderByCreatedAtDesc(USER_ID, PageRequest.of(0, 20)))
+                    .thenReturn(page);
+
+            // When
+            Page<ReputationRecordResponse> response = reputationService.getRecords(USERNAME, 0, 20);
+
+            // Then
+            assertNotNull(response);
+            assertEquals(2, response.getContent().size());
+            assertEquals("REVIEW_ADD", response.getContent().get(0).getType());
+            assertEquals(10, response.getContent().get(0).getScoreChange());
+        }
+
+        @Test
+        @DisplayName("用户不存在抛出 NotFoundException")
+        void getRecords_UserNotFound() {
+            // Given
+            when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThrows(NotFoundException.class, () -> {
+                reputationService.getRecords(USERNAME, 0, 20);
+            });
+        }
+    }
 }
