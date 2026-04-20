@@ -81,4 +81,17 @@ public class BaseException extends RuntimeException {
         this.httpStatus = errorCode.getHttpStatus();
     }
 
+    /**
+     * 从 ErrorCode 枚举构造（带自定义消息和原始异常）
+     *
+     * @param errorCode 错误码枚举
+     * @param message   自定义消息
+     * @param cause     原始异常
+     */
+    public BaseException(ErrorCode errorCode, String message, Throwable cause) {
+        super(message, cause);
+        this.errorCode = errorCode.getCode();
+        this.httpStatus = errorCode.getHttpStatus();
+    }
+
 }
