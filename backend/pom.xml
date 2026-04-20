@@ -157,12 +157,6 @@
             <version>3.17.4</version>
         </dependency>
 
-        <!-- WebSocket -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
-
         <!-- RabbitMQ (AMQP) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
