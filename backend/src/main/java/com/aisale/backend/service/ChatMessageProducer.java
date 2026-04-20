@@ -2,6 +2,8 @@ package com.aisale.backend.service;
 
 import com.aisale.backend.config.RabbitMQConfig;
 import com.aisale.backend.dto.ChatMessageResponse;
+import com.aisale.backend.exception.BusinessException;
+import com.aisale.backend.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -18,6 +20,9 @@ public class ChatMessageProducer {
      * 发送聊天消息到 RabbitMQ
      */
     public void sendChatMessage(Long targetUserId, ChatMessageResponse message) {
+        if (targetUserId == null || message == null) {
+            throw new IllegalArgumentException("targetUserId and message must not be null");
+        }
         try {
             ChatMessagePayload payload = new ChatMessagePayload(targetUserId, message);
             rabbitTemplate.convertAndSend(
@@ -28,7 +33,8 @@ public class ChatMessageProducer {
             log.info("Message sent to RabbitMQ: targetUserId={}, messageId={}",
                 targetUserId, message.getId());
         } catch (Exception e) {
-            log.error("Failed to send message to RabbitMQ: {}", e.getMessage());
+            log.error("Failed to send message to RabbitMQ: targetUserId={}", targetUserId, e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "消息发送失败", e);
         }
     }
 
