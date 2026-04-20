@@ -155,4 +155,147 @@ class ReputationServiceTest {
             assertEquals(ErrorCode.USER_NOT_FOUND.getCode(), exception.getErrorCode());
         }
     }
+
+    @Nested
+    @DisplayName("评价更新信誉")
+    class UpdateReputationFromReviewTests {
+
+        @Test
+        @DisplayName("5分好评增加10信誉分")
+        void updateReputationFromReview_Rating5() {
+            // Given
+            ReputationAccount revieweeAccount = new ReputationAccount();
+            revieweeAccount.setId(2L);
+            revieweeAccount.setUserId(REVIEWEE_ID);
+            revieweeAccount.setTotalScore(100);
+            revieweeAccount.setTotalReviews(0);
+            revieweeAccount.setGoodReviews(0);
+            revieweeAccount.setNeutralReviews(0);
+            revieweeAccount.setBadReviews(0);
+            revieweeAccount.setAvgRating(0.0);
+            revieweeAccount.setLevel(3);
+
+            testReview.setRating(5);
+
+            when(reputationAccountRepository.findByUserId(REVIEWEE_ID)).thenReturn(Optional.of(revieweeAccount));
+            when(reputationAccountRepository.save(any(ReputationAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(reputationRecordRepository.save(any(ReputationRecord.class))).thenAnswer(invocation -> {
+                ReputationRecord record = invocation.getArgument(0);
+                record.setId(1L);
+                return record;
+            });
+
+            // When
+            ReputationRecord record = reputationService.updateReputationFromReview(testReview);
+
+            // Then
+            assertEquals(10, record.getScoreChange());
+            assertEquals(110, record.getBalanceAfter());
+            assertEquals(ReputationRecord.RecordType.REVIEW_ADD, record.getType());
+            assertEquals(5, record.getRating());
+
+            verify(reputationAccountRepository).save(argThat(a ->
+                a.getTotalScore() == 110 &&
+                a.getTotalReviews() == 1 &&
+                a.getGoodReviews() == 1
+            ));
+        }
+
+        @Test
+        @DisplayName("4分好评增加5信誉分")
+        void updateReputationFromReview_Rating4() {
+            ReputationAccount revieweeAccount = createDefaultAccount(REVIEWEE_ID);
+            testReview.setRating(4);
+
+            mockAccountAndRecordSave(revieweeAccount);
+
+            ReputationRecord record = reputationService.updateReputationFromReview(testReview);
+
+            assertEquals(5, record.getScoreChange());
+            assertEquals(105, record.getBalanceAfter());
+        }
+
+        @Test
+        @DisplayName("3分中评不变信誉分")
+        void updateReputationFromReview_Rating3() {
+            ReputationAccount revieweeAccount = createDefaultAccount(REVIEWEE_ID);
+            testReview.setRating(3);
+
+            mockAccountAndRecordSave(revieweeAccount);
+
+            ReputationRecord record = reputationService.updateReputationFromReview(testReview);
+
+            assertEquals(0, record.getScoreChange());
+            assertEquals(100, record.getBalanceAfter());
+        }
+
+        @Test
+        @DisplayName("2分差评扣减5信誉分")
+        void updateReputationFromReview_Rating2() {
+            ReputationAccount revieweeAccount = createDefaultAccount(REVIEWEE_ID);
+            testReview.setRating(2);
+
+            mockAccountAndRecordSave(revieweeAccount);
+
+            ReputationRecord record = reputationService.updateReputationFromReview(testReview);
+
+            assertEquals(-5, record.getScoreChange());
+            assertEquals(95, record.getBalanceAfter());
+        }
+
+        @Test
+        @DisplayName("1分极差扣减10信誉分")
+        void updateReputationFromReview_Rating1() {
+            ReputationAccount revieweeAccount = createDefaultAccount(REVIEWEE_ID);
+            testReview.setRating(1);
+
+            mockAccountAndRecordSave(revieweeAccount);
+
+            ReputationRecord record = reputationService.updateReputationFromReview(testReview);
+
+            assertEquals(-10, record.getScoreChange());
+            assertEquals(90, record.getBalanceAfter());
+        }
+
+        @Test
+        @DisplayName("信誉分扣减后不能为负（最小0）")
+        void updateReputationFromReview_NegativeScoreProtection() {
+            ReputationAccount revieweeAccount = createDefaultAccount(REVIEWEE_ID);
+            revieweeAccount.setTotalScore(5);
+            testReview.setRating(1);
+
+            mockAccountAndRecordSave(revieweeAccount);
+
+            ReputationRecord record = reputationService.updateReputationFromReview(testReview);
+
+            assertEquals(-10, record.getScoreChange());
+            assertEquals(0, record.getBalanceAfter());
+
+            verify(reputationAccountRepository).save(argThat(a -> a.getTotalScore() == 0));
+        }
+    }
+
+    // Helper methods
+    private ReputationAccount createDefaultAccount(Long userId) {
+        ReputationAccount account = new ReputationAccount();
+        account.setUserId(userId);
+        account.setTotalScore(100);
+        account.setTotalReviews(0);
+        account.setGoodReviews(0);
+        account.setNeutralReviews(0);
+        account.setBadReviews(0);
+        account.setAvgRating(0.0);
+        account.setLevel(3);
+        return account;
+    }
+
+    private void mockAccountAndRecordSave(ReputationAccount account) {
+        when(reputationAccountRepository.findByUserId(account.getUserId())).thenReturn(Optional.of(account));
+        when(reputationAccountRepository.save(any(ReputationAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(reputationRecordRepository.save(any(ReputationRecord.class))).thenAnswer(invocation -> {
+            ReputationRecord record = invocation.getArgument(0);
+            record.setId(1L);
+            return record;
+        });
+    }
 }
