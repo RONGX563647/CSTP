@@ -8,7 +8,6 @@ import com.aisale.backend.repository.ChatMessageRepository;
 import com.aisale.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +24,7 @@ public class ChatService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final ChatMessageProducer chatMessageProducer;
 
     @Transactional
     public ChatMessageResponse sendMessage(Long senderId, Long receiverId, String content) {
@@ -43,17 +42,16 @@ public class ChatService {
             .build();
 
         ChatMessage savedMessage = chatMessageRepository.saveAndFlush(message);
-        log.info("Message saved: id={}, from={}({}), to={}({})", 
+        log.info("Message saved: id={}, from={}({}), to={}({})",
             savedMessage.getId(), senderId, sender.getUsername(), receiverId, receiver.getUsername());
 
         ChatMessageResponse response = ChatMessageResponse.fromEntity(savedMessage, sender.getUsername(), receiver.getUsername());
-        log.info("Created response: senderId={}, senderName={}, receiverId={}, receiverName={}", 
+        log.info("Created response: senderId={}, senderName={}, receiverId={}, receiverName={}",
             response.getSenderId(), response.getSenderName(), response.getReceiverId(), response.getReceiverName());
 
-        // 通过 Spring 事件机制异步推送给接收方（避免循环依赖）
-        eventPublisher.publishEvent(new ChatMessageEvent(this, receiverId, response));
-        // 同时也给发送方回执（支持发送方多标签页场景）
-        eventPublisher.publishEvent(new ChatMessageEvent(this, senderId, response));
+        // 通过 RabbitMQ 推送给接收方和发送方
+        chatMessageProducer.sendChatMessage(receiverId, response);
+        chatMessageProducer.sendChatMessage(senderId, response);
 
         return response;
     }
