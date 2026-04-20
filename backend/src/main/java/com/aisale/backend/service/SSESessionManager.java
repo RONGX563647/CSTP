@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -18,7 +19,12 @@ public class SSESessionManager {
     public SseEmitter register(Long userId) {
         // 30分钟超时
         SseEmitter emitter = new SseEmitter(30 * 60 * 1000L);
-        emitters.put(userId, emitter);
+        // 先完成旧连接，防止竞态条件
+        SseEmitter oldEmitter = emitters.put(userId, emitter);
+        if (oldEmitter != null) {
+            oldEmitter.complete();
+            log.info("SSE connection replaced for userId={}", userId);
+        }
 
         emitter.onCompletion(() -> {
             emitters.remove(userId);
@@ -50,12 +56,12 @@ public class SSESessionManager {
                     .name("chat")
                     .data(message));
                 log.debug("SSE message sent to userId={}", userId);
-            } catch (Exception e) {
+            } catch (IOException | IllegalStateException e) {
                 log.error("SSE send failed for userId={}: {}", userId, e.getMessage());
                 emitters.remove(userId);
             }
         } else {
-            log.debug("User userId={} is offline, message will be stored", userId);
+            log.debug("User {} is offline, message will be stored", userId);
         }
     }
 
