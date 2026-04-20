@@ -44,7 +44,7 @@ public class ReputationAccount {
     private Integer badReviews = 0;
 
     /** 平均评分（1-5） */
-    @Column(name = "avg_rating", precision = 3, scale = 2)
+    @Column(name = "avg_rating")
     private Double avgRating = 0.0;
 
     /** 信誉等级（1-5级） */
