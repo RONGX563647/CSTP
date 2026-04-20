@@ -61,6 +61,13 @@ spring:
         options:
           model: gpt-3.5-turbo
 
+  # RabbitMQ 配置
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
 # Aliyun OSS 配置
 aliyun:
   oss:
