@@ -4,6 +4,7 @@ import com.aisale.backend.dto.OrderReviewRequest;
 import com.aisale.backend.dto.OrderReviewResponse;
 import com.aisale.backend.entity.Order;
 import com.aisale.backend.entity.OrderReview;
+import com.aisale.backend.entity.ReputationRecord;
 import com.aisale.backend.repository.OrderRepository;
 import com.aisale.backend.repository.OrderReviewRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +37,9 @@ class OrderReviewServiceTest {
 
     @Mock
     private OrderRepository orderRepository;
+
+    @Mock
+    private ReputationService reputationService;
 
     @InjectMocks
     private OrderReviewService orderReviewService;
@@ -75,6 +79,7 @@ class OrderReviewServiceTest {
             review.setId(1L);
             return review;
         });
+        when(reputationService.updateReputationFromReview(any(OrderReview.class))).thenReturn(new ReputationRecord());
 
         // When
         OrderReviewResponse response = orderReviewService.createReview(ORDER_ID, request, BUYER_ID, OrderReview.ReviewType.BUYER_REVIEW);
@@ -185,6 +190,7 @@ class OrderReviewServiceTest {
             .thenReturn(false)  // 第一次调用（检查是否重复评价）返回 false
             .thenReturn(true);  // 第二次调用（检查是否双方都评价）返回 true
         when(orderReviewRepository.save(any(OrderReview.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(reputationService.updateReputationFromReview(any(OrderReview.class))).thenReturn(new ReputationRecord());
 
         // When
         orderReviewService.createReview(ORDER_ID, request, SELLER_ID, OrderReview.ReviewType.SELLER_REVIEW);
