@@ -446,6 +446,9 @@ class ReputationServiceTest {
             assertEquals(2, response.getContent().size());
             assertEquals("REVIEW_ADD", response.getContent().get(0).getType());
             assertEquals(10, response.getContent().get(0).getScoreChange());
+            assertEquals(110, response.getContent().get(0).getBalanceAfter());
+            assertEquals(5, response.getContent().get(0).getRating());
+            assertEquals("收到买家评价", response.getContent().get(0).getDescription());
         }
 
         @Test
@@ -455,9 +458,29 @@ class ReputationServiceTest {
             when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.empty());
 
             // When & Then
-            assertThrows(NotFoundException.class, () -> {
+            NotFoundException exception = assertThrows(NotFoundException.class, () -> {
                 reputationService.getRecords(USERNAME, 0, 20);
             });
+            assertEquals(ErrorCode.USER_NOT_FOUND.getCode(), exception.getErrorCode());
+        }
+
+        @Test
+        @DisplayName("空分页查询返回空列表")
+        void getRecords_EmptyPage() {
+            // Given
+            Page<ReputationRecord> emptyPage = new PageImpl<>(List.of());
+
+            when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(testUser));
+            when(reputationRecordRepository.findByUserIdOrderByCreatedAtDesc(USER_ID, PageRequest.of(0, 20)))
+                    .thenReturn(emptyPage);
+
+            // When
+            Page<ReputationRecordResponse> response = reputationService.getRecords(USERNAME, 0, 20);
+
+            // Then
+            assertNotNull(response);
+            assertEquals(0, response.getContent().size());
+            assertEquals(0, response.getTotalElements());
         }
     }
 }
