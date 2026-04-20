@@ -23,7 +23,13 @@ public class ChatMessageConsumer {
 
         log.info("Received message from RabbitMQ: targetUserId={}", targetUserId);
 
-        // 通过 SSE 推送给在线用户
-        sseSessionManager.sendToUser(targetUserId, message);
+        try {
+            // 通过 SSE 推送给在线用户
+            sseSessionManager.sendToUser(targetUserId, message);
+            log.debug("Message delivered via SSE: targetUserId={}", targetUserId);
+        } catch (Exception e) {
+            // 异常时 ACK 消息（不重新入队），用户可以从数据库获取历史消息
+            log.error("Failed to deliver message via SSE: targetUserId={}", targetUserId, e);
+        }
     }
 }
