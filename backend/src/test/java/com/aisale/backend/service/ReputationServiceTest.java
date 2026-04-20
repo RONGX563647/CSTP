@@ -213,6 +213,12 @@ class ReputationServiceTest {
 
             assertEquals(5, record.getScoreChange());
             assertEquals(105, record.getBalanceAfter());
+
+            verify(reputationAccountRepository).save(argThat(a ->
+                a.getTotalScore() == 105 &&
+                a.getTotalReviews() == 1 &&
+                a.getGoodReviews() == 1
+            ));
         }
 
         @Test
@@ -241,6 +247,12 @@ class ReputationServiceTest {
 
             assertEquals(-5, record.getScoreChange());
             assertEquals(95, record.getBalanceAfter());
+
+            verify(reputationAccountRepository).save(argThat(a ->
+                a.getTotalScore() == 95 &&
+                a.getTotalReviews() == 1 &&
+                a.getBadReviews() == 1
+            ));
         }
 
         @Test
@@ -255,6 +267,12 @@ class ReputationServiceTest {
 
             assertEquals(-10, record.getScoreChange());
             assertEquals(90, record.getBalanceAfter());
+
+            verify(reputationAccountRepository).save(argThat(a ->
+                a.getTotalScore() == 90 &&
+                a.getTotalReviews() == 1 &&
+                a.getBadReviews() == 1
+            ));
         }
 
         @Test
@@ -297,5 +315,94 @@ class ReputationServiceTest {
             record.setId(1L);
             return record;
         });
+    }
+
+    @Nested
+    @DisplayName("管理员调整信誉")
+    class AdminAdjustTests {
+
+        @Test
+        @DisplayName("正向调整成功")
+        void adminAdjust_AddPositive() {
+            // Given
+            AdminReputationAdjustRequest request = new AdminReputationAdjustRequest();
+            request.setScore(50);
+            request.setReason("活动奖励");
+
+            when(reputationAccountRepository.findByUserId(USER_ID)).thenReturn(Optional.of(testAccount));
+            when(reputationAccountRepository.save(any(ReputationAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(reputationRecordRepository.save(any(ReputationRecord.class))).thenAnswer(invocation -> {
+                ReputationRecord record = invocation.getArgument(0);
+                record.setId(1L);
+                return record;
+            });
+
+            // When
+            ReputationRecordResponse response = reputationService.adminAdjust(USER_ID, request);
+
+            // Then
+            assertEquals(50, response.getScoreChange());
+            assertEquals(150, response.getBalanceAfter());
+            assertEquals("ADMIN_ADJUST", response.getType());
+            assertTrue(response.getDescription().contains("活动奖励"));
+        }
+
+        @Test
+        @DisplayName("负向调整成功")
+        void adminAdjust_DeductNegative() {
+            // Given
+            AdminReputationAdjustRequest request = new AdminReputationAdjustRequest();
+            request.setScore(-30);
+            request.setReason("违规处罚");
+
+            when(reputationAccountRepository.findByUserId(USER_ID)).thenReturn(Optional.of(testAccount));
+            when(reputationAccountRepository.save(any(ReputationAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(reputationRecordRepository.save(any(ReputationRecord.class))).thenAnswer(invocation -> {
+                ReputationRecord record = invocation.getArgument(0);
+                record.setId(1L);
+                return record;
+            });
+
+            // When
+            ReputationRecordResponse response = reputationService.adminAdjust(USER_ID, request);
+
+            // Then
+            assertEquals(-30, response.getScoreChange());
+            assertEquals(70, response.getBalanceAfter());
+            assertEquals("ADMIN_ADJUST", response.getType());
+            assertTrue(response.getDescription().contains("违规处罚"));
+        }
+
+        @Test
+        @DisplayName("调整分数为0抛出 ValidationException")
+        void adminAdjust_ZeroScore() {
+            // Given
+            AdminReputationAdjustRequest request = new AdminReputationAdjustRequest();
+            request.setScore(0);
+            request.setReason("测试");
+
+            // When & Then
+            ValidationException exception = assertThrows(ValidationException.class, () -> {
+                reputationService.adminAdjust(USER_ID, request);
+            });
+
+            assertTrue(exception.getMessage().contains("不能为0"));
+        }
+
+        @Test
+        @DisplayName("原因为空抛出 ValidationException")
+        void adminAdjust_EmptyReason() {
+            // Given
+            AdminReputationAdjustRequest request = new AdminReputationAdjustRequest();
+            request.setScore(10);
+            request.setReason("");
+
+            // When & Then
+            ValidationException exception = assertThrows(ValidationException.class, () -> {
+                reputationService.adminAdjust(USER_ID, request);
+            });
+
+            assertTrue(exception.getMessage().contains("不能为空"));
+        }
     }
 }
