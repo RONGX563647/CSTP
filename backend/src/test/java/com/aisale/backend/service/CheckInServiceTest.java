@@ -152,6 +152,28 @@ class CheckInServiceTest {
         }
 
         @Test
+        @DisplayName("连续6天签到，奖励10分（边界测试）")
+        void checkIn_Day6() {
+            // Given
+            CheckIn yesterdayCheckIn = new CheckIn();
+            yesterdayCheckIn.setCheckInDate(YESTERDAY);
+            yesterdayCheckIn.setContinuousDays(5);
+
+            when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(testUser));
+            when(checkInRepository.findByUserIdAndCheckInDate(USER_ID, TODAY)).thenReturn(Optional.empty());
+            when(checkInRepository.findByUserIdAndCheckInDate(USER_ID, YESTERDAY)).thenReturn(Optional.of(yesterdayCheckIn));
+            when(checkInRepository.save(any(CheckIn.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(checkInRepository.countByUserId(USER_ID)).thenReturn(6L);
+
+            // When
+            CheckInResponse response = checkInService.checkIn(USERNAME);
+
+            // Then
+            assertEquals(6, response.getContinuousDays());
+            assertEquals(10, response.getRewardPoints()); // 第6天仍奖励10分
+        }
+
+        @Test
         @DisplayName("今日已签到抛出 ConflictException")
         void checkIn_AlreadyCheckedIn() {
             // Given
@@ -277,6 +299,18 @@ class CheckInServiceTest {
             assertEquals(0, response.getTotalCheckInDays());
             assertNull(response.getLastCheckInDate());
         }
+
+        @Test
+        @DisplayName("用户不存在抛出 NotFoundException")
+        void getCheckInStatus_UserNotFound() {
+            // Given
+            when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThrows(NotFoundException.class, () -> {
+                checkInService.getCheckInStatus(USERNAME);
+            });
+        }
     }
 
     @Nested
@@ -313,6 +347,36 @@ class CheckInServiceTest {
             assertTrue(dates.contains(date1));
             assertTrue(dates.contains(date2));
             assertTrue(dates.contains(date3));
+        }
+
+        @Test
+        @DisplayName("用户不存在抛出 NotFoundException")
+        void getCheckInCalendar_UserNotFound() {
+            // Given
+            when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThrows(NotFoundException.class, () -> {
+                checkInService.getCheckInCalendar(USERNAME, 2026, 4);
+            });
+        }
+
+        @Test
+        @DisplayName("空月份返回空列表")
+        void getCheckInCalendar_EmptyMonth() {
+            // Given
+            when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(testUser));
+            when(checkInRepository.findByUserIdAndCheckInDateBetweenOrderByCheckInDateAsc(
+                    USER_ID,
+                    LocalDate.of(2026, 4, 1),
+                    LocalDate.of(2026, 4, 30)))
+                    .thenReturn(List.of());
+
+            // When
+            List<LocalDate> dates = checkInService.getCheckInCalendar(USERNAME, 2026, 4);
+
+            // Then
+            assertEquals(0, dates.size());
         }
     }
 }
