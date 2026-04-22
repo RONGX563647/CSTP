@@ -1,0 +1,88 @@
+site_name: AiSale 校园二手交易平台 - 学习教程
+site_description: AiSale 校园二手交易平台完整开发教程，从零开始学习 Spring Boot + Vue 3 全栈开发
+site_author: AiSale Team
+site_url: https://RONGX563647.github.io/CSTP/
+repo_url: https://github.com/RONGX563647/CSTP
+repo_name: RONGX563647/CSTP
+
+docs_dir: docs
+
+theme:
+  name: material
+  language: zh
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: 切换到深色模式
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: 切换到浅色模式
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.share
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - 首页: README.md
+  - 基础篇:
+      - 00 基础依赖与环境配置: learn/00-基础依赖与环境配置.md
+      - 01 项目初始化与基础设施: learn/01-项目初始化与基础设施.md
+      - 02 实体类与数据库设计: learn/02-实体类与数据库设计.md
+  - 核心功能篇:
+      - 03 用户认证模块开发: learn/03-用户认证模块开发.md
+      - 04 商品管理模块开发: learn/04-商品管理模块开发.md
+      - 05 订单管理模块开发: learn/05-订单管理模块开发.md
+      - 06 用户地址与信息管理模块: learn/06-用户地址与信息管理模块.md
+      - 07 文件上传与OSS模块开发: learn/07-文件上传与OSS模块开发.md
+  - 进阶功能篇:
+      - 08 IM即时通讯模块开发: learn/08-IM即时通讯模块开发.md
+      - 09 日志模块开发: learn/09-日志模块开发.md
+      - 10 商品搜索与推荐模块: learn/10-商品搜索与推荐模块.md
+      - 11 签到积分信誉模块开发: learn/11-签到积分信誉模块开发.md
+  - 前端与部署:
+      - 12 前端开发完整指南: learn/12-前端开发完整指南.md
+      - 13 测试与部署: learn/13-测试与部署.md
+  - 总结篇: learn/14-项目总结与扩展.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/RONGX563647/CSTP
+      name: GitHub 仓库
+
+copyright: Copyright &copy; 2026 AiSale Team
