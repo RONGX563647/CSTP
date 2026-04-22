@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>00 基础依赖与环境配置</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #faf3f0 0%, #ffffff 100%);
+            color: #333;
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边导航 */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #f0e6e0;
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-title {
+            padding: 0 25px 20px;
+            border-bottom: 1px solid #f0e6e0;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-title h1 {
+            font-size: 18px;
+            color: #e07b5a;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-title p {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-list {
+            list-style: none;
+        }
+        
+        .nav-item {
+            padding: 0 20px;
+        }
+        
+        .nav-item a {
+            display: block;
+            padding: 12px 15px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item a:hover {
+            background: #faf3f0;
+            color: #e07b5a;
+        }
+        
+        .nav-item a.active {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            color: #e07b5a;
+            font-weight: 500;
+        }
+        
+        .nav-category {
+            padding: 15px 25px 8px;
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+        }
+        
+        .content-header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0e6e0;
+        }
+        
+        .content-header h1 {
+            font-size: 32px;
+            color: #2c2c2c;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .content-header p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .content-body h2 {
+            font-size: 24px;
+            color: #e07b5a;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .content-body h3 {
+            font-size: 20px;
+            color: #333;
+            margin: 30px 0 15px;
+        }
+        
+        .content-body h4 {
+            font-size: 17px;
+            color: #444;
+            margin: 25px 0 12px;
+        }
+        
+        .content-body p {
+            margin: 15px 0;
+            color: #555;
+        }
+        
+        .content-body ul, .content-body ol {
+            margin: 15px 0;
+            padding-left: 25px;
+            color: #555;
+        }
+        
+        .content-body li {
+            margin: 8px 0;
+        }
+        
+        .content-body a {
+            color: #e07b5a;
+            text-decoration: none;
+        }
+        
+        .content-body a:hover {
+            text-decoration: underline;
+        }
+        
+        .content-body strong {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        /* 代码块样式 */
+        .code-wrapper {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #faf8f6;
+            border: 1px solid #f0e6e0;
+        }
+        
+        .code-header {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .code-lang {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+        
+        .copy-btn {
+            background: #ffffff;
+            border: 1px solid #e0e6e0;
+            color: #666;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .copy-btn:hover {
+            background: #f5e6df;
+            border-color: #e07b5a;
+            color: #e07b5a;
+        }
+        
+        .copy-btn.copied {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: #fff;
+        }
+        
+        .code-wrapper pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            background: transparent;
+        }
+        
+        .code-wrapper code {
+            font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", Consolas, Monaco, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #444;
+            background: transparent;
+        }
+        
+        /* 表格样式 */
+        .content-body table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .content-body th {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #e07b5a;
+        }
+        
+        .content-body td {
+            padding: 12px 15px;
+            border-top: 1px solid #f0e6e0;
+        }
+        
+        /* 提示框样式 */
+        .tip-box {
+            background: #faf8f6;
+            border-left: 4px solid #e07b5a;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip-box p {
+            margin: 0;
+            color: #666;
+        }
+        
+        .tip-box strong {
+            color: #e07b5a;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: 240px;
+                padding: 30px 40px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边导航 -->
+        <nav class="sidebar">
+            <div class="sidebar-title">
+                <h1>📚 AiSale 教程</h1>
+                <p>校园二手交易平台学习指南</p>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">首页</a>
+                </li>
+                <li class="nav-category">基础篇</li>
+                <li class="nav-item">
+                    <a href="00-基础依赖与环境配置.html" class="nav-link">00 基础依赖与环境配置</a>
+                </li>
+                <li class="nav-item">
+                    <a href="01-项目初始化与基础设施.html" class="nav-link">01 项目初始化与基础设施</a>
+                </li>
+                <li class="nav-item">
+                    <a href="02-实体类与数据库设计.html" class="nav-link">02 实体类与数据库设计</a>
+                </li>
+                <li class="nav-category">核心篇</li>
+                <li class="nav-item">
+                    <a href="03-用户认证模块开发.html" class="nav-link">03 用户认证模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="04-商品管理模块开发.html" class="nav-link">04 商品管理模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="05-订单管理模块开发.html" class="nav-link">05 订单管理模块开发</a>
+                </li>
+                <li class="nav-category">进阶篇</li>
+                <li class="nav-item">
+                    <a href="06-用户地址与信息管理模块.html" class="nav-link">06 用户地址与信息管理</a>
+                </li>
+                <li class="nav-item">
+                    <a href="07-文件上传与OSS模块开发.html" class="nav-link">07 文件上传与OSS模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="08-IM即时通讯模块开发.html" class="nav-link">08 IM即时通讯模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="09-日志模块开发.html" class="nav-link">09 日志模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="10-商品搜索与推荐模块.html" class="nav-link">10 商品搜索与推荐模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="11-签到积分信誉模块开发.html" class="nav-link">11 签到积分信誉模块</a>
+                </li>
+                <li class="nav-category">前端与部署</li>
+                <li class="nav-item">
+                    <a href="12-前端开发完整指南.html" class="nav-link">12 前端开发完整指南</a>
+                </li>
+                <li class="nav-item">
+                    <a href="13-测试与部署.html" class="nav-link">13 测试与部署</a>
+                </li>
+                <li class="nav-item">
+                    <a href="14-项目总结与扩展.html" class="nav-link">14 项目总结与扩展</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>00 基础依赖与环境配置</h1>
+                <p>AiSale 校园二手交易平台学习指南 - 00 基础依赖与环境配置</p>
+            </div>
+            <div class="content-body">
+                <h2>00 基础依赖与环境配置</h2>
+<p>学习时长: 2-3 天</p>
+<p>难度: ⭐⭐☆☆☆</p>
+<p>前置知识: Java 基础、Maven 基础、Node.js 基础</p>
+<p>---</p>
+<h3>一、项目概述</h3>
+<h4>1.1 技术栈总览</h4>
+<p><strong>后端技术栈:</strong></p>
+<p>核心框架:</p>
+<ul><li>Java 17 (LTS)</li>
+<li>Spring Boot 3.3.4</li>
+<li>Spring Security (认证授权)</li>
+<li>Spring Data JPA (数据持久化)</li></ul>
+<p>通信协议:</p>
+<ul><li>SSE (Server-Sent Events 实时消息)</li>
+<li>WebSocket (实时通信)</li>
+<li>REST API (前后端交互)</li></ul>
+<p>数据存储:</p>
+<ul><li>PostgreSQL (生产数据库)</li>
+<li>H2 (开发环境内存数据库)</li>
+<li>Redis (分布式缓存)</li></ul>
+<p>消息中间件:</p>
+<ul><li>RabbitMQ (消息队列)</li></ul>
+<p>AI集成:</p>
+<ul><li>Spring AI (OpenAI)</li></ul>
+<p>其他工具:</p>
+<ul><li>Lombok (代码简化)</li>
+<li>JWT (Token认证 - jjwt 0.12.6)</li>
+<li>Knife4j (API文档)</li>
+<li>Hutool (工具库)</li>
+<li>Aliyun OSS (对象存储)</li>
+<li>Spring Boot DevTools (热部署)</li></ul>
+<p><strong>前端技术栈:</strong></p>
+<p>核心框架:</p>
+<ul><li>Vue 3.5 (Composition API)</li>
+<li>TypeScript 5.8</li>
+<li>Vite 6.2 (构建工具)</li></ul>
+<p>UI组件库:</p>
+<ul><li>Element Plus 2.8</li></ul>
+<p>状态管理:</p>
+<ul><li>Pinia 3.0</li></ul>
+<p>路由管理:</p>
+<ul><li>Vue Router 5.0</li></ul>
+<p>HTTP客户端:</p>
+<ul><li>Axios 1.7</li></ul>
+<p>测试:</p>
+<ul><li>Playwright (E2E测试)</li></ul>
+<h4>1.2 项目结构</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>LEARN_AISALE/
+├── backend/                           # 后端项目
+│   ├── src/main/java/com/aisale/backend/
+│   │   ├── aspect/                   # AOP切面
+│   │   ├── component/                # 组件类
+│   │   ├── config/                   # 配置类
+│   │   ├── controller/               # REST控制器
+│   │   ├── dto/                      # 数据传输对象
+│   │   ├── entity/                   # JPA实体类
+│   │   ├── exception/                # 异常处理
+│   │   │   ├── business/            # 业务异常
+│   │   │   └── system/              # 系统异常
+│   │   ├── handler/                  # 异常处理器
+│   │   ├── interceptor/              # 拦截器
+│   │   ├── repository/               # 数据访问层
+│   │   ├── security/                 # 安全配置
+│   │   ├── service/                  # 业务逻辑层
+│   │   └── util/                     # 工具类
+│   ├── src/main/resources/
+│   │   ├── application.yml           # 主配置文件
+│   │   ├── application-dev.yml       # 开发环境配置
+│   │   ├── application-prod.yml      # 生产环境配置
+│   │   └── logback-spring.xml        # 日志配置
+│   ├── tests/                        # API测试脚本
+│   └── pom.xml                       # Maven依赖配置
+│
+├── frontend/                          # 前端项目
+│   ├── src/
+│   │   ├── api/                      # API接口封装
+│   │   ├── components/               # 公共组件
+│   │   ├── layouts/                  # 布局组件
+│   │   ├── router/                   # 路由配置
+│   │   ├── stores/                   # Pinia状态管理
+│   │   ├── styles/                   # 样式文件
+│   │   ├── utils/                    # 工具函数
+│   │   └── views/                    # 页面组件
+│   │       ├── user/                # 用户端页面(H5)
+│   │       └── admin/               # 管理端页面
+│   ├── package.json                  # 前端依赖配置
+│   ├── vite.config.ts                # Vite构建配置
+│   └── tsconfig.json                 # TypeScript配置
+│
+└── docs/                              # 项目文档
+    ├── learn/                         # 学习文档
+    ├── bugfix/                        # Bug修复记录
+    └── superpowers/                   # 设计文档</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>二、后端依赖配置</h3>
+<h4>2.1 Maven 核心依赖</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/pom.xml</code></p>
+<h5>2.1.1 Spring Boot 基础依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- 父POM：统一管理Spring Boot版本 --&gt;
+&lt;parent&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+    &lt;version&gt;3.3.4&lt;/version&gt;
+    &lt;relativePath/&gt;
+&lt;/parent&gt;
+
+&lt;!-- 核心依赖说明 --&gt;
+&lt;properties&gt;
+    &lt;java.version&gt;17&lt;/java.version&gt;              &lt;!-- 使用Java 17 LTS --&gt;
+    &lt;spring-ai.version&gt;1.0.0-M4&lt;/spring-ai.version&gt;
+    &lt;knife4j.version&gt;4.5.0&lt;/knife4j.version&gt;
+    &lt;lombok.version&gt;1.18.36&lt;/lombok.version&gt;
+    &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+&lt;/properties&gt;</code></pre>
+            </div>
+            
+<h5>2.1.2 Web服务依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- Web服务 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- AOP切面支持 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-aop&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- 参数校验 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+<h5>2.1.3 数据持久化依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- JPA数据持久化 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- PostgreSQL生产数据库 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+    &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;
+
+&lt;!-- H2开发环境内存数据库 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+    &lt;artifactId&gt;h2&lt;/artifactId&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+<h5>2.1.4 安全与认证依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- Spring Security --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- JWT认证 (jjwt 0.12.6) --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+    &lt;artifactId&gt;jjwt-api&lt;/artifactId&gt;
+    &lt;version&gt;0.12.6&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+    &lt;artifactId&gt;jjwt-impl&lt;/artifactId&gt;
+    &lt;version&gt;0.12.6&lt;/version&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+    &lt;artifactId&gt;jjwt-jackson&lt;/artifactId&gt;
+    &lt;version&gt;0.12.6&lt;/version&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+<h5>2.1.5 缓存依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- Redis分布式缓存 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+<h5>2.1.6 消息中间件依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- RabbitMQ消息队列 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-amqp&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+<h5>2.1.7 AI集成依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- Spring AI - OpenAI --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.ai&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-ai-openai-spring-boot-starter&lt;/artifactId&gt;
+    &lt;version&gt;${spring-ai.version}&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+<h5>2.1.8 工具类依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- Lombok代码简化 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+    &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+    &lt;optional&gt;true&lt;/optional&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Hutool工具库 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;cn.hutool&lt;/groupId&gt;
+    &lt;artifactId&gt;hutool-all&lt;/artifactId&gt;
+    &lt;version&gt;5.8.23&lt;/version&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Dotenv环境变量支持 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.github.cdimascio&lt;/groupId&gt;
+    &lt;artifactId&gt;dotenv-java&lt;/artifactId&gt;
+    &lt;version&gt;3.0.0&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+<h5>2.1.9 对象存储依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- 阿里云OSS SDK --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.aliyun.oss&lt;/groupId&gt;
+    &lt;artifactId&gt;aliyun-sdk-oss&lt;/artifactId&gt;
+    &lt;version&gt;3.17.4&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+<h5>2.1.10 API文档依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- Knife4j OpenAPI文档 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.github.xiaoymin&lt;/groupId&gt;
+    &lt;artifactId&gt;knife4j-openapi3-jakarta-spring-boot-starter&lt;/artifactId&gt;
+    &lt;version&gt;${knife4j.version}&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+<h5>2.1.11 开发工具依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- DevTools热部署 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+    &lt;optional&gt;true&lt;/optional&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+<h5>2.1.12 测试依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- Spring Boot测试 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            
+<h4>2.2 Maven 构建配置</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;build&gt;
+    &lt;plugins&gt;
+        &lt;!-- 编译器插件 --&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+            &lt;version&gt;3.13.0&lt;/version&gt;
+            &lt;configuration&gt;
+                &lt;source&gt;17&lt;/source&gt;
+                &lt;target&gt;17&lt;/target&gt;
+                &lt;release&gt;17&lt;/release&gt;
+                &lt;annotationProcessorPaths&gt;
+                    &lt;!-- Lombok注解处理器 --&gt;
+                    &lt;path&gt;
+                        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+                        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+                        &lt;version&gt;${lombok.version}&lt;/version&gt;
+                    &lt;/path&gt;
+                &lt;/annotationProcessorPaths&gt;
+                &lt;fork&gt;true&lt;/fork&gt;
+                &lt;compilerArgs&gt;
+                    &lt;arg&gt;-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED&lt;/arg&gt;
+                &lt;/compilerArgs&gt;
+            &lt;/configuration&gt;
+        &lt;/plugin&gt;
+
+        &lt;!-- Spring Boot Maven插件 --&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+            &lt;executions&gt;
+                &lt;execution&gt;
+                    &lt;goals&gt;
+                        &lt;goal&gt;repackage&lt;/goal&gt;
+                    &lt;/goals&gt;
+                &lt;/execution&gt;
+            &lt;/executions&gt;
+            &lt;configuration&gt;
+                &lt;excludes&gt;
+                    &lt;!-- Lombok不打包到jar --&gt;
+                    &lt;exclude&gt;
+                        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+                        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+                    &lt;/exclude&gt;
+                &lt;/excludes&gt;
+                &lt;jvmArguments&gt;-Dfile.encoding=UTF-8 -Dconsole.encoding=UTF-8&lt;/jvmArguments&gt;
+            &lt;/configuration&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>三、前端依赖配置</h3>
+<h4>3.1 package.json 依赖</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/package.json</code></p>
+<h5>3.1.1 生产依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>{
+  &quot;dependencies&quot;: {
+    &quot;@element-plus/icons-vue&quot;: &quot;^2.3.1&quot;,  // Element Plus图标
+    &quot;axios&quot;: &quot;^1.7.0&quot;,                     // HTTP客户端
+    &quot;element-plus&quot;: &quot;^2.8.0&quot;,              // UI组件库
+    &quot;pinia&quot;: &quot;^3.0.0&quot;,                     // 状态管理
+    &quot;vue&quot;: &quot;^3.5.0&quot;,                       // Vue 3框架
+    &quot;vue-router&quot;: &quot;^5.0.0&quot;                 // 路由管理
+  }
+}</code></pre>
+            </div>
+            
+<h5>3.1.2 开发依赖</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>{
+  &quot;devDependencies&quot;: {
+    &quot;@types/node&quot;: &quot;^20.0.0&quot;,              // Node.js类型定义
+    &quot;@vitejs/plugin-vue&quot;: &quot;^5.2.0&quot;,        // Vite Vue插件
+    &quot;typescript&quot;: &quot;~5.8.0&quot;,                // TypeScript编译器
+    &quot;vite&quot;: &quot;^6.2.0&quot;,                      // 现代构建工具
+    &quot;vue-tsc&quot;: &quot;^2.2.0&quot;                    // Vue TypeScript检查
+  }
+}</code></pre>
+            </div>
+            
+<h5>3.1.3 NPM脚本</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>{
+  &quot;scripts&quot;: {
+    &quot;dev&quot;: &quot;vite&quot;,                          // 启动开发服务器
+    &quot;build&quot;: &quot;vue-tsc -b &amp;&amp; vite build&quot;,    // 类型检查+构建
+    &quot;preview&quot;: &quot;vite preview&quot;,              // 预览生产构建
+    &quot;test:e2e&quot;: &quot;playwright test&quot;,          // 运行E2E测试
+    &quot;test:e2e:ui&quot;: &quot;playwright test --ui&quot;,  // UI模式测试
+    &quot;test:e2e:headed&quot;: &quot;playwright test --headed&quot;,
+    &quot;test:e2e:debug&quot;: &quot;playwright test --debug&quot;
+  }
+}</code></pre>
+            </div>
+            
+<h4>3.2 Vite 配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/vite.config.ts</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">TYPESCRIPT</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src')  // 路径别名
+    }
+  },
+  server: {
+    port: 3000,                        // 开发服务器端口
+    proxy: {
+      // API代理配置
+      '/api': {
+        target: 'http://localhost:8090',
+        changeOrigin: true
+      },
+      '/ws': {
+        target: 'http://localhost:8090',
+        ws: true,
+        changeOrigin: true
+      },
+      '/api/sse': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+        headers: {
+          Connection: 'keep-alive',
+          'Cache-Control': 'no-cache',
+          Accept: 'text/event-stream'
+        }
+      }
+    }
+  },
+  optimizeDeps: {
+    include: ['element-plus']
+  }
+})</code></pre>
+            </div>
+            
+<h4>3.3 TypeScript 配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/tsconfig.json</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>{
+  &quot;compilerOptions&quot;: {
+    &quot;target&quot;: &quot;ES2020&quot;,
+    &quot;useDefineForClassFields&quot;: true,
+    &quot;module&quot;: &quot;ESNext&quot;,
+    &quot;lib&quot;: [&quot;ES2020&quot;, &quot;DOM&quot;, &quot;DOM.Iterable&quot;],
+    &quot;skipLibCheck&quot;: true,
+    &quot;moduleResolution&quot;: &quot;bundler&quot;,
+    &quot;allowImportingTsExtensions&quot;: true,
+    &quot;isolatedModules&quot;: true,
+    &quot;moduleDetection&quot;: &quot;force&quot;,
+    &quot;noEmit&quot;: true,
+    &quot;jsx&quot;: &quot;preserve&quot;,
+    &quot;strict&quot;: true,
+    &quot;noUnusedLocals&quot;: true,
+    &quot;noUnusedParameters&quot;: true,
+    &quot;noFallthroughCasesInSwitch&quot;: true,
+    &quot;paths&quot;: {
+      &quot;@/*&quot;: [&quot;./src/*&quot;]
+    }
+  },
+  &quot;include&quot;: [&quot;src/**/*.ts&quot;, &quot;src/**/*.tsx&quot;, &quot;src/**/*.vue&quot;],
+  &quot;references&quot;: [{ &quot;path&quot;: &quot;./tsconfig.node.json&quot; }]
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>四、后端配置文件</h3>
+<h4>4.1 配置文件结构</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>配置文件说明:
+  application.yml:               # 主配置文件（公共配置）
+  application-dev.yml:           # 开发环境（H2内存数据库）
+  application-prod.yml:          # 生产环境（PostgreSQL）
+  logback-spring.xml:            # 日志配置</code></pre>
+            </div>
+            
+<h4>4.2 application.yml 主配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/resources/application.yml</code></p>
+<h5>4.2.1 服务器配置</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>server:
+  port: 8090                       # 后端服务端口</code></pre>
+            </div>
+            
+<h5>4.2.2 数据库配置</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>spring:
+  datasource:
+    url: jdbc:h2:mem:aisale;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver</code></pre>
+            </div>
+            
+<h5>4.2.3 JPA配置</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>  jpa:
+    hibernate:
+      ddl-auto: update             # 自动更新表结构
+    show-sql: false                # 不打印SQL
+    properties:
+      hibernate:
+        format_sql: true           # 格式化SQL
+        dialect: org.hibernate.dialect.H2Dialect</code></pre>
+            </div>
+            
+<h5>4.2.4 AI配置</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># AI聊天功能
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:}
+      chat:
+        enabled: false             # 默认禁用AI聊天</code></pre>
+            </div>
+            
+<h5>4.2.5 API文档配置</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># Knife4j配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn</code></pre>
+            </div>
+            
+<h5>4.2.6 文件上传配置</h5>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB          # 单文件大小限制
+      max-request-size: 50MB       # 总请求大小限制</code></pre>
+            </div>
+            
+<h4>4.3 application-dev.yml 开发环境</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/resources/application-dev.yml</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>spring:
+  # 使用H2内存数据库（开发环境）
+  datasource:
+    url: jdbc:h2:mem:aisale;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+
+  # H2控制台（浏览器访问 http://localhost:8090/h2-console）
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    show-sql: true                 # 打印SQL
+    properties:
+      hibernate:
+        format_sql: true           # 格式化SQL
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.aisale: DEBUG              # 项目日志DEBUG级别
+    org.hibernate.SQL: DEBUG       # 打印SQL
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 打印参数</code></pre>
+            </div>
+            
+<h4>4.4 application-prod.yml 生产环境</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/resources/application-prod.yml</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:aisale}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:                        # HikariCP连接池
+      minimum-idle: 5              # 最小空闲连接
+      maximum-pool-size: 20        # 最大连接池大小
+      idle-timeout: 30000          # 空闲超时（30秒）
+      max-lifetime: 1800000        # 连接最大生命周期（30分钟）
+      connection-timeout: 30000    # 连接超时（30秒）
+
+  jpa:
+    show-sql: false                # 不打印SQL
+    hibernate:
+      ddl-auto: none               # 生产环境不自动更新
+
+# 日志配置
+logging:
+  level:
+    root: WARN
+    com.aisale: INFO
+    org.hibernate.SQL: WARN</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>五、Config配置类详解</h3>
+<h4>5.1 Config类总览</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>配置类清单:
+  安全配置:
+    - SecurityConfig.java:         # Spring Security配置
+
+  通信配置:
+    - WebConfig.java:              # Web配置（CORS等）
+    - RabbitMQConfig.java:         # RabbitMQ配置
+
+  API文档:
+    - Knife4jConfig.java:          # Knife4j文档配置
+
+  AI配置:
+    - AiConfig.java:               # AI配置
+
+  缓存配置:
+    - RedisConfig.java:            # Redis配置
+
+  文件存储:
+    - OssConfig.java:              # 阿里云OSS配置
+    - OssProperties.java:          # OSS属性配置</code></pre>
+            </div>
+            
+<h4>5.2 SecurityConfig 安全配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/security/SecurityConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.security;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Spring Security配置类
+ * 
+ * 配置说明:
+ * 1. 禁用CSRF（前后端分离架构，使用JWT）
+ * 2. 禁用Session（无状态认证）
+ * 3. 配置URL访问权限
+ * 4. 添加JWT过滤器
+ */
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    /**
+     * 配置安全过滤链
+     */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            // 禁用CSRF（前后端分离）
+            .csrf(csrf -&gt; csrf.disable())
+
+            // 禁用Session（JWT无状态）
+            .sessionManagement(session -&gt; 
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+            // 配置URL访问权限
+            .authorizeHttpRequests(auth -&gt; auth
+                // 公开接口
+                .requestMatchers(
+                    &quot;/api/auth/**&quot;,
+                    &quot;/api/user/products/public/**&quot;,
+                    &quot;/h2-console/**&quot;,
+                    &quot;/swagger-ui/**&quot;,
+                    &quot;/v3/api-docs/**&quot;,
+                    &quot;/doc.html&quot;
+                ).permitAll()
+
+                // Admin接口需要ADMIN角色
+                .requestMatchers(&quot;/api/admin/**&quot;).hasAnyRole(&quot;ADMIN&quot;, &quot;SUPER_ADMIN&quot;)
+
+                // 其他接口需要认证
+                .anyRequest().authenticated()
+            )
+
+            // 添加JWT过滤器
+            .addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
+            );
+
+        return http.build();
+    }
+
+    /**
+     * 密码加密器
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}</code></pre>
+            </div>
+            
+<h4>5.3 WebConfig 跨域配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/WebConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+/**
+ * Web配置
+ * 
+ * 配置说明:
+ * 1. 配置CORS跨域
+ * 2. 允许前端开发服务器访问
+ */
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping(&quot;/**&quot;)
+            .allowedOriginPatterns(
+                &quot;http://localhost:*&quot;,
+                &quot;http://127.0.0.1:*&quot;
+            )
+            .allowedMethods(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;OPTIONS&quot;)
+            .allowedHeaders(&quot;*&quot;)
+            .allowCredentials(true)
+            .maxAge(3600);
+    }
+}</code></pre>
+            </div>
+            
+<h4>5.4 RedisConfig Redis配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/RedisConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+/**
+ * Redis配置类
+ * 
+ * 配置说明:
+ * 1. 配置RedisTemplate
+ * 2. 使用JSON序列化
+ */
+@Configuration
+public class RedisConfig {
+
+    @Bean
+    public RedisTemplate&lt;String, Object&gt; redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate&lt;String, Object&gt; template = new RedisTemplate&lt;&gt;();
+        template.setConnectionFactory(connectionFactory);
+        
+        // 使用String序列化器处理key
+        template.setKeySerializer(new StringRedisSerializer());
+        // 使用JSON序列化器处理value
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        
+        template.afterPropertiesSet();
+        return template;
+    }
+}</code></pre>
+            </div>
+            
+<h4>5.5 RabbitMQConfig RabbitMQ配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/RabbitMQConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import org.springframework.amqp.core.Queue;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * RabbitMQ配置类
+ * 
+ * 配置说明:
+ * 1. 定义消息队列
+ * 2. 配置队列参数
+ */
+@Configuration
+public class RabbitMQConfig {
+
+    /**
+     * 聊天消息队列
+     */
+    @Bean
+    public Queue chatMessageQueue() {
+        return new Queue(&quot;chat.message&quot;, true);
+    }
+}</code></pre>
+            </div>
+            
+<h4>5.6 AiConfig AI配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/AiConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * AI配置类
+ * 
+ * 配置说明:
+ * 1. 配置ChatClient Bean
+ * 2. 提供AI对话能力
+ */
+@Configuration
+public class AiConfig {
+
+    @Bean
+    public ChatClient chatClient(ChatClient.Builder builder) {
+        return builder.build();
+    }
+}</code></pre>
+            </div>
+            
+<h4>5.7 Knife4jConfig API文档配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/Knife4jConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * Knife4j配置类
+ * 
+ * 配置说明:
+ * 1. 配置API文档基本信息
+ * 2. 配置安全认证方案
+ * 
+ * 注：主要通过application.yml配置
+ */
+@Configuration
+public class Knife4jConfig {
+    // 配置主要通过yaml文件完成
+}</code></pre>
+            </div>
+            
+<h4>5.8 OssConfig 对象存储配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/OssConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClientBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * 阿里云OSS配置类
+ * 
+ * 配置说明:
+ * 1. 配置OSS客户端
+ * 2. 提供文件上传能力
+ */
+@Configuration
+@RequiredArgsConstructor
+public class OssConfig {
+
+    private final OssProperties ossProperties;
+
+    @Bean
+    public OSS ossClient() {
+        return new OSSClientBuilder()
+            .build(
+                ossProperties.getEndpoint(),
+                ossProperties.getAccessKeyId(),
+                ossProperties.getAccessKeySecret()
+            );
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>六、环境配置对比</h3>
+<h4>6.1 环境配置对照表</h4>
+<table><thead><tr>
+<th>配置项</th>
+<th>dev（开发环境）</th>
+<th>prod（生产环境）</th>
+</tr></thead><tbody>
+<tr>
+<td>数据库</td>
+<td>H2内存数据库</td>
+<td>PostgreSQL</td>
+</tr>
+<tr>
+<td>SQL打印</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td>日志级别</td>
+<td>DEBUG</td>
+<td>INFO/WARN</td>
+</tr>
+<tr>
+<td>H2控制台</td>
+<td>启用</td>
+<td>禁用</td>
+</tr>
+<tr>
+<td>ddl-auto</td>
+<td>update</td>
+<td>none</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>本地开发调试</td>
+<td>生产部署</td>
+</tr>
+</tbody></table>
+<h4>6.2 如何切换环境</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># 方法1: 命令行参数
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+# 方法2: 环境变量
+export SPRING_PROFILES_ACTIVE=prod
+mvn spring-boot:run
+
+# 方法3: application.properties
+# 在 src/main/resources/application.properties 中添加：
+# spring.profiles.active=dev
+
+# 方法4: JVM参数
+java -jar -Dspring.profiles.active=prod backend.jar</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>七、开发环境搭建</h3>
+<h4>7.1 环境要求</h4>
+<p><strong>必备环境:</strong></p>
+<ul><li>JDK: 17+ (推荐17 LTS)</li>
+<li>Maven: 3.8+</li>
+<li>Node.js: 18+ (推荐20 LTS)</li>
+<li>npm: 9+</li></ul>
+<p><strong>可选环境:</strong></p>
+<ul><li>PostgreSQL: 14+ (本地开发)</li>
+<li>Docker: 20+ (容器化部署)</li>
+<li>Redis: 7+ (缓存)</li>
+<li>RabbitMQ: 3.12+ (消息队列)</li></ul>
+<h4>7.2 后端启动</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># 1. 克隆项目
+git clone &lt;repository-url&gt;
+cd LEARN_AISALE/backend
+
+# 2. 安装依赖
+mvn clean install
+
+# 3. 开发环境启动（使用H2内存数据库）
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+# 4. 访问API文档
+# http://localhost:8090/swagger-ui.html
+# 或 http://localhost:8090/doc.html
+
+# 5. H2控制台（仅dev环境）
+# http://localhost:8090/h2-console
+# JDBC URL: jdbc:h2:mem:aisale
+# 用户名: sa
+# 密码: (空)</code></pre>
+            </div>
+            
+<h4>7.3 前端启动</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># 1. 进入前端目录
+cd LEARN_AISALE/frontend
+
+# 2. 安装依赖
+npm install
+
+# 3. 启动开发服务器
+npm run dev
+
+# 4. 访问前端页面
+# http://localhost:3000
+
+# 5. 生产构建
+npm run build
+
+# 6. 预览生产构建
+npm run preview
+
+# 7. 运行E2E测试
+npm run test:e2e</code></pre>
+            </div>
+            
+<h4>7.4 使用Docker启动</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># 1. 启动所有服务
+docker-compose up -d
+
+# 2. 查看服务状态
+docker-compose ps
+
+# 3. 查看日志
+docker-compose logs -f
+
+# 4. 停止服务
+docker-compose down</code></pre>
+            </div>
+            
+<h4>7.5 测试账号</h4>
+<table><thead><tr>
+<th>用户名</th>
+<th>密码</th>
+<th>角色</th>
+<th>备注</th>
+</tr></thead><tbody>
+<tr>
+<td>superadmin</td>
+<td>123456</td>
+<td>SUPER_ADMIN</td>
+<td>完整admin权限</td>
+</tr>
+<tr>
+<td>admin</td>
+<td>123456</td>
+<td>ADMIN</td>
+<td>普通admin</td>
+</tr>
+<tr>
+<td>zhangsan</td>
+<td>123456</td>
+<td>USER</td>
+<td>有2个地址，销售商品</td>
+</tr>
+<tr>
+<td>lisi</td>
+<td>123456</td>
+<td>USER</td>
+<td>有1个地址，销售商品</td>
+</tr>
+<tr>
+<td>wangwu</td>
+<td>123456</td>
+<td>USER</td>
+<td>无地址，仅购买</td>
+</tr>
+</tbody></table>
+<p>---</p>
+<h3>八、常见问题</h3>
+<h4>8.1 依赖问题</h4>
+<p><strong>Q: Maven依赖下载慢</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- 配置国内镜像（~/.m2/settings.xml） --&gt;
+&lt;mirrors&gt;
+    &lt;mirror&gt;
+        &lt;id&gt;aliyun&lt;/id&gt;
+        &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;
+        &lt;name&gt;Aliyun Maven&lt;/name&gt;
+        &lt;url&gt;https://maven.aliyun.com/repository/central&lt;/url&gt;
+    &lt;/mirror&gt;
+&lt;/mirrors&gt;</code></pre>
+            </div>
+            
+<p><strong>Q: npm install失败</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># 配置国内镜像
+npm config set registry https://registry.npmmirror.com
+
+# 清除缓存重试
+npm cache clean --force
+npm install</code></pre>
+            </div>
+            
+<h4>8.2 配置问题</h4>
+<p><strong>Q: 如何查看当前生效的配置</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># 启动后访问
+http://localhost:8090/actuator/env
+
+# 或查看启动日志中的Active profiles</code></pre>
+            </div>
+            
+<p><strong>Q: 数据库连接失败</strong></p>
+<p>排查步骤:</p>
+<ol><li>检查数据库是否启动</li>
+<li>检查application.yml中的数据库配置</li>
+<li>检查环境变量是否覆盖配置</li>
+<li>查看启动日志中的错误信息</li></ol>
+<h4>8.3 端口冲突</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># 查看端口占用
+# Windows
+netstat -ano | findstr :8090
+
+# 修改端口
+# application.yml
+server:
+  port: 8091</code></pre>
+            </div>
+            
+<h4>8.4 AI功能问题</h4>
+<p><strong>Q: AI聊天功能如何使用</strong></p>
+<ol><li>在 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">.env</code> 文件中配置OpenAI API Key</li>
+<li>设置 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">AI<em>CHAT</em>ENABLED=true</code></li>
+<li>重启后端服务</li></ol>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">ENV</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># .env 文件示例
+OPENAI_API_KEY=your-api-key-here
+OPENAI_BASE_URL=https://api.openai.com
+AI_CHAT_ENABLED=true</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>九、扩展练习</h3>
+<h4>练习1：添加自定义配置属性</h4>
+<ol><li>在application.yml中添加自定义配置</li>
+<li>创建@ConfigurationProperties配置类</li>
+<li>在Service中注入并使用</li></ol>
+<h4>练习2：配置Redis缓存</h4>
+<ol><li>安装Redis</li>
+<li>配置RedisConfig</li>
+<li>使用@Cacheable注解缓存数据</li></ol>
+<h4>练习3：集成RabbitMQ消息队列</h4>
+<ol><li>安装RabbitMQ</li>
+<li>配置RabbitMQConfig</li>
+<li>创建消息生产者和消费者</li></ol>
+<h4>练习4：配置阿里云OSS文件上传</h4>
+<ol><li>注册阿里云账号</li>
+<li>创建OSS Bucket</li>
+<li>配置OssProperties</li>
+<li>实现文件上传功能</li></ol>
+<p>---</p>
+<p>最后更新: 2026-04-22</p>
+<p>文档版本: 1.0</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 代码复制功能
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-wrapper').querySelector('code');
+            const text = codeBlock.innerText;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ 已复制';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                btn.innerHTML = '✗ 失败';
+                setTimeout(() => {
+                    btn.innerHTML = '复制';
+                }, 2000);
+            });
+        }
+
+        // 页面加载完成后为所有代码块添加复制按钮
+        document.addEventListener('DOMContentLoaded', () => {
+            const codeWrappers = document.querySelectorAll('.code-wrapper');
+            codeWrappers.forEach(wrapper => {
+                if (!wrapper.querySelector('.copy-btn')) {
+                    const header = wrapper.querySelector('.code-header');
+                    if (header) {
+                        const btn = document.createElement('button');
+                        btn.className = 'copy-btn';
+                        btn.innerHTML = '📋 复制';
+                        btn.onclick = function() { copyCode(this); };
+                        header.appendChild(btn);
+                    }
+                }
+            });
+        });
+
+        // 设置当前页面高亮
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

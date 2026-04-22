@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12 前端开发完整指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #faf3f0 0%, #ffffff 100%);
+            color: #333;
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边导航 */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #f0e6e0;
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-title {
+            padding: 0 25px 20px;
+            border-bottom: 1px solid #f0e6e0;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-title h1 {
+            font-size: 18px;
+            color: #e07b5a;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-title p {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-list {
+            list-style: none;
+        }
+        
+        .nav-item {
+            padding: 0 20px;
+        }
+        
+        .nav-item a {
+            display: block;
+            padding: 12px 15px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item a:hover {
+            background: #faf3f0;
+            color: #e07b5a;
+        }
+        
+        .nav-item a.active {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            color: #e07b5a;
+            font-weight: 500;
+        }
+        
+        .nav-category {
+            padding: 15px 25px 8px;
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+        }
+        
+        .content-header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0e6e0;
+        }
+        
+        .content-header h1 {
+            font-size: 32px;
+            color: #2c2c2c;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .content-header p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .content-body h2 {
+            font-size: 24px;
+            color: #e07b5a;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .content-body h3 {
+            font-size: 20px;
+            color: #333;
+            margin: 30px 0 15px;
+        }
+        
+        .content-body h4 {
+            font-size: 17px;
+            color: #444;
+            margin: 25px 0 12px;
+        }
+        
+        .content-body p {
+            margin: 15px 0;
+            color: #555;
+        }
+        
+        .content-body ul, .content-body ol {
+            margin: 15px 0;
+            padding-left: 25px;
+            color: #555;
+        }
+        
+        .content-body li {
+            margin: 8px 0;
+        }
+        
+        .content-body a {
+            color: #e07b5a;
+            text-decoration: none;
+        }
+        
+        .content-body a:hover {
+            text-decoration: underline;
+        }
+        
+        .content-body strong {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        /* 代码块样式 */
+        .code-wrapper {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #faf8f6;
+            border: 1px solid #f0e6e0;
+        }
+        
+        .code-header {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .code-lang {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+        
+        .copy-btn {
+            background: #ffffff;
+            border: 1px solid #e0e6e0;
+            color: #666;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .copy-btn:hover {
+            background: #f5e6df;
+            border-color: #e07b5a;
+            color: #e07b5a;
+        }
+        
+        .copy-btn.copied {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: #fff;
+        }
+        
+        .code-wrapper pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            background: transparent;
+        }
+        
+        .code-wrapper code {
+            font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", Consolas, Monaco, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #444;
+            background: transparent;
+        }
+        
+        /* 表格样式 */
+        .content-body table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .content-body th {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #e07b5a;
+        }
+        
+        .content-body td {
+            padding: 12px 15px;
+            border-top: 1px solid #f0e6e0;
+        }
+        
+        /* 提示框样式 */
+        .tip-box {
+            background: #faf8f6;
+            border-left: 4px solid #e07b5a;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip-box p {
+            margin: 0;
+            color: #666;
+        }
+        
+        .tip-box strong {
+            color: #e07b5a;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: 240px;
+                padding: 30px 40px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边导航 -->
+        <nav class="sidebar">
+            <div class="sidebar-title">
+                <h1>📚 AiSale 教程</h1>
+                <p>校园二手交易平台学习指南</p>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">首页</a>
+                </li>
+                <li class="nav-category">基础篇</li>
+                <li class="nav-item">
+                    <a href="00-基础依赖与环境配置.html" class="nav-link">00 基础依赖与环境配置</a>
+                </li>
+                <li class="nav-item">
+                    <a href="01-项目初始化与基础设施.html" class="nav-link">01 项目初始化与基础设施</a>
+                </li>
+                <li class="nav-item">
+                    <a href="02-实体类与数据库设计.html" class="nav-link">02 实体类与数据库设计</a>
+                </li>
+                <li class="nav-category">核心篇</li>
+                <li class="nav-item">
+                    <a href="03-用户认证模块开发.html" class="nav-link">03 用户认证模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="04-商品管理模块开发.html" class="nav-link">04 商品管理模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="05-订单管理模块开发.html" class="nav-link">05 订单管理模块开发</a>
+                </li>
+                <li class="nav-category">进阶篇</li>
+                <li class="nav-item">
+                    <a href="06-用户地址与信息管理模块.html" class="nav-link">06 用户地址与信息管理</a>
+                </li>
+                <li class="nav-item">
+                    <a href="07-文件上传与OSS模块开发.html" class="nav-link">07 文件上传与OSS模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="08-IM即时通讯模块开发.html" class="nav-link">08 IM即时通讯模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="09-日志模块开发.html" class="nav-link">09 日志模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="10-商品搜索与推荐模块.html" class="nav-link">10 商品搜索与推荐模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="11-签到积分信誉模块开发.html" class="nav-link">11 签到积分信誉模块</a>
+                </li>
+                <li class="nav-category">前端与部署</li>
+                <li class="nav-item">
+                    <a href="12-前端开发完整指南.html" class="nav-link">12 前端开发完整指南</a>
+                </li>
+                <li class="nav-item">
+                    <a href="13-测试与部署.html" class="nav-link">13 测试与部署</a>
+                </li>
+                <li class="nav-item">
+                    <a href="14-项目总结与扩展.html" class="nav-link">14 项目总结与扩展</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>12 前端开发完整指南</h1>
+                <p>AiSale 校园二手交易平台学习指南 - 12 前端开发完整指南</p>
+            </div>
+            <div class="content-body">
+                <h2>12 前端开发完整指南</h2>
+<p>学习时长: 3-5 天</p>
+<p>难度: ⭐⭐⭐⭐☆</p>
+<p>前置知识: Vue 3 Composition API、TypeScript、Element Plus、Pinia</p>
+<p>---</p>
+<h3>一、本章概述</h3>
+<p>本章将介绍前端项目的完整开发流程和架构。</p>
+<p><strong>学习内容:</strong></p>
+<ul><li>项目结构</li>
+<li>路由配置</li>
+<li>状态管理（Pinia）</li>
+<li>API封装</li>
+<li>布局组件</li>
+<li>用户端H5页面</li>
+<li>管理端页面</li>
+<li>组件开发</li></ul>
+<p>---</p>
+<h3>二、项目结构</h3>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>frontend/
+├── src/
+│   ├── api/                      # API接口封装
+│   │   ├── auth.ts              # 认证API
+│   │   ├── product.ts           # 商品API
+│   │   ├── order.ts             # 订单API
+│   │   ├── address.ts           # 地址API
+│   │   ├── chat.ts              # 聊天API
+│   │   └── types.ts             # 类型定义
+│   ├── components/               # 公共组件
+│   │   ├── ProductCard.vue      # 商品卡片
+│   │   ├── OrderCard.vue        # 订单卡片
+│   │   └── ImageUpload.vue      # 图片上传
+│   ├── layouts/                  # 布局组件
+│   │   ├── MobileLayout.vue     # 移动端布局
+│   │   ├── AdminLayout.vue      # 管理端布局
+│   │   └── AuthLayout.vue       # 认证布局
+│   ├── router/                   # 路由配置
+│   │   └── index.ts
+│   ├── stores/                   # Pinia状态管理
+│   │   └── auth.ts
+│   ├── styles/                   # 样式文件
+│   │   └── global.css
+│   ├── utils/                    # 工具函数
+│   │   └── request.ts           # Axios封装
+│   └── views/                    # 页面组件
+│       ├── user/                # 用户端
+│       │   ├── Login.vue
+│       │   ├── Register.vue
+│       │   ├── Home.vue
+│       │   ├── Products.vue
+│       │   ├── ProductDetail.vue
+│       │   ├── Orders.vue
+│       │   └── Profile.vue
+│       └── admin/               # 管理端
+│           ├── Dashboard.vue
+│           ├── Products.vue
+│           ├── Orders.vue
+│           └── Users.vue
+├── package.json
+├── vite.config.ts
+└── tsconfig.json</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>三、路由配置</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/src/router/index.ts</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">TYPESCRIPT</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const routes = [
+  {
+    path: '/',
+    redirect: '/user/home'
+  },
+  {
+    path: '/user',
+    component: () =&gt; import('@/layouts/MobileLayout.vue'),
+    children: [
+      {
+        path: 'home',
+        name: 'UserHome',
+        component: () =&gt; import('@/views/user/Home.vue')
+      },
+      {
+        path: 'products',
+        name: 'UserProducts',
+        component: () =&gt; import('@/views/user/Products.vue')
+      },
+      {
+        path: 'product/:id',
+        name: 'ProductDetail',
+        component: () =&gt; import('@/views/user/ProductDetail.vue')
+      },
+      {
+        path: 'orders',
+        name: 'UserOrders',
+        component: () =&gt; import('@/views/user/Orders.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'profile',
+        name: 'UserProfile',
+        component: () =&gt; import('@/views/user/Profile.vue'),
+        meta: { requiresAuth: true }
+      }
+    ]
+  },
+  {
+    path: '/auth',
+    component: () =&gt; import('@/layouts/AuthLayout.vue'),
+    children: [
+      {
+        path: 'login',
+        name: 'Login',
+        component: () =&gt; import('@/views/user/Login.vue')
+      },
+      {
+        path: 'register',
+        name: 'Register',
+        component: () =&gt; import('@/views/user/Register.vue')
+      }
+    ]
+  },
+  {
+    path: '/admin',
+    component: () =&gt; import('@/layouts/AdminLayout.vue'),
+    meta: { requiresAuth: true, role: 'ADMIN' },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'AdminDashboard',
+        component: () =&gt; import('@/views/admin/Dashboard.vue')
+      },
+      {
+        path: 'products',
+        name: 'AdminProducts',
+        component: () =&gt; import('@/views/admin/Products.vue')
+      },
+      {
+        path: 'orders',
+        name: 'AdminOrders',
+        component: () =&gt; import('@/views/admin/Orders.vue')
+      }
+    ]
+  }
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+})
+
+// 路由守卫
+router.beforeEach((to, from, next) =&gt; {
+  const authStore = useAuthStore()
+
+  if (to.meta.requiresAuth &amp;&amp; !authStore.isLoggedIn) {
+    next({ name: 'Login', query: { redirect: to.fullPath } })
+  } else if (to.meta.role &amp;&amp; authStore.userInfo?.role !== to.meta.role) {
+    next({ name: 'UserHome' })
+  } else {
+    next()
+  }
+})
+
+export default router</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>四、Pinia状态管理</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/src/stores/auth.ts</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">TYPESCRIPT</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { authApi } from '@/api/auth'
+
+export const useAuthStore = defineStore('auth', () =&gt; {
+  const token = ref&lt;string&gt;(localStorage.getItem('token') || '')
+  const userInfo = ref&lt;any&gt;(null)
+
+  const isLoggedIn = computed(() =&gt; !!token.value)
+  const isAdmin = computed(() =&gt; userInfo.value?.role === 'ADMIN' || userInfo.value?.role === 'SUPER_ADMIN')
+
+  async function login(username: string, password: string) {
+    const res = await authApi.login({ username, password })
+    token.value = res.token
+    localStorage.setItem('token', res.token)
+    return res
+  }
+
+  async function register(data: any) {
+    const res = await authApi.register(data)
+    token.value = res.token
+    localStorage.setItem('token', res.token)
+    return res
+  }
+
+  async function fetchUserInfo() {
+    try {
+      userInfo.value = await authApi.getCurrentUser()
+    } catch (error) {
+      console.error('获取用户信息失败', error)
+    }
+  }
+
+  function logout() {
+    token.value = ''
+    userInfo.value = null
+    localStorage.removeItem('token')
+  }
+
+  return {
+    token,
+    userInfo,
+    isLoggedIn,
+    isAdmin,
+    login,
+    register,
+    fetchUserInfo,
+    logout
+  }
+})</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>五、Axios封装</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/src/utils/request.ts</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">TYPESCRIPT</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>import axios from 'axios'
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { ElMessage } from 'element-plus'
+
+const service: AxiosInstance = axios.create({
+  baseURL: '/api',
+  timeout: 10000
+})
+
+// 请求拦截器
+service.interceptors.request.use(
+  (config) =&gt; {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) =&gt; {
+    return Promise.reject(error)
+  }
+)
+
+// 响应拦截器
+service.interceptors.response.use(
+  (response: AxiosResponse) =&gt; {
+    const { code, message, data } = response.data
+    if (code === 200) {
+      return data
+    } else {
+      ElMessage.error(message || '请求失败')
+      return Promise.reject(new Error(message))
+    }
+  },
+  (error) =&gt; {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/auth/login'
+      ElMessage.error('登录已过期，请重新登录')
+    } else if (error.response?.status === 403) {
+      ElMessage.error('权限不足')
+    } else {
+      ElMessage.error(error.message || '网络错误')
+    }
+    return Promise.reject(error)
+  }
+)
+
+export default service</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>六、页面组件示例</h3>
+<h4>6.1 登录页面</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/src/views/user/Login.vue</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">VUE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;template&gt;
+  &lt;div class=&quot;login-page&quot;&gt;
+    &lt;el-form :model=&quot;form&quot; :rules=&quot;rules&quot; ref=&quot;formRef&quot; class=&quot;login-form&quot;&gt;
+      &lt;h2&gt;登录&lt;/h2&gt;
+      &lt;el-form-item prop=&quot;username&quot;&gt;
+        &lt;el-input v-model=&quot;form.username&quot; placeholder=&quot;用户名&quot; /&gt;
+      &lt;/el-form-item&gt;
+      &lt;el-form-item prop=&quot;password&quot;&gt;
+        &lt;el-input v-model=&quot;form.password&quot; type=&quot;password&quot; placeholder=&quot;密码&quot; /&gt;
+      &lt;/el-form-item&gt;
+      &lt;el-form-item&gt;
+        &lt;el-button type=&quot;primary&quot; @click=&quot;handleLogin&quot; :loading=&quot;loading&quot;&gt;
+          登录
+        &lt;/el-button&gt;
+      &lt;/el-form-item&gt;
+      &lt;el-link type=&quot;primary&quot; @click=&quot;$router.push('/auth/register')&quot;&gt;
+        没有账号？立即注册
+      &lt;/el-link&gt;
+    &lt;/el-form&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script setup lang=&quot;ts&quot;&gt;
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { ElMessage } from 'element-plus'
+
+const router = useRouter()
+const authStore = useAuthStore()
+const formRef = ref()
+const loading = ref(false)
+
+const form = reactive({
+  username: '',
+  password: ''
+})
+
+const rules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+}
+
+const handleLogin = async () =&gt; {
+  await formRef.value?.validate()
+  loading.value = true
+  try {
+    await authStore.login(form.username, form.password)
+    ElMessage.success('登录成功')
+    router.push('/user/home')
+  } catch (error: any) {
+    ElMessage.error(error.message || '登录失败')
+  } finally {
+    loading.value = false
+  }
+}
+&lt;/script&gt;
+
+&lt;style scoped&gt;
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-form {
+  width: 400px;
+  padding: 40px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.el-button {
+  width: 100%;
+}
+&lt;/style&gt;</code></pre>
+            </div>
+            
+<h4>6.2 商品列表页</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">VUE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;template&gt;
+  &lt;div class=&quot;products-page&quot;&gt;
+    &lt;el-input v-model=&quot;keyword&quot; placeholder=&quot;搜索商品&quot; @keyup.enter=&quot;handleSearch&quot; /&gt;
+    &lt;el-row :gutter=&quot;20&quot;&gt;
+      &lt;el-col :span=&quot;6&quot; v-for=&quot;product in products&quot; :key=&quot;product.id&quot;&gt;
+        &lt;el-card @click=&quot;$router.push(`/user/product/${product.id}`)&quot;&gt;
+          &lt;img :src=&quot;product.mainImage&quot; class=&quot;product-image&quot; /&gt;
+          &lt;h3&gt;{{ product.name }}&lt;/h3&gt;
+          &lt;p class=&quot;price&quot;&gt;¥{{ product.price }}&lt;/p&gt;
+        &lt;/el-card&gt;
+      &lt;/el-col&gt;
+    &lt;/el-row&gt;
+    &lt;el-pagination
+      v-model:current-page=&quot;page&quot;
+      :total=&quot;total&quot;
+      :page-size=&quot;size&quot;
+      @current-change=&quot;loadProducts&quot;
+    /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script setup lang=&quot;ts&quot;&gt;
+import { ref, onMounted } from 'vue'
+import { productApi } from '@/api/product'
+
+const keyword = ref('')
+const products = ref([])
+const page = ref(0)
+const size = ref(10)
+const total = ref(0)
+
+const loadProducts = async () =&gt; {
+  const res = await productApi.getPublicOnSale(page.value - 1, size.value)
+  products.value = res.content
+  total.value = res.totalElements
+}
+
+const handleSearch = () =&gt; {
+  page.value = 1
+  loadProducts()
+}
+
+onMounted(loadProducts)
+&lt;/script&gt;</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>七、前端开发规范</h3>
+<h4>7.1 命名规范</h4>
+<ul><li>组件名: PascalCase (ProductCard.vue)</li>
+<li>文件名: kebab-case (product-list.vue)</li>
+<li>变量名: camelCase (userInfo)</li>
+<li>常量名: UPPER<em>SNAKE</em>CASE (API<em>BASE</em>URL)</li></ul>
+<h4>7.2 组件规范</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">VUE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;template&gt;
+  &lt;!-- 模板 --&gt;
+&lt;/template&gt;
+
+&lt;script setup lang=&quot;ts&quot;&gt;
+// 脚本
+&lt;/script&gt;
+
+&lt;style scoped&gt;
+/* 样式 */
+&lt;/style&gt;</code></pre>
+            </div>
+            
+<h4>7.3 API调用规范</h4>
+<ul><li>所有API调用放在 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">api/</code> 目录</li>
+<li>类型定义放在 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">api/types.ts</code></li>
+<li>统一使用 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">request</code> 实例</li>
+<li>错误处理统一在拦截器中</li></ul>
+<p>---</p>
+<p>最后更新: 2026-04-22</p>
+<p>文档版本: 1.0</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 代码复制功能
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-wrapper').querySelector('code');
+            const text = codeBlock.innerText;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ 已复制';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                btn.innerHTML = '✗ 失败';
+                setTimeout(() => {
+                    btn.innerHTML = '复制';
+                }, 2000);
+            });
+        }
+
+        // 页面加载完成后为所有代码块添加复制按钮
+        document.addEventListener('DOMContentLoaded', () => {
+            const codeWrappers = document.querySelectorAll('.code-wrapper');
+            codeWrappers.forEach(wrapper => {
+                if (!wrapper.querySelector('.copy-btn')) {
+                    const header = wrapper.querySelector('.code-header');
+                    if (header) {
+                        const btn = document.createElement('button');
+                        btn.className = 'copy-btn';
+                        btn.innerHTML = '📋 复制';
+                        btn.onclick = function() { copyCode(this); };
+                        header.appendChild(btn);
+                    }
+                }
+            });
+        });
+
+        // 设置当前页面高亮
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

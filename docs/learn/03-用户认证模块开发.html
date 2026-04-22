@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>03 用户认证模块开发</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #faf3f0 0%, #ffffff 100%);
+            color: #333;
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边导航 */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #f0e6e0;
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-title {
+            padding: 0 25px 20px;
+            border-bottom: 1px solid #f0e6e0;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-title h1 {
+            font-size: 18px;
+            color: #e07b5a;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-title p {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-list {
+            list-style: none;
+        }
+        
+        .nav-item {
+            padding: 0 20px;
+        }
+        
+        .nav-item a {
+            display: block;
+            padding: 12px 15px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item a:hover {
+            background: #faf3f0;
+            color: #e07b5a;
+        }
+        
+        .nav-item a.active {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            color: #e07b5a;
+            font-weight: 500;
+        }
+        
+        .nav-category {
+            padding: 15px 25px 8px;
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+        }
+        
+        .content-header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0e6e0;
+        }
+        
+        .content-header h1 {
+            font-size: 32px;
+            color: #2c2c2c;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .content-header p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .content-body h2 {
+            font-size: 24px;
+            color: #e07b5a;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .content-body h3 {
+            font-size: 20px;
+            color: #333;
+            margin: 30px 0 15px;
+        }
+        
+        .content-body h4 {
+            font-size: 17px;
+            color: #444;
+            margin: 25px 0 12px;
+        }
+        
+        .content-body p {
+            margin: 15px 0;
+            color: #555;
+        }
+        
+        .content-body ul, .content-body ol {
+            margin: 15px 0;
+            padding-left: 25px;
+            color: #555;
+        }
+        
+        .content-body li {
+            margin: 8px 0;
+        }
+        
+        .content-body a {
+            color: #e07b5a;
+            text-decoration: none;
+        }
+        
+        .content-body a:hover {
+            text-decoration: underline;
+        }
+        
+        .content-body strong {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        /* 代码块样式 */
+        .code-wrapper {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #faf8f6;
+            border: 1px solid #f0e6e0;
+        }
+        
+        .code-header {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .code-lang {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+        
+        .copy-btn {
+            background: #ffffff;
+            border: 1px solid #e0e6e0;
+            color: #666;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .copy-btn:hover {
+            background: #f5e6df;
+            border-color: #e07b5a;
+            color: #e07b5a;
+        }
+        
+        .copy-btn.copied {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: #fff;
+        }
+        
+        .code-wrapper pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            background: transparent;
+        }
+        
+        .code-wrapper code {
+            font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", Consolas, Monaco, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #444;
+            background: transparent;
+        }
+        
+        /* 表格样式 */
+        .content-body table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .content-body th {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #e07b5a;
+        }
+        
+        .content-body td {
+            padding: 12px 15px;
+            border-top: 1px solid #f0e6e0;
+        }
+        
+        /* 提示框样式 */
+        .tip-box {
+            background: #faf8f6;
+            border-left: 4px solid #e07b5a;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip-box p {
+            margin: 0;
+            color: #666;
+        }
+        
+        .tip-box strong {
+            color: #e07b5a;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: 240px;
+                padding: 30px 40px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边导航 -->
+        <nav class="sidebar">
+            <div class="sidebar-title">
+                <h1>📚 AiSale 教程</h1>
+                <p>校园二手交易平台学习指南</p>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">首页</a>
+                </li>
+                <li class="nav-category">基础篇</li>
+                <li class="nav-item">
+                    <a href="00-基础依赖与环境配置.html" class="nav-link">00 基础依赖与环境配置</a>
+                </li>
+                <li class="nav-item">
+                    <a href="01-项目初始化与基础设施.html" class="nav-link">01 项目初始化与基础设施</a>
+                </li>
+                <li class="nav-item">
+                    <a href="02-实体类与数据库设计.html" class="nav-link">02 实体类与数据库设计</a>
+                </li>
+                <li class="nav-category">核心篇</li>
+                <li class="nav-item">
+                    <a href="03-用户认证模块开发.html" class="nav-link">03 用户认证模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="04-商品管理模块开发.html" class="nav-link">04 商品管理模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="05-订单管理模块开发.html" class="nav-link">05 订单管理模块开发</a>
+                </li>
+                <li class="nav-category">进阶篇</li>
+                <li class="nav-item">
+                    <a href="06-用户地址与信息管理模块.html" class="nav-link">06 用户地址与信息管理</a>
+                </li>
+                <li class="nav-item">
+                    <a href="07-文件上传与OSS模块开发.html" class="nav-link">07 文件上传与OSS模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="08-IM即时通讯模块开发.html" class="nav-link">08 IM即时通讯模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="09-日志模块开发.html" class="nav-link">09 日志模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="10-商品搜索与推荐模块.html" class="nav-link">10 商品搜索与推荐模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="11-签到积分信誉模块开发.html" class="nav-link">11 签到积分信誉模块</a>
+                </li>
+                <li class="nav-category">前端与部署</li>
+                <li class="nav-item">
+                    <a href="12-前端开发完整指南.html" class="nav-link">12 前端开发完整指南</a>
+                </li>
+                <li class="nav-item">
+                    <a href="13-测试与部署.html" class="nav-link">13 测试与部署</a>
+                </li>
+                <li class="nav-item">
+                    <a href="14-项目总结与扩展.html" class="nav-link">14 项目总结与扩展</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>03 用户认证模块开发</h1>
+                <p>AiSale 校园二手交易平台学习指南 - 03 用户认证模块开发</p>
+            </div>
+            <div class="content-body">
+                <h2>03 用户认证模块开发</h2>
+<p>学习时长: 2-3 天</p>
+<p>难度: ⭐⭐⭐☆☆</p>
+<p>前置知识: Spring Security 基础、JWT 原理、HTTP 认证流程</p>
+<p>---</p>
+<h3>一、本章概述</h3>
+<p>本章将实现用户和管理员的登录、注册功能，以及基于JWT的无状态认证机制。</p>
+<p><strong>学习内容:</strong></p>
+<ul><li>JWT工具类开发</li>
+<li>Spring Security安全配置</li>
+<li>JWT认证过滤器</li>
+<li>用户认证服务</li>
+<li>管理员认证服务</li>
+<li>DTO数据传输对象</li>
+<li>统一API响应格式</li>
+<li>自定义业务异常</li>
+<li>全局异常处理器</li></ul>
+<p>---</p>
+<h3>二、JWT认证原理</h3>
+<h4>2.1 JWT结构</h4>
+<p>JWT（JSON Web Token）由三部分组成：</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>Header.Payload.Signature
+
+例如:
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.POstGetfAytaZS82wHcjoTyoqhMyxXiWdR7Nn7A29DNSl0E4XLdFxKkIBxt4r21zXGWBhpBbqe8z6fQ8b6s0cA</code></pre>
+            </div>
+            
+<p><strong>三部分说明:</strong></p>
+<ul><li><strong>Header</strong>: 令牌类型和签名算法</li>
+<li><strong>Payload</strong>: 载荷数据（用户信息、过期时间等）</li>
+<li><strong>Signature</strong>: 签名，防止篡改</li></ul>
+<h4>2.2 认证流程</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>1. 用户登录 → 后端验证 → 生成JWT → 返回给前端
+2. 前端存储JWT → 后续请求携带JWT（Authorization: Bearer &lt;token&gt;）
+3. 后端JWT过滤器拦截请求 → 验证JWT → 设置SecurityContext
+4. 控制器通过@AuthenticationPrincipal获取用户信息</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>三、JWT工具类开发</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/util/JwtUtil.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.util;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+@Component
+public class JwtUtil {
+
+    @Value(&quot;${jwt.secret:aisale-secret-key-for-jwt-token-generation-minimum-256-bits}&quot;)
+    private String secret;
+
+    @Value(&quot;${jwt.expiration:86400000}&quot;)
+    private long expiration; // 24 hours default
+
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
+    }
+
+    public String generateToken(String username, String role, Long userId) {
+        Map&lt;String, Object&gt; claims = new HashMap&lt;&gt;();
+        claims.put(&quot;role&quot;, role);
+        claims.put(&quot;userId&quot;, userId);
+        return createToken(claims, username);
+    }
+
+    private String createToken(Map&lt;String, Object&gt; claims, String subject) {
+        return Jwts.builder()
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String extractUsername(String token) {
+        return extractClaims(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        return extractClaims(token).get(&quot;role&quot;, String.class);
+    }
+
+    public Long extractUserId(String token) {
+        return extractClaims(token).get(&quot;userId&quot;, Long.class);
+    }
+
+    public Date extractExpiration(String token) {
+        return extractClaims(token).getExpiration();
+    }
+
+    private Claims extractClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    public boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    public boolean validateToken(String token, String username) {
+        final String extractedUsername = extractUsername(token);
+        return (extractedUsername.equals(username) &amp;&amp; !isTokenExpired(token));
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>方法说明:</strong></p>
+<table><thead><tr>
+<th>方法</th>
+<th>功能</th>
+<th>参数</th>
+<th>返回值</th>
+</tr></thead><tbody>
+<tr>
+<td>generateToken</td>
+<td>生成JWT</td>
+<td>username, role, userId</td>
+<td>String token</td>
+</tr>
+<tr>
+<td>extractUsername</td>
+<td>提取用户名</td>
+<td>token</td>
+<td>String</td>
+</tr>
+<tr>
+<td>extractRole</td>
+<td>提取角色</td>
+<td>token</td>
+<td>String</td>
+</tr>
+<tr>
+<td>extractUserId</td>
+<td>提取用户ID</td>
+<td>token</td>
+<td>Long</td>
+</tr>
+<tr>
+<td>validateToken</td>
+<td>验证token</td>
+<td>token, username</td>
+<td>boolean</td>
+</tr>
+</tbody></table>
+<p><strong>配置说明:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># application.yml
+jwt:
+  secret: your-secret-key-must-be-at-least-256-bits-long
+  expiration: 86400000  # 24小时（毫秒）</code></pre>
+            </div>
+            
+<p><strong>安全提示:</strong></p>
+<ul><li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">secret</code> 必须至少256位（32字节）</li>
+<li>生产环境使用环境变量存储密钥</li>
+<li>不要将密钥硬编码在代码中</li></ul>
+<p>---</p>
+<h3>四、DTO数据传输对象</h3>
+<h4>4.1 统一API响应</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/dto/ApiResponse.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class ApiResponse&lt;T&gt; {
+
+    private int code;
+    private String message;
+    private T data;
+
+    public static &lt;T&gt; ApiResponse&lt;T&gt; success(T data) {
+        return new ApiResponse&lt;&gt;(200, &quot;success&quot;, data);
+    }
+
+    public static &lt;T&gt; ApiResponse&lt;T&gt; success(String message, T data) {
+        return new ApiResponse&lt;&gt;(200, message, data);
+    }
+
+    public static &lt;T&gt; ApiResponse&lt;T&gt; success() {
+        return new ApiResponse&lt;&gt;(200, &quot;success&quot;, null);
+    }
+
+    public static &lt;T&gt; ApiResponse&lt;T&gt; error(String message) {
+        return new ApiResponse&lt;&gt;(500, message, null);
+    }
+
+    public static &lt;T&gt; ApiResponse&lt;T&gt; error(int code, String message) {
+        return new ApiResponse&lt;&gt;(code, message, null);
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>响应格式示例:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>{
+  &quot;code&quot;: 200,
+  &quot;message&quot;: &quot;登录成功&quot;,
+  &quot;data&quot;: {
+    &quot;token&quot;: &quot;eyJhbGci...&quot;,
+    &quot;id&quot;: 1,
+    &quot;username&quot;: &quot;zhangsan&quot;,
+    &quot;nickname&quot;: &quot;张三&quot;,
+    &quot;avatar&quot;: &quot;https://...&quot;,
+    &quot;role&quot;: &quot;USER&quot;
+  }
+}</code></pre>
+            </div>
+            
+<h4>4.2 登录请求DTO</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/dto/LoginRequest.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class LoginRequest {
+
+    @NotBlank(message = &quot;用户名不能为空&quot;)
+    private String username;
+
+    @NotBlank(message = &quot;密码不能为空&quot;)
+    private String password;
+}</code></pre>
+            </div>
+            
+<h4>4.3 注册请求DTO</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/dto/RegisterRequest.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class RegisterRequest {
+
+    @NotBlank(message = &quot;用户名不能为空&quot;)
+    @Size(min = 3, max = 20, message = &quot;用户名长度必须在3-20个字符之间&quot;)
+    private String username;
+
+    @NotBlank(message = &quot;密码不能为空&quot;)
+    @Size(min = 6, max = 40, message = &quot;密码长度必须在6-40个字符之间&quot;)
+    private String password;
+
+    private String email;
+
+    private String phone;
+
+    private String nickname;
+}</code></pre>
+            </div>
+            
+<h4>4.4 认证响应DTO</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/dto/AuthResponse.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AuthResponse {
+
+    private String token;
+    @Builder.Default
+    private String tokenType = &quot;Bearer&quot;;
+    private Long id;
+    private String username;
+    private String nickname;
+    private String avatar;
+    private String role;
+
+    public AuthResponse(String token, Long id, String username, String nickname, String avatar, String role) {
+        this.token = token;
+        this.id = id;
+        this.username = username;
+        this.nickname = nickname;
+        this.avatar = avatar;
+        this.role = role;
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>五、自定义业务异常</h3>
+<h4>5.1 异常层次结构</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>exception/
+├── BaseException.java          # 基础异常类
+├── ErrorCode.java              # 错误码枚举
+├── BusinessException.java      # 业务异常
+├── handler/
+│   └── GlobalExceptionHandler.java  # 全局异常处理器
+└── business/
+    ├── UnauthorizedException.java     # 未授权异常
+    ├── ForbiddenException.java        # 禁止访问异常
+    ├── NotFoundException.java         # 资源不存在异常
+    ├── ConflictException.java         # 资源冲突异常
+    └── ValidationException.java       # 验证失败异常</code></pre>
+            </div>
+            
+<h4>5.2 错误码枚举</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/exception/ErrorCode.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.exception;
+
+import lombok.Getter;
+
+@Getter
+public enum ErrorCode {
+    // 通用错误码
+    SUCCESS(200, &quot;成功&quot;),
+    BAD_REQUEST(400, &quot;请求参数错误&quot;),
+    UNAUTHORIZED(401, &quot;未授权&quot;),
+    FORBIDDEN(403, &quot;禁止访问&quot;),
+    NOT_FOUND(404, &quot;资源不存在&quot;),
+    CONFLICT(409, &quot;资源冲突&quot;),
+    INTERNAL_ERROR(500, &quot;服务器内部错误&quot;);
+
+    private final int code;
+    private final String message;
+
+    ErrorCode(int code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+}</code></pre>
+            </div>
+            
+<h4>5.3 基础异常类</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/exception/BaseException.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.exception;
+
+import lombok.Getter;
+
+@Getter
+public class BaseException extends RuntimeException {
+
+    private final int code;
+    private final String message;
+
+    public BaseException(int code, String message) {
+        super(message);
+        this.code = code;
+        this.message = message;
+    }
+
+    public BaseException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.code = errorCode.getCode();
+        this.message = errorCode.getMessage();
+    }
+
+    public BaseException(ErrorCode errorCode, String message) {
+        super(message);
+        this.code = errorCode.getCode();
+        this.message = message;
+    }
+}</code></pre>
+            </div>
+            
+<h4>5.4 业务异常类</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/exception/BusinessException.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.exception;
+
+public class BusinessException extends BaseException {
+
+    public BusinessException(int code, String message) {
+        super(code, message);
+    }
+
+    public BusinessException(ErrorCode errorCode) {
+        super(errorCode);
+    }
+
+    public BusinessException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
+    }
+}</code></pre>
+            </div>
+            
+<h4>5.5 具体业务异常</h4>
+<p><strong>UnauthorizedException.java</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.exception.business;
+
+import com.aisale.backend.exception.BaseException;
+import com.aisale.backend.exception.ErrorCode;
+
+public class UnauthorizedException extends BaseException {
+
+    public UnauthorizedException(String message) {
+        super(ErrorCode.UNAUTHORIZED, message);
+    }
+
+    public UnauthorizedException() {
+        super(ErrorCode.UNAUTHORIZED);
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>ForbiddenException.java</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.exception.business;
+
+import com.aisale.backend.exception.BaseException;
+import com.aisale.backend.exception.ErrorCode;
+
+public class ForbiddenException extends BaseException {
+
+    public ForbiddenException(String message) {
+        super(ErrorCode.FORBIDDEN, message);
+    }
+
+    public ForbiddenException() {
+        super(ErrorCode.FORBIDDEN);
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>NotFoundException.java</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.exception.business;
+
+import com.aisale.backend.exception.BaseException;
+import com.aisale.backend.exception.ErrorCode;
+
+public class NotFoundException extends BaseException {
+
+    public NotFoundException(String message) {
+        super(ErrorCode.NOT_FOUND, message);
+    }
+
+    public NotFoundException() {
+        super(ErrorCode.NOT_FOUND);
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>ConflictException.java</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.exception.business;
+
+import com.aisale.backend.exception.BaseException;
+import com.aisale.backend.exception.ErrorCode;
+
+public class ConflictException extends BaseException {
+
+    public ConflictException(String message) {
+        super(ErrorCode.CONFLICT, message);
+    }
+
+    public ConflictException() {
+        super(ErrorCode.CONFLICT);
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>六、全局异常处理器</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/handler/GlobalExceptionHandler.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.handler;
+
+import com.aisale.backend.dto.ApiResponse;
+import com.aisale.backend.exception.BaseException;
+import com.aisale.backend.exception.BusinessException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.stream.Collectors;
+
+@Slf4j
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    /**
+     * 处理参数验证异常
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse&lt;Void&gt; handleValidationException(MethodArgumentNotValidException ex) {
+        String errorMessage = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.joining(&quot;, &quot;));
+        
+        log.warn(&quot;Validation error: {}&quot;, errorMessage);
+        return ApiResponse.error(400, errorMessage);
+    }
+
+    /**
+     * 处理业务异常
+     */
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse&lt;Void&gt; handleBusinessException(BusinessException ex) {
+        log.warn(&quot;Business exception: code={}, message={}&quot;, ex.getCode(), ex.getMessage());
+        return ApiResponse.error(ex.getCode(), ex.getMessage());
+    }
+
+    /**
+     * 处理基础异常
+     */
+    @ExceptionHandler(BaseException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse&lt;Void&gt; handleBaseException(BaseException ex) {
+        log.warn(&quot;Base exception: code={}, message={}&quot;, ex.getCode(), ex.getMessage());
+        return ApiResponse.error(ex.getCode(), ex.getMessage());
+    }
+
+    /**
+     * 处理其他未知异常
+     */
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiResponse&lt;Void&gt; handleException(Exception ex) {
+        log.error(&quot;Unexpected error: &quot;, ex);
+        return ApiResponse.error(500, &quot;服务器内部错误&quot;);
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>异常处理流程:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>Controller抛出异常
+    ↓
+@RestControllerAdvice拦截
+    ↓
+根据异常类型选择处理方法
+    ↓
+记录日志
+    ↓
+返回统一ApiResponse格式</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>七、Spring Security配置</h3>
+<h4>7.1 SecurityConfig</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/security/SecurityConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.security;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Spring Security配置类
+ * 
+ * 配置说明:
+ * 1. 禁用CSRF（前后端分离架构，使用JWT）
+ * 2. 禁用Session（无状态认证）
+ * 3. 配置URL访问权限
+ * 4. 添加JWT过滤器
+ */
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    /**
+     * 配置安全过滤链
+     */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            // 禁用CSRF（前后端分离）
+            .csrf(csrf -&gt; csrf.disable())
+
+            // 禁用Session（JWT无状态）
+            .sessionManagement(session -&gt; 
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+            // 配置URL访问权限
+            .authorizeHttpRequests(auth -&gt; auth
+                // 公开接口
+                .requestMatchers(
+                    &quot;/api/auth/**&quot;,
+                    &quot;/api/user/products/public/**&quot;,
+                    &quot;/h2-console/**&quot;,
+                    &quot;/swagger-ui/**&quot;,
+                    &quot;/v3/api-docs/**&quot;,
+                    &quot;/doc.html&quot;
+                ).permitAll()
+
+                // Admin接口需要ADMIN角色
+                .requestMatchers(&quot;/api/admin/**&quot;).hasAnyRole(&quot;ADMIN&quot;, &quot;SUPER_ADMIN&quot;)
+
+                // 其他接口需要认证
+                .anyRequest().authenticated()
+            )
+
+            // 添加JWT过滤器
+            .addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
+            );
+
+        return http.build();
+    }
+
+    /**
+     * 密码加密器
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>权限配置说明:</strong></p>
+<table><thead><tr>
+<th>路径</th>
+<th>权限要求</th>
+<th>说明</th>
+</tr></thead><tbody>
+<tr>
+<td>/api/auth/**</td>
+<td>公开</td>
+<td>登录注册无需认证</td>
+</tr>
+<tr>
+<td>/api/user/**</td>
+<td>认证</td>
+<td>需要有效JWT</td>
+</tr>
+<tr>
+<td>/api/admin/**</td>
+<td>ADMIN/SUPER_ADMIN</td>
+<td>需要管理员角色</td>
+</tr>
+<tr>
+<td>/h2-console/**</td>
+<td>公开</td>
+<td>H2数据库控制台</td>
+</tr>
+<tr>
+<td>/swagger-ui/**</td>
+<td>公开</td>
+<td>API文档</td>
+</tr>
+</tbody></table>
+<h4>7.2 JwtAuthenticationFilter</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/security/JwtAuthenticationFilter.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.security;
+
+import com.aisale.backend.service.CustomUserDetailsService;
+import com.aisale.backend.util.JwtUtil;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+
+@Component
+@RequiredArgsConstructor
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final JwtUtil jwtUtil;
+    private final CustomUserDetailsService userDetailsService;
+
+    @SuppressWarnings(&quot;null&quot;)
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+        final String authHeader = request.getHeader(&quot;Authorization&quot;);
+
+        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        try {
+            final String token = authHeader.substring(7);
+            final String username = jwtUtil.extractUsername(token);
+
+            if (username != null &amp;&amp; SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (jwtUtil.validateToken(token, username)) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
+        } catch (Exception e) {
+            logger.error(&quot;JWT authentication failed: &quot; + e.getMessage());
+        }
+
+        filterChain.doFilter(request, response);
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>过滤器执行流程:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>1. 检查Authorization Header
+2. 提取Bearer Token
+3. 解析Token获取username
+4. 验证Token有效性
+5. 加载用户详情
+6. 设置SecurityContext
+7. 继续过滤器链</code></pre>
+            </div>
+            
+<h4>7.3 CustomUserDetailsService</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/service/CustomUserDetailsService.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.service;
+
+import com.aisale.backend.entity.User;
+import com.aisale.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+
+@Service
+@RequiredArgsConstructor
+public class CustomUserDetailsService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -&gt; new UsernameNotFoundException(&quot;用户不存在: &quot; + username));
+
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority(&quot;ROLE_USER&quot;))
+        );
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>八、认证服务开发</h3>
+<h4>8.1 用户认证服务</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/service/AuthService.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.service;
+
+import cn.hutool.core.bean.BeanUtil;
+import com.aisale.backend.dto.AuthResponse;
+import com.aisale.backend.dto.LoginRequest;
+import com.aisale.backend.dto.RegisterRequest;
+import com.aisale.backend.entity.User;
+import com.aisale.backend.exception.business.ConflictException;
+import com.aisale.backend.exception.business.ForbiddenException;
+import com.aisale.backend.exception.business.UnauthorizedException;
+import com.aisale.backend.repository.UserRepository;
+import com.aisale.backend.util.JwtUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class AuthService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final EmailService emailService;
+
+    @Transactional
+    public AuthResponse register(RegisterRequest request) {
+        // 检查用户名是否已存在
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new ConflictException(&quot;用户名已存在&quot;);
+        }
+
+        // 检查邮箱是否已存在
+        if (request.getEmail() != null &amp;&amp; userRepository.existsByEmail(request.getEmail())) {
+            throw new ConflictException(&quot;邮箱已被注册&quot;);
+        }
+
+        // 检查手机号是否已存在
+        if (request.getPhone() != null &amp;&amp; userRepository.existsByPhone(request.getPhone())) {
+            throw new ConflictException(&quot;手机号已被注册&quot;);
+        }
+
+        // 创建用户
+        User user = BeanUtil.copyProperties(request, User.class);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setNickname(request.getNickname() != null ? request.getNickname() : request.getUsername());
+
+        // 邮箱验证（预留，当前直接返回true）
+        if (request.getEmail() != null) {
+            boolean emailVerified = emailService.verifyCode(request.getEmail(), &quot;any-code&quot;);
+            user.setEmailVerified(emailVerified);
+        }
+
+        user = userRepository.save(user);
+
+        // 生成JWT
+        String token = jwtUtil.generateToken(user.getUsername(), &quot;USER&quot;, user.getId());
+
+        return AuthResponse.builder()
+                .token(token)
+                .id(user.getId())
+                .username(user.getUsername())
+                .nickname(user.getNickname())
+                .avatar(user.getAvatar())
+                .role(&quot;USER&quot;)
+                .build();
+    }
+
+    public AuthResponse login(LoginRequest request) {
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -&gt; new RuntimeException(&quot;用户不存在&quot;));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new UnauthorizedException(&quot;密码错误&quot;);
+        }
+
+        if (user.getStatus() == User.UserStatus.BANNED) {
+            throw new ForbiddenException(&quot;账号已被禁用&quot;);
+        }
+
+        if (user.getStatus() == User.UserStatus.INACTIVE) {
+            throw new ForbiddenException(&quot;账号未激活&quot;);
+        }
+
+        String token = jwtUtil.generateToken(user.getUsername(), &quot;USER&quot;, user.getId());
+
+        return AuthResponse.builder()
+                .token(token)
+                .id(user.getId())
+                .username(user.getUsername())
+                .nickname(user.getNickname())
+                .avatar(user.getAvatar())
+                .role(&quot;USER&quot;)
+                .build();
+    }
+
+    public User getCurrentUser(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -&gt; new RuntimeException(&quot;用户不存在&quot;));
+    }
+
+    public boolean sendEmailVerification(String email) {
+        return emailService.sendVerificationCode(email);
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>注册流程:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>1. 验证用户名/邮箱/手机号是否已存在
+2. 密码加密（BCrypt）
+3. 创建用户实体
+4. 保存到数据库
+5. 生成JWT token
+6. 返回AuthResponse</code></pre>
+            </div>
+            
+<p><strong>登录流程:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>1. 查询用户
+2. 验证密码
+3. 检查账号状态
+4. 生成JWT token
+5. 返回AuthResponse</code></pre>
+            </div>
+            
+<h4>8.2 管理员认证服务</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/service/AdminAuthService.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.service;
+
+import com.aisale.backend.dto.AuthResponse;
+import com.aisale.backend.dto.LoginRequest;
+import com.aisale.backend.entity.Admin;
+import com.aisale.backend.exception.business.ForbiddenException;
+import com.aisale.backend.exception.business.UnauthorizedException;
+import com.aisale.backend.repository.AdminRepository;
+import com.aisale.backend.util.JwtUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class AdminAuthService {
+
+    private final AdminRepository adminRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+
+    public AuthResponse login(LoginRequest request) {
+        Admin admin = adminRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -&gt; new UnauthorizedException(&quot;管理员不存在&quot;));
+
+        if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
+            throw new UnauthorizedException(&quot;密码错误&quot;);
+        }
+
+        if (admin.getStatus() == Admin.AdminStatus.INACTIVE) {
+            throw new ForbiddenException(&quot;账号未激活&quot;);
+        }
+
+        String role = admin.getRole() == Admin.AdminRole.SUPER_ADMIN ? &quot;SUPER_ADMIN&quot; : &quot;ADMIN&quot;;
+        String token = jwtUtil.generateToken(admin.getUsername(), role, admin.getId());
+
+        return AuthResponse.builder()
+                .token(token)
+                .id(admin.getId())
+                .username(admin.getUsername())
+                .nickname(admin.getNickname())
+                .avatar(admin.getAvatar())
+                .role(role)
+                .build();
+    }
+
+    public Admin getCurrentAdmin(String username) {
+        return adminRepository.findByUsername(username)
+                .orElseThrow(() -&gt; new RuntimeException(&quot;管理员不存在&quot;));
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>九、认证控制器</h3>
+<h4>9.1 用户认证控制器</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/controller/UserAuthController.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.controller;
+
+import com.aisale.backend.dto.ApiResponse;
+import com.aisale.backend.dto.AuthResponse;
+import com.aisale.backend.dto.LoginRequest;
+import com.aisale.backend.dto.RegisterRequest;
+import com.aisale.backend.entity.User;
+import com.aisale.backend.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
+@Tag(name = &quot;用户认证&quot;, description = &quot;用户登录、注册相关接口&quot;)
+@RestController
+@RequestMapping(&quot;/api/auth&quot;)
+@RequiredArgsConstructor
+public class UserAuthController {
+
+    private final AuthService authService;
+
+    @Operation(summary = &quot;用户注册&quot;)
+    @PostMapping(&quot;/register&quot;)
+    public ApiResponse&lt;AuthResponse&gt; register(@Valid @RequestBody RegisterRequest request) {
+        AuthResponse response = authService.register(request);
+        return ApiResponse.success(&quot;注册成功&quot;, response);
+    }
+
+    @Operation(summary = &quot;用户登录&quot;)
+    @PostMapping(&quot;/login&quot;)
+    public ApiResponse&lt;AuthResponse&gt; login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = authService.login(request);
+        return ApiResponse.success(&quot;登录成功&quot;, response);
+    }
+
+    @Operation(summary = &quot;获取当前用户信息&quot;)
+    @GetMapping(&quot;/me&quot;)
+    public ApiResponse&lt;User&gt; getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        User user = authService.getCurrentUser(userDetails.getUsername());
+        return ApiResponse.success(user);
+    }
+
+    @Operation(summary = &quot;发送邮箱验证码&quot;)
+    @PostMapping(&quot;/send-verification&quot;)
+    public ApiResponse&lt;Boolean&gt; sendEmailVerification(@RequestParam String email) {
+        boolean result = authService.sendEmailVerification(email);
+        return ApiResponse.success(&quot;验证码发送成功&quot;, result);
+    }
+}</code></pre>
+            </div>
+            
+<h4>9.2 管理员认证控制器</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/controller/AdminAuthController.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.controller;
+
+import com.aisale.backend.dto.ApiResponse;
+import com.aisale.backend.dto.AuthResponse;
+import com.aisale.backend.dto.LoginRequest;
+import com.aisale.backend.entity.Admin;
+import com.aisale.backend.service.AdminAuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
+@Tag(name = &quot;管理员认证&quot;, description = &quot;管理员登录相关接口&quot;)
+@RestController
+@RequestMapping(&quot;/api/admin/auth&quot;)
+@RequiredArgsConstructor
+public class AdminAuthController {
+
+    private final AdminAuthService adminAuthService;
+
+    @Operation(summary = &quot;管理员登录&quot;)
+    @PostMapping(&quot;/login&quot;)
+    public ApiResponse&lt;AuthResponse&gt; login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = adminAuthService.login(request);
+        return ApiResponse.success(&quot;登录成功&quot;, response);
+    }
+
+    @Operation(summary = &quot;获取当前管理员信息&quot;)
+    @GetMapping(&quot;/me&quot;)
+    public ApiResponse&lt;Admin&gt; getCurrentAdmin(@AuthenticationPrincipal UserDetails userDetails) {
+        Admin admin = adminAuthService.getCurrentAdmin(userDetails.getUsername());
+        return ApiResponse.success(admin);
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>十、JWT请求工具类</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/util/JwtRequestUtils.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.util;
+
+import com.aisale.backend.entity.User;
+import com.aisale.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class JwtRequestUtils {
+
+    private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
+
+    public Long getUserIdFromToken(String token) {
+        return jwtUtil.extractUserId(token);
+    }
+
+    public String getUsernameFromToken(String token) {
+        return jwtUtil.extractUsername(token);
+    }
+
+    public User getUserFromToken(String token) {
+        Long userId = getUserIdFromToken(token);
+        return userRepository.findById(userId)
+                .orElseThrow(() -&gt; new RuntimeException(&quot;用户不存在&quot;));
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>十一、API接口文档</h3>
+<h4>11.1 用户注册</h4>
+<p><strong>接口:</strong> <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">POST /api/auth/register</code></p>
+<p><strong>请求体:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>{
+  &quot;username&quot;: &quot;zhangsan&quot;,
+  &quot;password&quot;: &quot;123456&quot;,
+  &quot;email&quot;: &quot;zhangsan@example.com&quot;,
+  &quot;nickname&quot;: &quot;张三&quot;
+}</code></pre>
+            </div>
+            
+<p><strong>响应:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>{
+  &quot;code&quot;: 200,
+  &quot;message&quot;: &quot;注册成功&quot;,
+  &quot;data&quot;: {
+    &quot;token&quot;: &quot;eyJhbGci...&quot;,
+    &quot;tokenType&quot;: &quot;Bearer&quot;,
+    &quot;id&quot;: 1,
+    &quot;username&quot;: &quot;zhangsan&quot;,
+    &quot;nickname&quot;: &quot;张三&quot;,
+    &quot;avatar&quot;: null,
+    &quot;role&quot;: &quot;USER&quot;
+  }
+}</code></pre>
+            </div>
+            
+<h4>11.2 用户登录</h4>
+<p><strong>接口:</strong> <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">POST /api/auth/login</code></p>
+<p><strong>请求体:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>{
+  &quot;username&quot;: &quot;zhangsan&quot;,
+  &quot;password&quot;: &quot;123456&quot;
+}</code></pre>
+            </div>
+            
+<p><strong>响应:</strong> 同注册响应</p>
+<h4>11.3 获取当前用户</h4>
+<p><strong>接口:</strong> <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">GET /api/auth/me</code></p>
+<p><strong>Headers:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>Authorization: Bearer &lt;token&gt;</code></pre>
+            </div>
+            
+<p><strong>响应:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>{
+  &quot;code&quot;: 200,
+  &quot;message&quot;: &quot;success&quot;,
+  &quot;data&quot;: {
+    &quot;id&quot;: 1,
+    &quot;username&quot;: &quot;zhangsan&quot;,
+    &quot;email&quot;: &quot;zhangsan@example.com&quot;,
+    &quot;nickname&quot;: &quot;张三&quot;,
+    &quot;avatar&quot;: null,
+    &quot;status&quot;: &quot;ACTIVE&quot;,
+    &quot;emailVerified&quot;: true
+  }
+}</code></pre>
+            </div>
+            
+<h4>11.4 管理员登录</h4>
+<p><strong>接口:</strong> <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">POST /api/admin/auth/login</code></p>
+<p><strong>请求体:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>{
+  &quot;username&quot;: &quot;admin&quot;,
+  &quot;password&quot;: &quot;123456&quot;
+}</code></pre>
+            </div>
+            
+<p><strong>响应:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>{
+  &quot;code&quot;: 200,
+  &quot;message&quot;: &quot;登录成功&quot;,
+  &quot;data&quot;: {
+    &quot;token&quot;: &quot;eyJhbGci...&quot;,
+    &quot;tokenType&quot;: &quot;Bearer&quot;,
+    &quot;id&quot;: 1,
+    &quot;username&quot;: &quot;admin&quot;,
+    &quot;nickname&quot;: &quot;管理员&quot;,
+    &quot;avatar&quot;: null,
+    &quot;role&quot;: &quot;ADMIN&quot;
+  }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>十二、前端认证API封装</h3>
+<h4>12.1 认证API接口</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/src/api/auth.ts</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">TYPESCRIPT</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>import request from '@/utils/request'
+import type { LoginParams, RegisterParams, AuthResponse, UserInfo } from './types'
+
+export const authApi = {
+  // 用户登录
+  login(data: LoginParams) {
+    return request.post&lt;any, AuthResponse&gt;('/auth/login', data)
+  },
+
+  // 用户注册
+  register(data: RegisterParams) {
+    return request.post&lt;any, AuthResponse&gt;('/auth/register', data)
+  },
+
+  // 获取当前用户信息
+  getCurrentUser() {
+    return request.get&lt;any, UserInfo&gt;('/auth/me')
+  },
+
+  // 管理员登录
+  adminLogin(data: LoginParams) {
+    return request.post&lt;any, AuthResponse&gt;('/admin/auth/login', data)
+  },
+
+  // 获取当前管理员信息
+  getCurrentAdmin() {
+    return request.get&lt;any, UserInfo&gt;('/admin/auth/me')
+  }
+}</code></pre>
+            </div>
+            
+<h4>12.2 类型定义</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/src/api/types.ts</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">TYPESCRIPT</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>export interface LoginParams {
+  username: string
+  password: string
+}
+
+export interface RegisterParams {
+  username: string
+  password: string
+  email?: string
+  phone?: string
+  nickname?: string
+}
+
+export interface AuthResponse {
+  token: string
+  tokenType: string
+  id: number
+  username: string
+  nickname: string
+  avatar: string | null
+  role: string
+}
+
+export interface UserInfo {
+  id: number
+  username: string
+  email: string | null
+  phone: string | null
+  nickname: string
+  avatar: string | null
+  status: string
+  emailVerified: boolean
+}</code></pre>
+            </div>
+            
+<h4>12.3 Axios请求拦截器</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/src/utils/request.ts</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">TYPESCRIPT</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>import axios from 'axios'
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+
+const service: AxiosInstance = axios.create({
+  baseURL: '/api',
+  timeout: 10000
+})
+
+// 请求拦截器
+service.interceptors.request.use(
+  (config) =&gt; {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) =&gt; {
+    return Promise.reject(error)
+  }
+)
+
+// 响应拦截器
+service.interceptors.response.use(
+  (response: AxiosResponse) =&gt; {
+    const { code, message, data } = response.data
+    if (code === 200) {
+      return data
+    } else {
+      return Promise.reject(new Error(message))
+    }
+  },
+  (error) =&gt; {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/user/login'
+    }
+    return Promise.reject(error)
+  }
+)
+
+export default service</code></pre>
+            </div>
+            
+<h4>12.4 认证状态管理</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/src/stores/auth.ts</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">TYPESCRIPT</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { authApi } from '@/api/auth'
+import type { AuthResponse, UserInfo } from '@/api/types'
+
+export const useAuthStore = defineStore('auth', () =&gt; {
+  const token = ref&lt;string&gt;(localStorage.getItem('token') || '')
+  const userInfo = ref&lt;UserInfo | null&gt;(null)
+
+  const isLoggedIn = computed(() =&gt; !!token.value)
+  const isAdmin = computed(() =&gt; userInfo.value?.role === 'ADMIN' || userInfo.value?.role === 'SUPER_ADMIN')
+
+  async function login(username: string, password: string) {
+    const res = await authApi.login({ username, password })
+    token.value = res.token
+    localStorage.setItem('token', res.token)
+    return res
+  }
+
+  async function register(data: { username: string; password: string; email?: string; nickname?: string }) {
+    const res = await authApi.register(data)
+    token.value = res.token
+    localStorage.setItem('token', res.token)
+    return res
+  }
+
+  async function fetchUserInfo() {
+    try {
+      userInfo.value = await authApi.getCurrentUser()
+    } catch (error) {
+      console.error('获取用户信息失败', error)
+    }
+  }
+
+  function logout() {
+    token.value = ''
+    userInfo.value = null
+    localStorage.removeItem('token')
+  }
+
+  return {
+    token,
+    userInfo,
+    isLoggedIn,
+    isAdmin,
+    login,
+    register,
+    fetchUserInfo,
+    logout
+  }
+})</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>十三、测试验证</h3>
+<h4>13.1 使用Postman测试</h4>
+<p><strong>注册测试:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>POST http://localhost:8090/api/auth/register
+Content-Type: application/json
+
+{
+  &quot;username&quot;: &quot;testuser&quot;,
+  &quot;password&quot;: &quot;test123456&quot;,
+  &quot;email&quot;: &quot;test@example.com&quot;,
+  &quot;nickname&quot;: &quot;测试用户&quot;
+}</code></pre>
+            </div>
+            
+<p><strong>登录测试:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>POST http://localhost:8090/api/auth/login
+Content-Type: application/json
+
+{
+  &quot;username&quot;: &quot;zhangsan&quot;,
+  &quot;password&quot;: &quot;123456&quot;
+}</code></pre>
+            </div>
+            
+<p><strong>获取用户信息测试:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>GET http://localhost:8090/api/auth/me
+Authorization: Bearer &lt;token&gt;</code></pre>
+            </div>
+            
+<h4>13.2 使用Python脚本测试</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">PYTHON</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>import requests
+
+BASE_URL = &quot;http://localhost:8090/api&quot;
+
+def test_register():
+    response = requests.post(f&quot;{BASE_URL}/auth/register&quot;, json={
+        &quot;username&quot;: &quot;testuser&quot;,
+        &quot;password&quot;: &quot;test123456&quot;,
+        &quot;email&quot;: &quot;test@example.com&quot;,
+        &quot;nickname&quot;: &quot;测试用户&quot;
+    })
+    print(f&quot;注册: {response.status_code}&quot;)
+    print(response.json())
+    return response.json()
+
+def test_login():
+    response = requests.post(f&quot;{BASE_URL}/auth/login&quot;, json={
+        &quot;username&quot;: &quot;zhangsan&quot;,
+        &quot;password&quot;: &quot;123456&quot;
+    })
+    print(f&quot;登录: {response.status_code}&quot;)
+    print(response.json())
+    return response.json()
+
+def test_get_current_user(token):
+    headers = {&quot;Authorization&quot;: f&quot;Bearer {token}&quot;}
+    response = requests.get(f&quot;{BASE_URL}/auth/me&quot;, headers=headers)
+    print(f&quot;获取用户信息: {response.status_code}&quot;)
+    print(response.json())
+
+if __name__ == &quot;__main__&quot;:
+    # 测试登录
+    login_res = test_login()
+    token = login_res['data']['token']
+    
+    # 测试获取用户信息
+    test_get_current_user(token)</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>十四、常见问题</h3>
+<h4>14.1 JWT相关问题</h4>
+<p><strong>Q: Token过期怎么办？</strong></p>
+<p>A: 前端捕获401错误，清除token，跳转到登录页。可考虑实现refresh token机制。</p>
+<p><strong>Q: Secret key太短？</strong></p>
+<p>A: JWT要求密钥至少256位（32字节）。使用<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Keys.hmacShaKeyFor()</code>会验证长度。</p>
+<p><strong>Q: 如何实现记住我？</strong></p>
+<p>A: 根据用户选择设置不同的expiration时间：</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>long expiration = rememberMe ? 7 * 24 * 60 * 60 * 1000L : 24 * 60 * 60 * 1000L;</code></pre>
+            </div>
+            
+<h4>14.2 Security相关问题</h4>
+<p><strong>Q: 为什么禁用CSRF？</strong></p>
+<p>A: 前后端分离架构使用JWT认证，不存在Cookie CSRF问题。</p>
+<p><strong>Q: 如何实现权限控制？</strong></p>
+<p>A: 在SecurityConfig中配置：</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>.requestMatchers(&quot;/api/admin/**&quot;).hasAnyRole(&quot;ADMIN&quot;, &quot;SUPER_ADMIN&quot;)</code></pre>
+            </div>
+            
+<p><strong>Q: @AuthenticationPrincipal如何使用？</strong></p>
+<p>A: 在控制器方法参数中使用：</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>@GetMapping(&quot;/me&quot;)
+public ApiResponse&lt;User&gt; getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+    // userDetails.getUsername() 获取用户名
+}</code></pre>
+            </div>
+            
+<h4>14.3 密码安全</h4>
+<p><strong>Q: 为什么要加密密码？</strong></p>
+<p>A: 防止数据库泄露后密码被直接获取。BCrypt是单向加密，不可逆。</p>
+<p><strong>Q: 如何验证密码？</strong></p>
+<p>A: 使用PasswordEncoder：</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
+    throw new UnauthorizedException(&quot;密码错误&quot;);
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>十五、扩展练习</h3>
+<h4>练习1：实现Refresh Token</h4>
+<ol><li>添加refreshToken字段到AuthResponse</li>
+<li>实现Refresh Token接口</li>
+<li>设置更长的过期时间（如7天）</li>
+<li>存储refreshToken到数据库或Redis</li></ol>
+<h4>练习2：实现记住我功能</h4>
+<ol><li>登录请求添加rememberMe字段</li>
+<li>根据rememberMe设置不同过期时间</li>
+<li>前端保存rememberMe状态</li></ol>
+<h4>练习3：实现邮箱验证码</h4>
+<ol><li>集成邮件服务（如JavaMailSender）</li>
+<li>实现发送验证码接口</li>
+<li>注册时验证验证码</li>
+<li>验证码有效期5分钟</li></ol>
+<p>---</p>
+<p>最后更新: 2026-04-22</p>
+<p>文档版本: 1.0</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 代码复制功能
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-wrapper').querySelector('code');
+            const text = codeBlock.innerText;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ 已复制';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                btn.innerHTML = '✗ 失败';
+                setTimeout(() => {
+                    btn.innerHTML = '复制';
+                }, 2000);
+            });
+        }
+
+        // 页面加载完成后为所有代码块添加复制按钮
+        document.addEventListener('DOMContentLoaded', () => {
+            const codeWrappers = document.querySelectorAll('.code-wrapper');
+            codeWrappers.forEach(wrapper => {
+                if (!wrapper.querySelector('.copy-btn')) {
+                    const header = wrapper.querySelector('.code-header');
+                    if (header) {
+                        const btn = document.createElement('button');
+                        btn.className = 'copy-btn';
+                        btn.innerHTML = '📋 复制';
+                        btn.onclick = function() { copyCode(this); };
+                        header.appendChild(btn);
+                    }
+                }
+            });
+        });
+
+        // 设置当前页面高亮
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

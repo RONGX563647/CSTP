@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>01 项目初始化与基础设施</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #faf3f0 0%, #ffffff 100%);
+            color: #333;
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边导航 */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #f0e6e0;
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-title {
+            padding: 0 25px 20px;
+            border-bottom: 1px solid #f0e6e0;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-title h1 {
+            font-size: 18px;
+            color: #e07b5a;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-title p {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-list {
+            list-style: none;
+        }
+        
+        .nav-item {
+            padding: 0 20px;
+        }
+        
+        .nav-item a {
+            display: block;
+            padding: 12px 15px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item a:hover {
+            background: #faf3f0;
+            color: #e07b5a;
+        }
+        
+        .nav-item a.active {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            color: #e07b5a;
+            font-weight: 500;
+        }
+        
+        .nav-category {
+            padding: 15px 25px 8px;
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+        }
+        
+        .content-header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0e6e0;
+        }
+        
+        .content-header h1 {
+            font-size: 32px;
+            color: #2c2c2c;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .content-header p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .content-body h2 {
+            font-size: 24px;
+            color: #e07b5a;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .content-body h3 {
+            font-size: 20px;
+            color: #333;
+            margin: 30px 0 15px;
+        }
+        
+        .content-body h4 {
+            font-size: 17px;
+            color: #444;
+            margin: 25px 0 12px;
+        }
+        
+        .content-body p {
+            margin: 15px 0;
+            color: #555;
+        }
+        
+        .content-body ul, .content-body ol {
+            margin: 15px 0;
+            padding-left: 25px;
+            color: #555;
+        }
+        
+        .content-body li {
+            margin: 8px 0;
+        }
+        
+        .content-body a {
+            color: #e07b5a;
+            text-decoration: none;
+        }
+        
+        .content-body a:hover {
+            text-decoration: underline;
+        }
+        
+        .content-body strong {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        /* 代码块样式 */
+        .code-wrapper {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #faf8f6;
+            border: 1px solid #f0e6e0;
+        }
+        
+        .code-header {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .code-lang {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+        
+        .copy-btn {
+            background: #ffffff;
+            border: 1px solid #e0e6e0;
+            color: #666;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .copy-btn:hover {
+            background: #f5e6df;
+            border-color: #e07b5a;
+            color: #e07b5a;
+        }
+        
+        .copy-btn.copied {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: #fff;
+        }
+        
+        .code-wrapper pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            background: transparent;
+        }
+        
+        .code-wrapper code {
+            font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", Consolas, Monaco, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #444;
+            background: transparent;
+        }
+        
+        /* 表格样式 */
+        .content-body table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .content-body th {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #e07b5a;
+        }
+        
+        .content-body td {
+            padding: 12px 15px;
+            border-top: 1px solid #f0e6e0;
+        }
+        
+        /* 提示框样式 */
+        .tip-box {
+            background: #faf8f6;
+            border-left: 4px solid #e07b5a;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip-box p {
+            margin: 0;
+            color: #666;
+        }
+        
+        .tip-box strong {
+            color: #e07b5a;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: 240px;
+                padding: 30px 40px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边导航 -->
+        <nav class="sidebar">
+            <div class="sidebar-title">
+                <h1>📚 AiSale 教程</h1>
+                <p>校园二手交易平台学习指南</p>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">首页</a>
+                </li>
+                <li class="nav-category">基础篇</li>
+                <li class="nav-item">
+                    <a href="00-基础依赖与环境配置.html" class="nav-link">00 基础依赖与环境配置</a>
+                </li>
+                <li class="nav-item">
+                    <a href="01-项目初始化与基础设施.html" class="nav-link">01 项目初始化与基础设施</a>
+                </li>
+                <li class="nav-item">
+                    <a href="02-实体类与数据库设计.html" class="nav-link">02 实体类与数据库设计</a>
+                </li>
+                <li class="nav-category">核心篇</li>
+                <li class="nav-item">
+                    <a href="03-用户认证模块开发.html" class="nav-link">03 用户认证模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="04-商品管理模块开发.html" class="nav-link">04 商品管理模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="05-订单管理模块开发.html" class="nav-link">05 订单管理模块开发</a>
+                </li>
+                <li class="nav-category">进阶篇</li>
+                <li class="nav-item">
+                    <a href="06-用户地址与信息管理模块.html" class="nav-link">06 用户地址与信息管理</a>
+                </li>
+                <li class="nav-item">
+                    <a href="07-文件上传与OSS模块开发.html" class="nav-link">07 文件上传与OSS模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="08-IM即时通讯模块开发.html" class="nav-link">08 IM即时通讯模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="09-日志模块开发.html" class="nav-link">09 日志模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="10-商品搜索与推荐模块.html" class="nav-link">10 商品搜索与推荐模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="11-签到积分信誉模块开发.html" class="nav-link">11 签到积分信誉模块</a>
+                </li>
+                <li class="nav-category">前端与部署</li>
+                <li class="nav-item">
+                    <a href="12-前端开发完整指南.html" class="nav-link">12 前端开发完整指南</a>
+                </li>
+                <li class="nav-item">
+                    <a href="13-测试与部署.html" class="nav-link">13 测试与部署</a>
+                </li>
+                <li class="nav-item">
+                    <a href="14-项目总结与扩展.html" class="nav-link">14 项目总结与扩展</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>01 项目初始化与基础设施</h1>
+                <p>AiSale 校园二手交易平台学习指南 - 01 项目初始化与基础设施</p>
+            </div>
+            <div class="content-body">
+                <h2>01 项目初始化与基础设施</h2>
+<p>学习时长: 1-2 天</p>
+<p>难度: ⭐⭐☆☆☆</p>
+<p>前置知识: Java 基础、Maven 基础、Spring Boot 基础</p>
+<p>---</p>
+<h3>一、项目概述</h3>
+<h4>1.1 项目背景</h4>
+<p>AiSale 是一个校园二手交易平台，采用<strong>线下提货/面对面交易</strong>模式，<strong>无物流配送</strong>功能。</p>
+<p><strong>核心功能:</strong></p>
+<ul><li>用户注册/登录/认证</li>
+<li>商品发布/浏览/搜索</li>
+<li>订单管理/支付/提货</li>
+<li>IM即时通讯</li>
+<li>用户签到/积分/信誉系统</li>
+<li>后台管理系统</li></ul>
+<p><strong>项目特点:</strong></p>
+<ul><li>前后端分离架构</li>
+<li>移动端优先（用户端H5 + 管理端桌面）</li>
+<li>JWT无状态认证</li>
+<li>角色权限控制（USER/ADMIN/SUPER_ADMIN）</li></ul>
+<h4>1.2 技术栈总览</h4>
+<p><strong>后端技术栈:</strong></p>
+<p>核心框架:</p>
+<ul><li>Java 17 (LTS)</li>
+<li>Spring Boot 3.3.4</li>
+<li>Spring Security (认证授权)</li>
+<li>Spring Data JPA (数据持久化)</li></ul>
+<p>通信协议:</p>
+<ul><li>SSE (Server-Sent Events 实时消息)</li>
+<li>WebSocket (实时通信)</li>
+<li>REST API (前后端交互)</li></ul>
+<p>数据存储:</p>
+<ul><li>PostgreSQL (生产数据库)</li>
+<li>H2 (开发环境内存数据库)</li>
+<li>Redis (分布式缓存)</li></ul>
+<p>消息中间件:</p>
+<ul><li>RabbitMQ (消息队列)</li></ul>
+<p>AI集成:</p>
+<ul><li>Spring AI (OpenAI)</li></ul>
+<p>其他工具:</p>
+<ul><li>Lombok (代码简化)</li>
+<li>JWT (jjwt 0.12.6)</li>
+<li>Knife4j (API文档)</li>
+<li>Hutool (工具库)</li>
+<li>Aliyun OSS (对象存储)</li></ul>
+<p><strong>前端技术栈:</strong></p>
+<ul><li>Vue 3.5 + TypeScript 5.8</li>
+<li>Vite 6.2</li>
+<li>Element Plus 2.8</li>
+<li>Pinia 3.0</li>
+<li>Vue Router 5.0</li>
+<li>Playwright (E2E测试)</li></ul>
+<p>---</p>
+<h3>二、开发环境搭建</h3>
+<h4>2.1 环境要求</h4>
+<p><strong>必备环境:</strong></p>
+<ul><li>JDK: 17+ (推荐17 LTS)</li>
+<li>Maven: 3.8+</li>
+<li>Node.js: 18+ (推荐20 LTS)</li>
+<li>npm: 9+</li></ul>
+<p><strong>可选环境:</strong></p>
+<ul><li>PostgreSQL: 14+ (本地开发)</li>
+<li>Docker: 20+ (容器化部署)</li>
+<li>Redis: 7+ (缓存)</li>
+<li>RabbitMQ: 3.12+ (消息队列)</li></ul>
+<h4>2.2 项目结构</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>LEARN_AISALE/
+├── backend/                           # 后端项目
+│   ├── src/main/java/com/aisale/backend/
+│   │   ├── aspect/                   # AOP切面
+│   │   ├── component/                # 组件类
+│   │   ├── config/                   # 配置类
+│   │   ├── controller/               # REST控制器
+│   │   ├── dto/                      # 数据传输对象
+│   │   ├── entity/                   # JPA实体类
+│   │   ├── exception/                # 异常处理
+│   │   │   ├── business/            # 业务异常
+│   │   │   └── system/              # 系统异常
+│   │   ├── handler/                  # 异常处理器
+│   │   ├── interceptor/              # 拦截器
+│   │   ├── repository/               # 数据访问层
+│   │   ├── security/                 # 安全配置
+│   │   ├── service/                  # 业务逻辑层
+│   │   └── util/                     # 工具类
+│   ├── src/main/resources/
+│   │   ├── application.yml           # 主配置文件
+│   │   ├── application-dev.yml       # 开发环境配置
+│   │   ├── application-prod.yml      # 生产环境配置
+│   │   └── logback-spring.xml        # 日志配置
+│   ├── tests/                        # API测试脚本
+│   └── pom.xml                       # Maven依赖配置
+│
+├── frontend/                          # 前端项目
+│   ├── src/
+│   │   ├── api/                      # API接口封装
+│   │   ├── components/               # 公共组件
+│   │   ├── layouts/                  # 布局组件
+│   │   ├── router/                   # 路由配置
+│   │   ├── stores/                   # Pinia状态管理
+│   │   ├── styles/                   # 样式文件
+│   │   ├── utils/                    # 工具函数
+│   │   └── views/                    # 页面组件
+│   │       ├── user/                # 用户端页面(H5)
+│   │       └── admin/               # 管理端页面
+│   ├── package.json                  # 前端依赖配置
+│   ├── vite.config.ts                # Vite构建配置
+│   └── tsconfig.json                 # TypeScript配置
+│
+├── docker-compose.yml                 # Docker Compose配置
+├── docker-compose.prod.yml            # 生产环境Docker配置
+└── docs/                              # 项目文档
+    ├── learn/                         # 学习文档
+    ├── bugfix/                        # Bug修复记录
+    └── superpowers/                   # 设计文档</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>三、后端基础设施开发</h3>
+<h4>3.1 Maven 依赖配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/pom.xml</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;parent&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+        &lt;version&gt;3.3.4&lt;/version&gt;
+        &lt;relativePath/&gt;
+    &lt;/parent&gt;
+
+    &lt;groupId&gt;com.aisale&lt;/groupId&gt;
+    &lt;artifactId&gt;backend&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+    &lt;name&gt;aisale-backend&lt;/name&gt;
+    &lt;description&gt;AI Sales Backend Service&lt;/description&gt;
+
+    &lt;properties&gt;
+        &lt;java.version&gt;17&lt;/java.version&gt;
+        &lt;spring-ai.version&gt;1.0.0-M4&lt;/spring-ai.version&gt;
+        &lt;knife4j.version&gt;4.5.0&lt;/knife4j.version&gt;
+        &lt;lombok.version&gt;1.18.36&lt;/lombok.version&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
+        &lt;maven.compiler.encoding&gt;UTF-8&lt;/maven.compiler.encoding&gt;
+    &lt;/properties&gt;
+
+    &lt;repositories&gt;
+        &lt;repository&gt;
+            &lt;id&gt;spring-milestones&lt;/id&gt;
+            &lt;name&gt;Spring Milestones&lt;/name&gt;
+            &lt;url&gt;https://repo.spring.io/milestone&lt;/url&gt;
+            &lt;snapshots&gt;
+                &lt;enabled&gt;false&lt;/enabled&gt;
+            &lt;/snapshots&gt;
+        &lt;/repository&gt;
+    &lt;/repositories&gt;
+
+    &lt;dependencies&gt;
+        &lt;!-- Spring Boot Starters --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Spring AOP for logging aspect --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-aop&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Spring Security --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- JWT --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+            &lt;artifactId&gt;jjwt-api&lt;/artifactId&gt;
+            &lt;version&gt;0.12.6&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+            &lt;artifactId&gt;jjwt-impl&lt;/artifactId&gt;
+            &lt;version&gt;0.12.6&lt;/version&gt;
+            &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+            &lt;artifactId&gt;jjwt-jackson&lt;/artifactId&gt;
+            &lt;version&gt;0.12.6&lt;/version&gt;
+            &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- PostgreSQL --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+            &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+            &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Spring AI - OpenAI --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.ai&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-ai-openai-spring-boot-starter&lt;/artifactId&gt;
+            &lt;version&gt;${spring-ai.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Knife4j (OpenAPI 3 Enhancement) --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.github.xiaoymin&lt;/groupId&gt;
+            &lt;artifactId&gt;knife4j-openapi3-jakarta-spring-boot-starter&lt;/artifactId&gt;
+            &lt;version&gt;${knife4j.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Dotenv for .env file support --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;io.github.cdimascio&lt;/groupId&gt;
+            &lt;artifactId&gt;dotenv-java&lt;/artifactId&gt;
+            &lt;version&gt;3.0.0&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Hutool --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;cn.hutool&lt;/groupId&gt;
+            &lt;artifactId&gt;hutool-all&lt;/artifactId&gt;
+            &lt;version&gt;5.8.23&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Lombok --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+            &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+            &lt;optional&gt;true&lt;/optional&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Dev Tools --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
+            &lt;scope&gt;runtime&lt;/scope&gt;
+            &lt;optional&gt;true&lt;/optional&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Test --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- H2 for development and testing --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+            &lt;artifactId&gt;h2&lt;/artifactId&gt;
+            &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Aliyun OSS SDK --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.aliyun.oss&lt;/groupId&gt;
+            &lt;artifactId&gt;aliyun-sdk-oss&lt;/artifactId&gt;
+            &lt;version&gt;3.17.4&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- RabbitMQ (AMQP) --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-amqp&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Redis --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+                &lt;version&gt;3.13.0&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;source&gt;17&lt;/source&gt;
+                    &lt;target&gt;17&lt;/target&gt;
+                    &lt;release&gt;17&lt;/release&gt;
+                    &lt;annotationProcessorPaths&gt;
+                        &lt;path&gt;
+                            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+                            &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+                            &lt;version&gt;${lombok.version}&lt;/version&gt;
+                        &lt;/path&gt;
+                    &lt;/annotationProcessorPaths&gt;
+                    &lt;fork&gt;true&lt;/fork&gt;
+                    &lt;compilerArgs&gt;
+                        &lt;arg&gt;-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED&lt;/arg&gt;
+                    &lt;/compilerArgs&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+                &lt;executions&gt;
+                    &lt;execution&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;repackage&lt;/goal&gt;
+                        &lt;/goals&gt;
+                    &lt;/execution&gt;
+                &lt;/executions&gt;
+                &lt;configuration&gt;
+                    &lt;excludes&gt;
+                        &lt;exclude&gt;
+                            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+                            &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+                        &lt;/exclude&gt;
+                    &lt;/excludes&gt;
+                    &lt;jvmArguments&gt;-Dfile.encoding=UTF-8 -Dconsole.encoding=UTF-8&lt;/jvmArguments&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+
+&lt;/project&gt;</code></pre>
+            </div>
+            
+<h4>3.2 主配置文件</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/resources/application.yml</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>server:
+  port: 8090
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  application:
+    name: aisale-backend
+
+  # 主配置文件
+  profiles:
+    active: dev
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+  datasource:
+    url: jdbc:h2:mem:aisale;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # 数据初始化配置
+  data:
+    init:
+      enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+  # AI 配置
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:test-key-for-dev}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        enabled: ${AI_CHAT_ENABLED:false}
+        options:
+          model: gpt-3.5-turbo
+
+  # RabbitMQ 配置
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+# Aliyun OSS 配置
+aliyun:
+  oss:
+    endpoint: ${OSS_ENDPOINT:oss-cn-hangzhou.aliyuncs.com}
+    access-key-id: ${OSS_ACCESS_KEY_ID:}
+    access-key-secret: ${OSS_ACCESS_KEY_SECRET:}
+    bucket-name: ${OSS_BUCKET_NAME:}
+    base-url: ${OSS_BASE_URL:}
+    max-file-size: 10485760
+    allowed-extensions: jpg,jpeg,png,gif,bmp,webp,ico,svg,tiff,tif,psd,raw,heif,heic
+
+# Knife4j Configuration
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.aisale.backend
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+    swagger-model-name: AiSale API
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.aisale: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: &quot;%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n&quot;
+    file: &quot;%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n&quot;
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 300MB
+      clean-history-on-start: true
+  file:
+    name: logs/aisale-backend.log</code></pre>
+            </div>
+            
+<h4>3.3 开发环境配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/resources/application-dev.yml</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>server:
+  port: 8090
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:aisale;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:test-key}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        options:
+          model: gpt-3.5-turbo
+
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+      exclude: ./**/static/**
+    livereload:
+      enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.aisale.backend
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+    swagger-model-name: AiSale API
+
+logging:
+  level:
+    root: INFO
+    com.aisale: DEBUG
+    org.springframework.ai: DEBUG</code></pre>
+            </div>
+            
+<h4>3.4 生产环境配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/resources/application-prod.yml</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">YAML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>server:
+  port: 8090
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:aisale}
+    username: ${DB_USERNAME:aisale}
+    password: ${DB_PASSWORD:aisale123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        enabled: ${AI_CHAT_ENABLED:false}
+        options:
+          model: gpt-3.5-turbo
+
+aliyun:
+  oss:
+    endpoint: ${OSS_ENDPOINT:}
+    access-key-id: ${OSS_ACCESS_KEY_ID:}
+    access-key-secret: ${OSS_ACCESS_KEY_SECRET:}
+    bucket-name: ${OSS_BUCKET_NAME:}
+    base-url: ${OSS_BASE_URL:}
+    max-file-size: 10485760
+    allowed-extensions: jpg,jpeg,png,gif,bmp,webp,ico,svg,tiff,tif,psd,raw,heif,heic
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.aisale.backend
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+    swagger-model-name: AiSale API
+
+logging:
+  level:
+    root: INFO
+    com.aisale: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+  pattern:
+    console: &quot;%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n&quot;
+    file: &quot;%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n&quot;
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 300MB
+      clean-history-on-start: true
+  file:
+    name: logs/aisale-backend.log</code></pre>
+            </div>
+            
+<h4>3.5 日志配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/resources/logback-spring.xml</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;configuration scan=&quot;true&quot; scanPeriod=&quot;30 seconds&quot;&gt;
+
+    &lt;!-- 应用名称 --&gt;
+    &lt;springProperty scope=&quot;context&quot; name=&quot;APP_NAME&quot; source=&quot;spring.application.name&quot; defaultValue=&quot;aisale-backend&quot;/&gt;
+
+    &lt;!-- 日志文件路径 --&gt;
+    &lt;property name=&quot;LOG_HOME&quot; value=&quot;logs&quot;/&gt;
+    &lt;property name=&quot;LOG_PATTERN&quot; value=&quot;%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n&quot;/&gt;
+    &lt;property name=&quot;FILE_PATTERN&quot; value=&quot;%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n&quot;/&gt;
+
+    &lt;!-- 控制台输出 --&gt;
+    &lt;appender name=&quot;CONSOLE&quot; class=&quot;ch.qos.logback.core.ConsoleAppender&quot;&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt;${LOG_PATTERN}&lt;/pattern&gt;
+            &lt;charset&gt;UTF-8&lt;/charset&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+
+    &lt;!-- 文件输出 - INFO 级别 --&gt;
+    &lt;appender name=&quot;FILE_INFO&quot; class=&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;&gt;
+        &lt;file&gt;${LOG_HOME}/${APP_NAME}-info.log&lt;/file&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt;${FILE_PATTERN}&lt;/pattern&gt;
+            &lt;charset&gt;UTF-8&lt;/charset&gt;
+        &lt;/encoder&gt;
+        &lt;filter class=&quot;ch.qos.logback.classic.filter.LevelFilter&quot;&gt;
+            &lt;level&gt;INFO&lt;/level&gt;
+            &lt;onMatch&gt;ACCEPT&lt;/onMatch&gt;
+            &lt;onMismatch&gt;DENY&lt;/onMismatch&gt;
+        &lt;/filter&gt;
+        &lt;rollingPolicy class=&quot;ch.qos.logback.core.rolling.TimeBasedRollingPolicy&quot;&gt;
+            &lt;fileNamePattern&gt;${LOG_HOME}/archived/${APP_NAME}-info.%d{yyyy-MM-dd}.log&lt;/fileNamePattern&gt;
+            &lt;maxHistory&gt;30&lt;/maxHistory&gt;
+            &lt;totalSizeCap&gt;100MB&lt;/totalSizeCap&gt;
+            &lt;cleanHistoryOnStart&gt;true&lt;/cleanHistoryOnStart&gt;
+        &lt;/rollingPolicy&gt;
+    &lt;/appender&gt;
+
+    &lt;!-- 文件输出 - ERROR 级别 --&gt;
+    &lt;appender name=&quot;FILE_ERROR&quot; class=&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;&gt;
+        &lt;file&gt;${LOG_HOME}/${APP_NAME}-error.log&lt;/file&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt;${FILE_PATTERN}&lt;/pattern&gt;
+            &lt;charset&gt;UTF-8&lt;/charset&gt;
+        &lt;/encoder&gt;
+        &lt;filter class=&quot;ch.qos.logback.classic.filter.ThresholdFilter&quot;&gt;
+            &lt;level&gt;ERROR&lt;/level&gt;
+        &lt;/filter&gt;
+        &lt;rollingPolicy class=&quot;ch.qos.logback.core.rolling.TimeBasedRollingPolicy&quot;&gt;
+            &lt;fileNamePattern&gt;${LOG_HOME}/archived/${APP_NAME}-error.%d{yyyy-MM-dd}.log&lt;/fileNamePattern&gt;
+            &lt;maxHistory&gt;30&lt;/maxHistory&gt;
+            &lt;totalSizeCap&gt;50MB&lt;/totalSizeCap&gt;
+            &lt;cleanHistoryOnStart&gt;true&lt;/cleanHistoryOnStart&gt;
+        &lt;/rollingPolicy&gt;
+    &lt;/appender&gt;
+
+    &lt;!-- 异步日志 --&gt;
+    &lt;appender name=&quot;ASYNC_FILE_INFO&quot; class=&quot;ch.qos.logback.classic.AsyncAppender&quot;&gt;
+        &lt;appender-ref ref=&quot;FILE_INFO&quot;/&gt;
+        &lt;queueSize&gt;512&lt;/queueSize&gt;
+        &lt;discardingThreshold&gt;0&lt;/discardingThreshold&gt;
+    &lt;/appender&gt;
+
+    &lt;appender name=&quot;ASYNC_FILE_ERROR&quot; class=&quot;ch.qos.logback.classic.AsyncAppender&quot;&gt;
+        &lt;appender-ref ref=&quot;FILE_ERROR&quot;/&gt;
+        &lt;queueSize&gt;512&lt;/queueSize&gt;
+        &lt;discardingThreshold&gt;0&lt;/discardingThreshold&gt;
+    &lt;/appender&gt;
+
+    &lt;!-- 开发环境配置 --&gt;
+    &lt;springProfile name=&quot;dev&quot;&gt;
+        &lt;root level=&quot;INFO&quot;&gt;
+            &lt;appender-ref ref=&quot;CONSOLE&quot;/&gt;
+            &lt;appender-ref ref=&quot;ASYNC_FILE_INFO&quot;/&gt;
+            &lt;appender-ref ref=&quot;ASYNC_FILE_ERROR&quot;/&gt;
+        &lt;/root&gt;
+
+        &lt;!-- 项目代码 DEBUG 级别 --&gt;
+        &lt;logger name=&quot;com.aisale.backend&quot; level=&quot;DEBUG&quot;/&gt;
+
+        &lt;!-- Spring Web INFO 级别 --&gt;
+        &lt;logger name=&quot;org.springframework.web&quot; level=&quot;INFO&quot;/&gt;
+
+        &lt;!-- Hibernate SQL DEBUG 级别 --&gt;
+        &lt;logger name=&quot;org.hibernate.SQL&quot; level=&quot;DEBUG&quot;/&gt;
+        &lt;logger name=&quot;org.hibernate.type.descriptor.sql.BasicBinder&quot; level=&quot;TRACE&quot;/&gt;
+    &lt;/springProfile&gt;
+
+    &lt;!-- 生产环境配置 --&gt;
+    &lt;springProfile name=&quot;prod&quot;&gt;
+        &lt;root level=&quot;INFO&quot;&gt;
+            &lt;appender-ref ref=&quot;CONSOLE&quot;/&gt;
+            &lt;appender-ref ref=&quot;ASYNC_FILE_INFO&quot;/&gt;
+            &lt;appender-ref ref=&quot;ASYNC_FILE_ERROR&quot;/&gt;
+        &lt;/root&gt;
+
+        &lt;!-- 项目代码 INFO 级别 --&gt;
+        &lt;logger name=&quot;com.aisale.backend&quot; level=&quot;INFO&quot;/&gt;
+
+        &lt;!-- 关闭 Hibernate SQL 日志 --&gt;
+        &lt;logger name=&quot;org.hibernate.SQL&quot; level=&quot;WARN&quot;/&gt;
+        &lt;logger name=&quot;org.springframework.web&quot; level=&quot;WARN&quot;/&gt;
+    &lt;/springProfile&gt;
+
+    &lt;!-- 测试环境配置 --&gt;
+    &lt;springProfile name=&quot;test&quot;&gt;
+        &lt;root level=&quot;INFO&quot;&gt;
+            &lt;appender-ref ref=&quot;CONSOLE&quot;/&gt;
+        &lt;/root&gt;
+
+        &lt;logger name=&quot;com.aisale.backend&quot; level=&quot;DEBUG&quot;/&gt;
+    &lt;/springProfile&gt;
+
+&lt;/configuration&gt;</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>四、后端配置类开发</h3>
+<h4>4.1 SecurityConfig 安全配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/security/SecurityConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.security;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Spring Security配置类
+ * 
+ * 配置说明:
+ * 1. 禁用CSRF（前后端分离架构，使用JWT）
+ * 2. 禁用Session（无状态认证）
+ * 3. 配置URL访问权限
+ * 4. 添加JWT过滤器
+ */
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    /**
+     * 配置安全过滤链
+     */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            // 禁用CSRF（前后端分离）
+            .csrf(csrf -&gt; csrf.disable())
+
+            // 禁用Session（JWT无状态）
+            .sessionManagement(session -&gt; 
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+            // 配置URL访问权限
+            .authorizeHttpRequests(auth -&gt; auth
+                // 公开接口
+                .requestMatchers(
+                    &quot;/api/auth/**&quot;,
+                    &quot;/api/user/products/public/**&quot;,
+                    &quot;/h2-console/**&quot;,
+                    &quot;/swagger-ui/**&quot;,
+                    &quot;/v3/api-docs/**&quot;,
+                    &quot;/doc.html&quot;
+                ).permitAll()
+
+                // Admin接口需要ADMIN角色
+                .requestMatchers(&quot;/api/admin/**&quot;).hasAnyRole(&quot;ADMIN&quot;, &quot;SUPER_ADMIN&quot;)
+
+                // 其他接口需要认证
+                .anyRequest().authenticated()
+            )
+
+            // 添加JWT过滤器
+            .addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
+            );
+
+        return http.build();
+    }
+
+    /**
+     * 密码加密器
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}</code></pre>
+            </div>
+            
+<h4>4.2 WebConfig Web配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/WebConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import com.aisale.backend.interceptor.RequestLoggingInterceptor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+/**
+ * Web MVC 配置
+ * 注册拦截器等
+ */
+@Configuration
+@RequiredArgsConstructor
+public class WebConfig implements WebMvcConfigurer {
+
+    private final RequestLoggingInterceptor requestLoggingInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(requestLoggingInterceptor)
+                .addPathPatterns(&quot;/**&quot;)
+                .excludePathPatterns(
+                        &quot;/h2-console/**&quot;,
+                        &quot;/swagger-ui/**&quot;,
+                        &quot;/swagger-ui.html&quot;,
+                        &quot;/v3/api-docs/**&quot;,
+                        &quot;/webjars/**&quot;,
+                        &quot;/favicon.ico&quot;
+                );
+    }
+
+}</code></pre>
+            </div>
+            
+<h4>4.3 RedisConfig Redis配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/RedisConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+@Configuration
+public class RedisConfig {
+
+    @Bean
+    public RedisTemplate&lt;String, Object&gt; redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate&lt;String, Object&gt; template = new RedisTemplate&lt;&gt;();
+        template.setConnectionFactory(connectionFactory);
+        
+        StringRedisSerializer stringSerializer = new StringRedisSerializer();
+        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer();
+        
+        template.setKeySerializer(stringSerializer);
+        template.setHashKeySerializer(stringSerializer);
+        template.setValueSerializer(jsonSerializer);
+        template.setHashValueSerializer(jsonSerializer);
+        
+        template.afterPropertiesSet();
+        return template;
+    }
+}</code></pre>
+            </div>
+            
+<h4>4.4 RabbitMQConfig RabbitMQ配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/RabbitMQConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RabbitMQConfig {
+
+    public static final String CHAT_QUEUE = &quot;chat.message.queue&quot;;
+    public static final String CHAT_EXCHANGE = &quot;chat.exchange&quot;;
+    public static final String CHAT_ROUTING_KEY = &quot;chat.message&quot;;
+
+    @Bean
+    public Queue chatQueue() {
+        return new Queue(CHAT_QUEUE, true);
+    }
+
+    @Bean
+    public DirectExchange chatExchange() {
+        return new DirectExchange(CHAT_EXCHANGE);
+    }
+
+    @Bean
+    public Binding chatBinding() {
+        return BindingBuilder.bind(chatQueue())
+            .to(chatExchange())
+            .with(CHAT_ROUTING_KEY);
+    }
+
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(jsonMessageConverter());
+        return template;
+    }
+}</code></pre>
+            </div>
+            
+<h4>4.5 Knife4jConfig API文档配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/Knife4jConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.Contact;
+import org.springdoc.core.customizers.GlobalOpenApiCustomizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * Knife4j 配置 (基于 springdoc-openapi)
+ */
+@Configuration
+public class Knife4jConfig {
+
+    @Bean
+    public OpenAPI openAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title(&quot;AiSale API&quot;)
+                        .description(&quot;AI 销售后台管理系统 API 文档&quot;)
+                        .version(&quot;1.0&quot;)
+                        .contact(new Contact()
+                                .name(&quot;AiSale Team&quot;)
+                                .email(&quot;support@aisale.com&quot;)));
+    }
+
+    @Bean
+    public GlobalOpenApiCustomizer globalOpenApiCustomizer() {
+        return openApi -&gt; {
+            // 此配置主要用于 OpenAPI 规范生成
+            // Knife4j 的 afterScript 需要在 application.yml 中配置
+        };
+    }
+}</code></pre>
+            </div>
+            
+<h4>4.6 AiConfig AI配置</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/AiConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * AI 功能配置
+ *
+ * 用于控制 AI 功能的加载条件
+ */
+@Configuration
+@EnableConfigurationProperties
+public class AiConfig {
+    // AI 配置相关
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>五、启动类开发</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/AiSaleBackendApplication.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class AiSaleBackendApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(AiSaleBackendApplication.class, args);
+    }
+
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>六、数据初始化组件</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/component/DataInitializer.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.component;
+
+import com.aisale.backend.entity.Admin;
+import com.aisale.backend.entity.User;
+import com.aisale.backend.repository.AdminRepository;
+import com.aisale.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+/**
+ * 数据初始化组件
+ * 在应用启动时初始化测试数据
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class DataInitializer implements CommandLineRunner {
+
+    private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Override
+    public void run(String... args) {
+        // 检查是否已有数据
+        if (userRepository.count() &gt; 0 || adminRepository.count() &gt; 0) {
+            return;
+        }
+
+        log.info(&quot;开始初始化测试数据...&quot;);
+
+        // 初始化Admin数据
+        initAdminData();
+
+        // 初始化User数据
+        initUserData();
+
+        log.info(&quot;测试数据初始化完成&quot;);
+    }
+
+    private void initAdminData() {
+        Admin superAdmin = new Admin();
+        superAdmin.setUsername(&quot;superadmin&quot;);
+        superAdmin.setPassword(passwordEncoder.encode(&quot;123456&quot;));
+        superAdmin.setEmail(&quot;superadmin@aisale.com&quot;);
+        superAdmin.setNickname(&quot;超级管理员&quot;);
+        superAdmin.setRole(Admin.AdminRole.SUPER_ADMIN);
+        superAdmin.setStatus(Admin.AdminStatus.ACTIVE);
+        adminRepository.save(superAdmin);
+
+        Admin admin = new Admin();
+        admin.setUsername(&quot;admin&quot;);
+        admin.setPassword(passwordEncoder.encode(&quot;123456&quot;));
+        admin.setEmail(&quot;admin@aisale.com&quot;);
+        admin.setNickname(&quot;管理员&quot;);
+        admin.setRole(Admin.AdminRole.ADMIN);
+        admin.setStatus(Admin.AdminStatus.ACTIVE);
+        adminRepository.save(admin);
+
+        log.info(&quot;初始化Admin数据完成: superadmin, admin&quot;);
+    }
+
+    private void initUserData() {
+        User zhangsan = new User();
+        zhangsan.setUsername(&quot;zhangsan&quot;);
+        zhangsan.setPassword(passwordEncoder.encode(&quot;123456&quot;));
+        zhangsan.setEmail(&quot;zhangsan@example.com&quot;);
+        zhangsan.setNickname(&quot;张三&quot;);
+        zhangsan.setStatus(User.UserStatus.ACTIVE);
+        zhangsan.setEmailVerified(true);
+        userRepository.save(zhangsan);
+
+        User lisi = new User();
+        lisi.setUsername(&quot;lisi&quot;);
+        lisi.setPassword(passwordEncoder.encode(&quot;123456&quot;));
+        lisi.setEmail(&quot;lisi@example.com&quot;);
+        lisi.setNickname(&quot;李四&quot;);
+        lisi.setStatus(User.UserStatus.ACTIVE);
+        lisi.setEmailVerified(true);
+        userRepository.save(lisi);
+
+        User wangwu = new User();
+        wangwu.setUsername(&quot;wangwu&quot;);
+        wangwu.setPassword(passwordEncoder.encode(&quot;123456&quot;));
+        wangwu.setEmail(&quot;wangwu@example.com&quot;);
+        wangwu.setNickname(&quot;王五&quot;);
+        wangwu.setStatus(User.UserStatus.ACTIVE);
+        wangwu.setEmailVerified(true);
+        userRepository.save(wangwu);
+
+        log.info(&quot;初始化User数据完成: zhangsan, lisi, wangwu&quot;);
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>七、项目启动与测试</h3>
+<h4>7.1 后端启动</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># 进入后端目录
+cd backend
+
+# 安装依赖
+mvn clean install
+
+# 开发环境启动（使用H2内存数据库）
+mvn spring-boot:run -Dspring-boot.run.profiles=dev</code></pre>
+            </div>
+            
+<h4>7.2 验证启动</h4>
+<ol><li>访问API文档: http://localhost:8090/doc.html</li>
+<li>访问Swagger UI: http://localhost:8090/swagger-ui.html</li>
+<li>访问H2控制台: http://localhost:8090/h2-console</li></ol>
+<p>   - JDBC URL: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">jdbc:h2:mem:aisale</code></p>
+<p>   - 用户名: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">sa</code></p>
+<p>   - 密码: 空</p>
+<h4>7.3 测试账号</h4>
+<table><thead><tr>
+<th>用户名</th>
+<th>密码</th>
+<th>角色</th>
+<th>备注</th>
+</tr></thead><tbody>
+<tr>
+<td>superadmin</td>
+<td>123456</td>
+<td>SUPER_ADMIN</td>
+<td>完整admin权限</td>
+</tr>
+<tr>
+<td>admin</td>
+<td>123456</td>
+<td>ADMIN</td>
+<td>普通admin</td>
+</tr>
+<tr>
+<td>zhangsan</td>
+<td>123456</td>
+<td>USER</td>
+<td>普通用户</td>
+</tr>
+<tr>
+<td>lisi</td>
+<td>123456</td>
+<td>USER</td>
+<td>普通用户</td>
+</tr>
+<tr>
+<td>wangwu</td>
+<td>123456</td>
+<td>USER</td>
+<td>普通用户</td>
+</tr>
+</tbody></table>
+<p>---</p>
+<h3>八、常见问题</h3>
+<h4>8.1 Maven依赖下载慢</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">XML</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>&lt;!-- 配置国内镜像（~/.m2/settings.xml） --&gt;
+&lt;mirrors&gt;
+    &lt;mirror&gt;
+        &lt;id&gt;aliyun&lt;/id&gt;
+        &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;
+        &lt;name&gt;Aliyun Maven&lt;/name&gt;
+        &lt;url&gt;https://maven.aliyun.com/repository/central&lt;/url&gt;
+    &lt;/mirror&gt;
+&lt;/mirrors&gt;</code></pre>
+            </div>
+            
+<h4>8.2 端口冲突</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># 查看端口占用
+# Windows
+netstat -ano | findstr :8090
+
+# 修改端口
+# application.yml
+server:
+  port: 8091</code></pre>
+            </div>
+            
+<h4>8.3 编译错误</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># 清理并重新编译
+mvn clean install
+
+# 如果Lombok报错，检查IDE是否安装了Lombok插件</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>九、扩展练习</h3>
+<h4>练习1：配置多环境</h4>
+<ol><li>创建 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">application-test.yml</code> 测试环境配置</li>
+<li>配置对应的数据库和日志级别</li>
+<li>使用 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">SPRING<em>PROFILES</em>ACTIVE=test</code> 切换环境</li></ol>
+<h4>练习2：添加健康检查</h4>
+<ol><li>添加 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">spring-boot-starter-actuator</code> 依赖</li>
+<li>配置健康检查端点</li>
+<li>访问 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">/actuator/health</code> 查看健康状态</li></ol>
+<h4>练习3：配置自定义Banner</h4>
+<ol><li>创建 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">banner.txt</code> 文件</li>
+<li>放置在 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">src/main/resources/</code> 目录</li>
+<li>重启应用查看自定义Banner</li></ol>
+<p>---</p>
+<p>最后更新: 2026-04-22</p>
+<p>文档版本: 1.0</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 代码复制功能
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-wrapper').querySelector('code');
+            const text = codeBlock.innerText;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ 已复制';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                btn.innerHTML = '✗ 失败';
+                setTimeout(() => {
+                    btn.innerHTML = '复制';
+                }, 2000);
+            });
+        }
+
+        // 页面加载完成后为所有代码块添加复制按钮
+        document.addEventListener('DOMContentLoaded', () => {
+            const codeWrappers = document.querySelectorAll('.code-wrapper');
+            codeWrappers.forEach(wrapper => {
+                if (!wrapper.querySelector('.copy-btn')) {
+                    const header = wrapper.querySelector('.code-header');
+                    if (header) {
+                        const btn = document.createElement('button');
+                        btn.className = 'copy-btn';
+                        btn.innerHTML = '📋 复制';
+                        btn.onclick = function() { copyCode(this); };
+                        header.appendChild(btn);
+                    }
+                }
+            });
+        });
+
+        // 设置当前页面高亮
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

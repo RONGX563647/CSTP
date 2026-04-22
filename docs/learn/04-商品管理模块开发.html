@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>04 商品管理模块开发</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #faf3f0 0%, #ffffff 100%);
+            color: #333;
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边导航 */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #f0e6e0;
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-title {
+            padding: 0 25px 20px;
+            border-bottom: 1px solid #f0e6e0;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-title h1 {
+            font-size: 18px;
+            color: #e07b5a;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-title p {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-list {
+            list-style: none;
+        }
+        
+        .nav-item {
+            padding: 0 20px;
+        }
+        
+        .nav-item a {
+            display: block;
+            padding: 12px 15px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item a:hover {
+            background: #faf3f0;
+            color: #e07b5a;
+        }
+        
+        .nav-item a.active {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            color: #e07b5a;
+            font-weight: 500;
+        }
+        
+        .nav-category {
+            padding: 15px 25px 8px;
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+        }
+        
+        .content-header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0e6e0;
+        }
+        
+        .content-header h1 {
+            font-size: 32px;
+            color: #2c2c2c;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .content-header p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .content-body h2 {
+            font-size: 24px;
+            color: #e07b5a;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .content-body h3 {
+            font-size: 20px;
+            color: #333;
+            margin: 30px 0 15px;
+        }
+        
+        .content-body h4 {
+            font-size: 17px;
+            color: #444;
+            margin: 25px 0 12px;
+        }
+        
+        .content-body p {
+            margin: 15px 0;
+            color: #555;
+        }
+        
+        .content-body ul, .content-body ol {
+            margin: 15px 0;
+            padding-left: 25px;
+            color: #555;
+        }
+        
+        .content-body li {
+            margin: 8px 0;
+        }
+        
+        .content-body a {
+            color: #e07b5a;
+            text-decoration: none;
+        }
+        
+        .content-body a:hover {
+            text-decoration: underline;
+        }
+        
+        .content-body strong {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        /* 代码块样式 */
+        .code-wrapper {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #faf8f6;
+            border: 1px solid #f0e6e0;
+        }
+        
+        .code-header {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .code-lang {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+        
+        .copy-btn {
+            background: #ffffff;
+            border: 1px solid #e0e6e0;
+            color: #666;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .copy-btn:hover {
+            background: #f5e6df;
+            border-color: #e07b5a;
+            color: #e07b5a;
+        }
+        
+        .copy-btn.copied {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: #fff;
+        }
+        
+        .code-wrapper pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            background: transparent;
+        }
+        
+        .code-wrapper code {
+            font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", Consolas, Monaco, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #444;
+            background: transparent;
+        }
+        
+        /* 表格样式 */
+        .content-body table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .content-body th {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #e07b5a;
+        }
+        
+        .content-body td {
+            padding: 12px 15px;
+            border-top: 1px solid #f0e6e0;
+        }
+        
+        /* 提示框样式 */
+        .tip-box {
+            background: #faf8f6;
+            border-left: 4px solid #e07b5a;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip-box p {
+            margin: 0;
+            color: #666;
+        }
+        
+        .tip-box strong {
+            color: #e07b5a;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: 240px;
+                padding: 30px 40px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边导航 -->
+        <nav class="sidebar">
+            <div class="sidebar-title">
+                <h1>📚 AiSale 教程</h1>
+                <p>校园二手交易平台学习指南</p>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">首页</a>
+                </li>
+                <li class="nav-category">基础篇</li>
+                <li class="nav-item">
+                    <a href="00-基础依赖与环境配置.html" class="nav-link">00 基础依赖与环境配置</a>
+                </li>
+                <li class="nav-item">
+                    <a href="01-项目初始化与基础设施.html" class="nav-link">01 项目初始化与基础设施</a>
+                </li>
+                <li class="nav-item">
+                    <a href="02-实体类与数据库设计.html" class="nav-link">02 实体类与数据库设计</a>
+                </li>
+                <li class="nav-category">核心篇</li>
+                <li class="nav-item">
+                    <a href="03-用户认证模块开发.html" class="nav-link">03 用户认证模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="04-商品管理模块开发.html" class="nav-link">04 商品管理模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="05-订单管理模块开发.html" class="nav-link">05 订单管理模块开发</a>
+                </li>
+                <li class="nav-category">进阶篇</li>
+                <li class="nav-item">
+                    <a href="06-用户地址与信息管理模块.html" class="nav-link">06 用户地址与信息管理</a>
+                </li>
+                <li class="nav-item">
+                    <a href="07-文件上传与OSS模块开发.html" class="nav-link">07 文件上传与OSS模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="08-IM即时通讯模块开发.html" class="nav-link">08 IM即时通讯模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="09-日志模块开发.html" class="nav-link">09 日志模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="10-商品搜索与推荐模块.html" class="nav-link">10 商品搜索与推荐模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="11-签到积分信誉模块开发.html" class="nav-link">11 签到积分信誉模块</a>
+                </li>
+                <li class="nav-category">前端与部署</li>
+                <li class="nav-item">
+                    <a href="12-前端开发完整指南.html" class="nav-link">12 前端开发完整指南</a>
+                </li>
+                <li class="nav-item">
+                    <a href="13-测试与部署.html" class="nav-link">13 测试与部署</a>
+                </li>
+                <li class="nav-item">
+                    <a href="14-项目总结与扩展.html" class="nav-link">14 项目总结与扩展</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>04 商品管理模块开发</h1>
+                <p>AiSale 校园二手交易平台学习指南 - 04 商品管理模块开发</p>
+            </div>
+            <div class="content-body">
+                <h2>04 商品管理模块开发</h2>
+<p>学习时长: 2-3 天</p>
+<p>难度: ⭐⭐⭐☆☆</p>
+<p>前置知识: Spring Data JPA分页查询、RESTful API设计、文件上传</p>
+<p>---</p>
+<h3>一、本章概述</h3>
+<p>本章将实现商品的完整管理功能，包括：商品发布、浏览、搜索、推荐、上下架等。</p>
+<p><strong>学习内容:</strong></p>
+<ul><li>商品DTO设计（请求/响应）</li>
+<li>商品服务层开发</li>
+<li>管理端商品接口</li>
+<li>用户端商品接口</li>
+<li>公开浏览接口</li>
+<li>商品搜索功能</li>
+<li>商品推荐功能</li>
+<li>文件上传（OSS）</li></ul>
+<p>---</p>
+<h3>二、商品DTO设计</h3>
+<h4>2.1 商品请求DTO</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/dto/ProductRequest.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.util.List;
+
+@Data
+public class ProductRequest {
+
+    @NotBlank(message = &quot;商品名称不能为空&quot;)
+    private String name;
+
+    private String description;
+
+    @NotNull(message = &quot;价格不能为空&quot;)
+    @Positive(message = &quot;价格必须大于0&quot;)
+    private BigDecimal price;
+
+    @NotNull(message = &quot;原价不能为空&quot;)
+    @Positive(message = &quot;原价必须大于0&quot;)
+    private BigDecimal originalPrice;
+
+    @NotNull(message = &quot;库存不能为空&quot;)
+    @Positive(message = &quot;库存必须大于等于0&quot;)
+    private Integer stock;
+
+    private String mainImage;
+
+    private List&lt;String&gt; images;
+
+    private String category;
+
+    private List&lt;String&gt; tags;
+
+    private Boolean isOnSale;
+
+    private Boolean isFeatured;
+}</code></pre>
+            </div>
+            
+<h4>2.2 商品响应DTO</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/dto/ProductResponse.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.dto;
+
+import com.aisale.backend.entity.Product;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Data
+public class ProductResponse {
+
+    private Long id;
+    private String name;
+    private String description;
+    private BigDecimal price;
+    private BigDecimal originalPrice;
+    private Integer stock;
+    private String mainImage;
+    private List&lt;String&gt; images;
+    private String category;
+    private List&lt;String&gt; tags;
+    private BigDecimal discount;
+    private Boolean isOnSale;
+    private Boolean isFeatured;
+    private Integer salesCount;
+    private Integer viewCount;
+    private Product.ProductStatus status;
+    private Long sellerId;
+    private String sellerName;
+    private String sellerAvatar;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    public static ProductResponse fromEntity(Product product) {
+        ProductResponse response = new ProductResponse();
+        response.setId(product.getId());
+        response.setName(product.getName());
+        response.setDescription(product.getDescription());
+        response.setPrice(product.getPrice());
+        response.setOriginalPrice(product.getOriginalPrice());
+        response.setStock(product.getStock());
+        response.setMainImage(product.getMainImage());
+        response.setImages(product.getImages());
+        response.setCategory(product.getCategory());
+        response.setTags(product.getTags());
+        response.setDiscount(product.getDiscount());
+        response.setIsOnSale(product.getIsOnSale());
+        response.setIsFeatured(product.getIsFeatured());
+        response.setSalesCount(product.getSalesCount());
+        response.setViewCount(product.getViewCount());
+        response.setStatus(product.getStatus());
+        response.setSellerId(product.getSellerId());
+        
+        // 设置卖家信息（如果有）
+        if (product.getSeller() != null) {
+            response.setSellerName(product.getSeller().getNickname());
+            response.setSellerAvatar(product.getSeller().getAvatar());
+        }
+        
+        response.setCreatedAt(product.getCreatedAt());
+        response.setUpdatedAt(product.getUpdatedAt());
+        return response;
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>三、商品Repository增强</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/ProductRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import java.math.BigDecimal;
+import java.util.List;
+
+@Repository
+public interface ProductRepository extends JpaRepository&lt;Product, Long&gt; {
+    
+    // 基础查询
+    Page&lt;Product&gt; findByStatus(Product.ProductStatus status, Pageable pageable);
+    Page&lt;Product&gt; findBySellerId(Long sellerId, Pageable pageable);
+    Page&lt;Product&gt; findByCategory(String category, Pageable pageable);
+    long countBySellerId(Long sellerId);
+    long countByStatus(Product.ProductStatus status);
+    List&lt;Product&gt; findByIsFeaturedTrueAndStatus(Product.ProductStatus status);
+    Page&lt;Product&gt; findByIsOnSaleTrueAndStatus(Product.ProductStatus status, Pageable pageable);
+    
+    // 搜索查询
+    @Query(&quot;SELECT p FROM Product p WHERE &quot; +
+           &quot;(:name IS NULL OR p.name LIKE %:name%) AND &quot; +
+           &quot;(:category IS NULL OR p.category = :category) AND &quot; +
+           &quot;(:minPrice IS NULL OR p.price &gt;= :minPrice) AND &quot; +
+           &quot;(:maxPrice IS NULL OR p.price &lt;= :maxPrice) AND &quot; +
+           &quot;(:status IS NULL OR p.status = :status) AND &quot; +
+           &quot;(:sellerId IS NULL OR p.sellerId = :sellerId)&quot;)
+    Page&lt;Product&gt; searchProducts(
+        @Param(&quot;name&quot;) String name,
+        @Param(&quot;category&quot;) String category,
+        @Param(&quot;minPrice&quot;) BigDecimal minPrice,
+        @Param(&quot;maxPrice&quot;) BigDecimal maxPrice,
+        @Param(&quot;status&quot;) Product.ProductStatus status,
+        @Param(&quot;sellerId&quot;) Long sellerId,
+        Pageable pageable
+    );
+    
+    // 热门商品
+    @Query(&quot;SELECT p FROM Product p WHERE p.status = 'ON_SALE' ORDER BY p.salesCount DESC&quot;)
+    Page&lt;Product&gt; findHotProducts(Pageable pageable);
+    
+    // 最新商品
+    @Query(&quot;SELECT p FROM Product p WHERE p.status = 'ON_SALE' ORDER BY p.createdAt DESC&quot;)
+    Page&lt;Product&gt; findLatestProducts(Pageable pageable);
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>四、商品服务层开发</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/service/ProductService.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.service;
+
+import com.aisale.backend.dto.ProductRequest;
+import com.aisale.backend.dto.ProductResponse;
+import com.aisale.backend.entity.Product;
+import com.aisale.backend.exception.business.ForbiddenException;
+import com.aisale.backend.exception.business.NotFoundException;
+import com.aisale.backend.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class ProductService {
+
+    private final ProductRepository productRepository;
+
+    // ==================== 用户端方法（带权限检查）====================
+
+    @Transactional
+    public ProductResponse createProduct(ProductRequest request, Long sellerId) {
+        Product product = new Product();
+        product.setSellerId(sellerId);
+        updateProductFromRequest(product, request);
+        product = productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    @Transactional
+    public ProductResponse updateProduct(Long id, ProductRequest request, Long sellerId) {
+        return doUpdateProduct(id, request, sellerId);
+    }
+
+    @Transactional
+    public void deleteProduct(Long id, Long sellerId) {
+        doDeleteProduct(id, sellerId);
+    }
+
+    @Transactional
+    public ProductResponse updateStock(Long id, Integer stock, Long sellerId) {
+        return doUpdateStock(id, stock, sellerId);
+    }
+
+    @Transactional
+    public ProductResponse updateStatus(Long id, Product.ProductStatus status, Long sellerId) {
+        return doUpdateStatus(id, status, sellerId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page&lt;ProductResponse&gt; getMyProducts(Long sellerId, Pageable pageable) {
+        return productRepository.findBySellerId(sellerId, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    public long countMyProducts(Long sellerId) {
+        return productRepository.countBySellerId(sellerId);
+    }
+
+    public ProductResponse getProductById(Long id, Long sellerId) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;商品不存在&quot;));
+        
+        // 检查商品是否属于当前用户
+        if (sellerId != null &amp;&amp; !product.getSellerId().equals(sellerId)) {
+            throw new ForbiddenException(&quot;无权查看此商品&quot;);
+        }
+        
+        // 增加浏览量
+        product.setViewCount(product.getViewCount() + 1);
+        productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    // ==================== 管理端方法（不检查权限）====================
+
+    @Transactional
+    public ProductResponse createProductForAdmin(ProductRequest request) {
+        Product product = new Product();
+        updateProductFromRequest(product, request);
+        product = productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    @Transactional
+    public ProductResponse updateProductForAdmin(Long id, ProductRequest request) {
+        return doUpdateProduct(id, request, null);
+    }
+
+    @Transactional
+    public void deleteProductForAdmin(Long id) {
+        doDeleteProduct(id, null);
+    }
+
+    @Transactional
+    public ProductResponse updateStockForAdmin(Long id, Integer stock) {
+        return doUpdateStock(id, stock, null);
+    }
+
+    @Transactional
+    public ProductResponse updateStatusForAdmin(Long id, Product.ProductStatus status) {
+        return doUpdateStatus(id, status, null);
+    }
+
+    @Transactional(readOnly = true)
+    public Page&lt;ProductResponse&gt; getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    // ==================== 公共浏览方法（无需登录）====================
+
+    @Transactional(readOnly = true)
+    public Page&lt;ProductResponse&gt; getPublicOnSaleProducts(Pageable pageable) {
+        return productRepository.findByIsOnSaleTrueAndStatus(Product.ProductStatus.ON_SALE, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public ProductResponse getPublicProductById(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;商品不存在&quot;));
+        return ProductResponse.fromEntity(product);
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;ProductResponse&gt; getFeaturedProducts() {
+        return productRepository.findByIsFeaturedTrueAndStatus(Product.ProductStatus.ON_SALE)
+                .stream()
+                .map(ProductResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page&lt;ProductResponse&gt; getProductsByCategoryPublic(String category, Pageable pageable) {
+        return productRepository.findByCategory(category, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public Page&lt;ProductResponse&gt; searchPublicProducts(String name, String category,
+                                                       BigDecimal minPrice, BigDecimal maxPrice,
+                                                       Long sellerId, Pageable pageable) {
+        return productRepository.searchProducts(name, category, minPrice, maxPrice,
+                        Product.ProductStatus.ON_SALE, sellerId, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    // ==================== 管理员高级查询 ====================
+
+    @Transactional(readOnly = true)
+    public Page&lt;ProductResponse&gt; getProductsBySellerId(Long sellerId, Pageable pageable) {
+        return productRepository.findBySellerId(sellerId, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    public long countProductsBySellerId(Long sellerId) {
+        return productRepository.countBySellerId(sellerId);
+    }
+
+    @Transactional
+    public ProductResponse setSaleStatus(Long id, Boolean isOnSale) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;商品不存在&quot;));
+        product.setIsOnSale(isOnSale);
+
+        if (!isOnSale) {
+            product.setStatus(Product.ProductStatus.OFF_SALE);
+        } else if (product.getStock() &gt; 0) {
+            product.setStatus(Product.ProductStatus.ON_SALE);
+        } else {
+            product.setStatus(Product.ProductStatus.OUT_OF_STOCK);
+        }
+
+        product = productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    @Transactional
+    public ProductResponse setFeaturedStatus(Long id, Boolean isFeatured) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;商品不存在&quot;));
+        product.setIsFeatured(isFeatured);
+        product = productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    @Transactional(readOnly = true)
+    public Page&lt;ProductResponse&gt; getOutOfStockProducts(Pageable pageable) {
+        return productRepository.findByStatus(Product.ProductStatus.OUT_OF_STOCK, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public Page&lt;ProductResponse&gt; getOffSaleProducts(Pageable pageable) {
+        return productRepository.findByStatus(Product.ProductStatus.OFF_SALE, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public Page&lt;ProductResponse&gt; searchProductsWithSeller(String name, String category,
+                                                           BigDecimal minPrice, BigDecimal maxPrice,
+                                                           Product.ProductStatus status,
+                                                           Long sellerId, Pageable pageable) {
+        return productRepository.searchProducts(name, category, minPrice, maxPrice, status, sellerId, pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
+    public long countProducts() {
+        return productRepository.count();
+    }
+
+    public long countOnSaleProducts() {
+        return productRepository.countByStatus(Product.ProductStatus.ON_SALE);
+    }
+
+    // ==================== 私有方法 ====================
+
+    private void checkOwnership(Product product, Long sellerId) {
+        if (sellerId != null &amp;&amp; !product.getSellerId().equals(sellerId)) {
+            throw new ForbiddenException(&quot;无权操作此商品&quot;);
+        }
+    }
+
+    private ProductResponse doUpdateProduct(Long id, ProductRequest request, Long sellerId) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;商品不存在&quot;));
+        
+        checkOwnership(product, sellerId);
+        updateProductFromRequest(product, request);
+        product = productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    private void doDeleteProduct(Long id, Long sellerId) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;商品不存在&quot;));
+        
+        checkOwnership(product, sellerId);
+        productRepository.deleteById(id);
+    }
+
+    private ProductResponse doUpdateStock(Long id, Integer stock, Long sellerId) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;商品不存在&quot;));
+        
+        checkOwnership(product, sellerId);
+        product.setStock(stock);
+
+        // 自动更新状态
+        if (stock &lt;= 0) {
+            product.setStatus(Product.ProductStatus.OUT_OF_STOCK);
+        } else if (!product.getIsOnSale()) {
+            product.setStatus(Product.ProductStatus.OFF_SALE);
+        } else {
+            product.setStatus(Product.ProductStatus.ON_SALE);
+        }
+
+        product = productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    private ProductResponse doUpdateStatus(Long id, Product.ProductStatus status, Long sellerId) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;商品不存在&quot;));
+        
+        checkOwnership(product, sellerId);
+        product.setStatus(status);
+
+        if (status == Product.ProductStatus.OFF_SALE) {
+            product.setIsOnSale(false);
+        } else if (status == Product.ProductStatus.ON_SALE &amp;&amp; product.getStock() &gt; 0) {
+            product.setIsOnSale(true);
+        }
+
+        product = productRepository.save(product);
+        return ProductResponse.fromEntity(product);
+    }
+
+    private void updateProductFromRequest(Product product, ProductRequest request) {
+        if (request.getName() != null) {
+            product.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            product.setDescription(request.getDescription());
+        }
+        if (request.getPrice() != null) {
+            product.setPrice(request.getPrice());
+        }
+        if (request.getOriginalPrice() != null) {
+            product.setOriginalPrice(request.getOriginalPrice());
+        }
+        if (request.getStock() != null) {
+            product.setStock(request.getStock());
+        }
+        if (request.getMainImage() != null) {
+            product.setMainImage(request.getMainImage());
+        }
+        if (request.getImages() != null) {
+            product.setImages(request.getImages());
+        }
+        if (request.getCategory() != null) {
+            product.setCategory(request.getCategory());
+        }
+        if (request.getTags() != null) {
+            product.setTags(request.getTags());
+        }
+        if (request.getIsOnSale() != null) {
+            product.setIsOnSale(request.getIsOnSale());
+        }
+        if (request.getIsFeatured() != null) {
+            product.setIsFeatured(request.getIsFeatured());
+        }
+
+        // 根据库存状态自动更新商品状态
+        if (product.getStock() &lt;= 0) {
+            product.setStatus(Product.ProductStatus.OUT_OF_STOCK);
+        } else if (!product.getIsOnSale()) {
+            product.setStatus(Product.ProductStatus.OFF_SALE);
+        } else {
+            product.setStatus(Product.ProductStatus.ON_SALE);
+        }
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>五、商品控制器</h3>
+<h4>5.1 用户端商品控制器</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/controller/UserProductController.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.controller;
+
+import com.aisale.backend.dto.ApiResponse;
+import com.aisale.backend.dto.ProductRequest;
+import com.aisale.backend.dto.ProductResponse;
+import com.aisale.backend.service.ProductService;
+import com.aisale.backend.util.JwtRequestUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.*;
+import java.math.BigDecimal;
+import java.util.List;
+
+@Tag(name = &quot;用户端商品&quot;, description = &quot;用户管理自己的二手商品&quot;)
+@RestController
+@RequestMapping(&quot;/api/user/products&quot;)
+@RequiredArgsConstructor
+public class UserProductController {
+
+    private final ProductService productService;
+    private final JwtRequestUtils jwtRequestUtils;
+
+    // ==================== 公开浏览接口（无需登录）====================
+
+    @Operation(summary = &quot;获取公开在售商品列表&quot;)
+    @GetMapping(&quot;/public/on-sale&quot;)
+    public ApiResponse&lt;Page&lt;ProductResponse&gt;&gt; getPublicOnSaleProducts(
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size,
+            @RequestParam(defaultValue = &quot;createdAt&quot;) String sortBy,
+            @RequestParam(defaultValue = &quot;desc&quot;) String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(&quot;asc&quot;) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page&lt;ProductResponse&gt; products = productService.getPublicOnSaleProducts(pageable);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = &quot;获取公开商品详情&quot;)
+    @GetMapping(&quot;/public/{id}&quot;)
+    public ApiResponse&lt;ProductResponse&gt; getPublicProductById(@PathVariable Long id) {
+        ProductResponse product = productService.getPublicProductById(id);
+        return ApiResponse.success(product);
+    }
+
+    @Operation(summary = &quot;获取推荐商品&quot;)
+    @GetMapping(&quot;/public/featured&quot;)
+    public ApiResponse&lt;List&lt;ProductResponse&gt;&gt; getPublicFeaturedProducts() {
+        List&lt;ProductResponse&gt; products = productService.getFeaturedProducts();
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = &quot;按分类获取商品&quot;)
+    @GetMapping(&quot;/public/category/{category}&quot;)
+    public ApiResponse&lt;Page&lt;ProductResponse&gt;&gt; getProductsByCategory(
+            @PathVariable String category,
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page&lt;ProductResponse&gt; products = productService.getProductsByCategoryPublic(category, pageable);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = &quot;搜索商品（公开）&quot;)
+    @GetMapping(&quot;/public/search&quot;)
+    public ApiResponse&lt;Page&lt;ProductResponse&gt;&gt; searchPublicProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page&lt;ProductResponse&gt; products = productService.searchPublicProducts(
+                name, category, minPrice, maxPrice, null, pageable);
+        return ApiResponse.success(products);
+    }
+
+    // ==================== 已登录用户接口 ====================
+
+    @Operation(summary = &quot;发布商品&quot;)
+    @PostMapping
+    public ApiResponse&lt;ProductResponse&gt; createProduct(
+            @Valid @RequestBody ProductRequest productRequest,
+            HttpServletRequest request) {
+        Long sellerId = jwtRequestUtils.getCurrentUserId(request);
+        ProductResponse product = productService.createProduct(productRequest, sellerId);
+        return ApiResponse.success(&quot;商品发布成功&quot;, product);
+    }
+
+    @Operation(summary = &quot;更新商品&quot;)
+    @PutMapping(&quot;/{id}&quot;)
+    public ApiResponse&lt;ProductResponse&gt; updateProduct(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductRequest productRequest,
+            HttpServletRequest request) {
+        Long sellerId = jwtRequestUtils.getCurrentUserId(request);
+        ProductResponse product = productService.updateProduct(id, productRequest, sellerId);
+        return ApiResponse.success(&quot;商品更新成功&quot;, product);
+    }
+
+    @Operation(summary = &quot;获取我的商品详情&quot;)
+    @GetMapping(&quot;/{id}&quot;)
+    public ApiResponse&lt;ProductResponse&gt; getProductById(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        Long sellerId = jwtRequestUtils.getCurrentUserId(request);
+        ProductResponse product = productService.getProductById(id, sellerId);
+        return ApiResponse.success(product);
+    }
+
+    @Operation(summary = &quot;获取我的商品列表&quot;)
+    @GetMapping(&quot;/my&quot;)
+    public ApiResponse&lt;Page&lt;ProductResponse&gt;&gt; getMyProducts(
+            HttpServletRequest request,
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size) {
+        Long sellerId = jwtRequestUtils.getCurrentUserId(request);
+        Pageable pageable = PageRequest.of(page, size);
+        Page&lt;ProductResponse&gt; products = productService.getMyProducts(sellerId, pageable);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = &quot;删除商品&quot;)
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ApiResponse&lt;Void&gt; deleteProduct(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        Long sellerId = jwtRequestUtils.getCurrentUserId(request);
+        productService.deleteProduct(id, sellerId);
+        return ApiResponse.success(&quot;商品删除成功&quot;, null);
+    }
+
+    @Operation(summary = &quot;更新商品库存&quot;)
+    @PutMapping(&quot;/{id}/stock&quot;)
+    public ApiResponse&lt;ProductResponse&gt; updateStock(
+            @PathVariable Long id,
+            @RequestParam Integer stock,
+            HttpServletRequest request) {
+        Long sellerId = jwtRequestUtils.getCurrentUserId(request);
+        ProductResponse product = productService.updateStock(id, stock, sellerId);
+        return ApiResponse.success(&quot;库存更新成功&quot;, product);
+    }
+
+    @Operation(summary = &quot;更新商品状态&quot;)
+    @PutMapping(&quot;/{id}/status&quot;)
+    public ApiResponse&lt;ProductResponse&gt; updateStatus(
+            @PathVariable Long id,
+            @RequestParam String status,
+            HttpServletRequest request) {
+        Product.ProductStatus productStatus = Product.ProductStatus.valueOf(status.toUpperCase());
+        Long sellerId = jwtRequestUtils.getCurrentUserId(request);
+        ProductResponse product = productService.updateStatus(id, productStatus, sellerId);
+        return ApiResponse.success(&quot;状态更新成功&quot;, product);
+    }
+
+    @lombok.Data
+    @lombok.AllArgsConstructor
+    public static class ProductStats {
+        private long totalProducts;
+        private long onSaleProducts;
+    }
+}</code></pre>
+            </div>
+            
+<h4>5.2 管理端商品控制器</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/controller/ProductController.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.controller;
+
+import com.aisale.backend.dto.ApiResponse;
+import com.aisale.backend.dto.ProductRequest;
+import com.aisale.backend.dto.ProductResponse;
+import com.aisale.backend.entity.Product;
+import com.aisale.backend.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.*;
+import java.math.BigDecimal;
+
+@Tag(name = &quot;商品管理&quot;, description = &quot;商品 CRUD 接口（管理端）&quot;)
+@RestController
+@RequestMapping(&quot;/api/admin/products&quot;)
+@RequiredArgsConstructor
+public class ProductController {
+
+    private final ProductService productService;
+
+    @Operation(summary = &quot;创建商品&quot;)
+    @PostMapping
+    public ApiResponse&lt;ProductResponse&gt; createProduct(@Valid @RequestBody ProductRequest request) {
+        ProductResponse product = productService.createProductForAdmin(request);
+        return ApiResponse.success(&quot;商品创建成功&quot;, product);
+    }
+
+    @Operation(summary = &quot;更新商品&quot;)
+    @PutMapping(&quot;/{id}&quot;)
+    public ApiResponse&lt;ProductResponse&gt; updateProduct(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductRequest request) {
+        ProductResponse product = productService.updateProductForAdmin(id, request);
+        return ApiResponse.success(&quot;商品更新成功&quot;, product);
+    }
+
+    @Operation(summary = &quot;获取商品列表&quot;)
+    @GetMapping
+    public ApiResponse&lt;Page&lt;ProductResponse&gt;&gt; getAllProducts(
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size,
+            @RequestParam(defaultValue = &quot;createdAt&quot;) String sortBy,
+            @RequestParam(defaultValue = &quot;desc&quot;) String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(&quot;asc&quot;) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page&lt;ProductResponse&gt; products = productService.getAllProducts(pageable);
+        return ApiResponse.success(products);
+    }
+
+    @Operation(summary = &quot;删除商品&quot;)
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ApiResponse&lt;Void&gt; deleteProduct(@PathVariable Long id) {
+        productService.deleteProductForAdmin(id);
+        return ApiResponse.success(&quot;商品删除成功&quot;, null);
+    }
+
+    @Operation(summary = &quot;设置商品上下架&quot;)
+    @PutMapping(&quot;/{id}/sale-status&quot;)
+    public ApiResponse&lt;ProductResponse&gt; setSaleStatus(
+            @PathVariable Long id,
+            @RequestParam Boolean isOnSale) {
+        ProductResponse product = productService.setSaleStatus(id, isOnSale);
+        return ApiResponse.success(isOnSale ? &quot;商品已上架&quot; : &quot;商品已下架&quot;, product);
+    }
+
+    @Operation(summary = &quot;设置商品推荐&quot;)
+    @PutMapping(&quot;/{id}/featured&quot;)
+    public ApiResponse&lt;ProductResponse&gt; setFeaturedStatus(
+            @PathVariable Long id,
+            @RequestParam Boolean isFeatured) {
+        ProductResponse product = productService.setFeaturedStatus(id, isFeatured);
+        return ApiResponse.success(isFeatured ? &quot;已设为推荐&quot; : &quot;已取消推荐&quot;, product);
+    }
+
+    @Operation(summary = &quot;多条件查询商品&quot;)
+    @GetMapping(&quot;/query&quot;)
+    public ApiResponse&lt;Page&lt;ProductResponse&gt;&gt; queryProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size) {
+
+        Product.ProductStatus productStatus = null;
+        if (status != null &amp;&amp; !status.isEmpty()) {
+            productStatus = Product.ProductStatus.valueOf(status.toUpperCase());
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page&lt;ProductResponse&gt; products = productService.searchProductsWithSeller(
+                name, category, minPrice, maxPrice, productStatus, null, pageable);
+        return ApiResponse.success(products);
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>六、API接口清单</h3>
+<h4>6.1 用户端接口</h4>
+<table><thead><tr>
+<th>方法</th>
+<th>路径</th>
+<th>说明</th>
+<th>权限</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td>/api/user/products/public/on-sale</td>
+<td>公开在售商品</td>
+<td>公开</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/user/products/public/{id}</td>
+<td>公开商品详情</td>
+<td>公开</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/user/products/public/featured</td>
+<td>推荐商品</td>
+<td>公开</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/user/products/public/search</td>
+<td>搜索商品</td>
+<td>公开</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/api/user/products</td>
+<td>发布商品</td>
+<td>登录</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>/api/user/products/{id}</td>
+<td>更新商品</td>
+<td>登录</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/api/user/products/{id}</td>
+<td>删除商品</td>
+<td>登录</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/user/products/my</td>
+<td>我的商品列表</td>
+<td>登录</td>
+</tr>
+</tbody></table>
+<h4>6.2 管理端接口</h4>
+<table><thead><tr>
+<th>方法</th>
+<th>路径</th>
+<th>说明</th>
+<th>权限</th>
+</tr></thead><tbody>
+<tr>
+<td>POST</td>
+<td>/api/admin/products</td>
+<td>创建商品</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>/api/admin/products/{id}</td>
+<td>更新商品</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/api/admin/products/{id}</td>
+<td>删除商品</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/admin/products</td>
+<td>商品列表</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>/api/admin/products/{id}/sale-status</td>
+<td>上下架</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>/api/admin/products/{id}/featured</td>
+<td>推荐设置</td>
+<td>ADMIN</td>
+</tr>
+</tbody></table>
+<p>---</p>
+<h3>七、商品状态自动管理</h3>
+<p><strong>状态流转规则:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>库存 &gt; 0 且 isOnSale = true  → ON_SALE（在售）
+库存 &gt; 0 且 isOnSale = false → OFF_SALE（下架）
+库存 &lt;= 0                    → OUT_OF_STOCK（售罄）</code></pre>
+            </div>
+            
+<p><strong>自动更新逻辑:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>if (product.getStock() &lt;= 0) {
+    product.setStatus(Product.ProductStatus.OUT_OF_STOCK);
+} else if (!product.getIsOnSale()) {
+    product.setStatus(Product.ProductStatus.OFF_SALE);
+} else {
+    product.setStatus(Product.ProductStatus.ON_SALE);
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>八、前端商品API封装</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">frontend/src/api/product.ts</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">TYPESCRIPT</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>import request from '@/utils/request'
+import type { ProductRequest, ProductResponse } from './types'
+
+export const productApi = {
+  // 公开接口
+  getPublicOnSale(page: number = 0, size: number = 10) {
+    return request.get&lt;any, Page&lt;ProductResponse&gt;&gt;('/user/products/public/on-sale', {
+      params: { page, size }
+    })
+  },
+
+  getPublicProduct(id: number) {
+    return request.get&lt;any, ProductResponse&gt;(`/user/products/public/${id}`)
+  },
+
+  getFeaturedProducts() {
+    return request.get&lt;any, ProductResponse[]&gt;('/user/products/public/featured')
+  },
+
+  searchProducts(params: any) {
+    return request.get&lt;any, Page&lt;ProductResponse&gt;&gt;('/user/products/public/search', { params })
+  },
+
+  // 用户接口
+  createProduct(data: ProductRequest) {
+    return request.post&lt;any, ProductResponse&gt;('/user/products', data)
+  },
+
+  updateProduct(id: number, data: ProductRequest) {
+    return request.put&lt;any, ProductResponse&gt;(`/user/products/${id}`, data)
+  },
+
+  deleteProduct(id: number) {
+    return request.delete(`/user/products/${id}`)
+  },
+
+  getMyProducts(page: number = 0, size: number = 10) {
+    return request.get&lt;any, Page&lt;ProductResponse&gt;&gt;('/user/products/my', {
+      params: { page, size }
+    })
+  },
+
+  // 管理接口
+  getAllProducts(params: any) {
+    return request.get&lt;any, Page&lt;ProductResponse&gt;&gt;('/admin/products', { params })
+  },
+
+  setSaleStatus(id: number, isOnSale: boolean) {
+    return request.put&lt;any, ProductResponse&gt;(`/admin/products/${id}/sale-status`, null, {
+      params: { isOnSale }
+    })
+  }
+}
+
+interface Page&lt;T&gt; {
+  content: T[]
+  totalElements: number
+  totalPages: number
+  number: number
+  size: number
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>九、常见问题</h3>
+<h4>9.1 分页查询</h4>
+<p><strong>Q: 如何自定义排序？</strong></p>
+<p>A: 使用<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">PageRequest</code>指定排序字段和方向：</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>Pageable pageable = PageRequest.of(page, size, Sort.by(&quot;createdAt&quot;).descending());</code></pre>
+            </div>
+            
+<h4>9.2 权限检查</h4>
+<p><strong>Q: 如何确保用户只能操作自己的商品？</strong></p>
+<p>A: 在Service层检查sellerId：</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>if (!product.getSellerId().equals(sellerId)) {
+    throw new ForbiddenException(&quot;无权操作此商品&quot;);
+}</code></pre>
+            </div>
+            
+<h4>9.3 浏览量统计</h4>
+<p><strong>Q: 如何统计商品浏览量？</strong></p>
+<p>A: 在获取详情时自动增加：</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>product.setViewCount(product.getViewCount() + 1);
+productRepository.save(product);</code></pre>
+            </div>
+            
+<p>---</p>
+<p>最后更新: 2026-04-22</p>
+<p>文档版本: 1.0</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 代码复制功能
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-wrapper').querySelector('code');
+            const text = codeBlock.innerText;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ 已复制';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                btn.innerHTML = '✗ 失败';
+                setTimeout(() => {
+                    btn.innerHTML = '复制';
+                }, 2000);
+            });
+        }
+
+        // 页面加载完成后为所有代码块添加复制按钮
+        document.addEventListener('DOMContentLoaded', () => {
+            const codeWrappers = document.querySelectorAll('.code-wrapper');
+            codeWrappers.forEach(wrapper => {
+                if (!wrapper.querySelector('.copy-btn')) {
+                    const header = wrapper.querySelector('.code-header');
+                    if (header) {
+                        const btn = document.createElement('button');
+                        btn.className = 'copy-btn';
+                        btn.innerHTML = '📋 复制';
+                        btn.onclick = function() { copyCode(this); };
+                        header.appendChild(btn);
+                    }
+                }
+            });
+        });
+
+        // 设置当前页面高亮
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
