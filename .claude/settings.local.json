@@ -7,7 +7,8 @@
       "Bash(^C)",
       "Bash(pkill -f \"mvn test\")",
       "Bash(git add:*)",
-      "Bash(git commit -m 'fix: 修复枚举类型转换错误，提高系统健壮性:*)"
+      "Bash(git commit -m 'fix: 修复枚举类型转换错误，提高系统健壮性:*)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
