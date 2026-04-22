@@ -45,6 +45,8 @@ public class SecurityConfig {
                                 // 用户端公共浏览接口
                                 "/api/user/products/public/**",
                                 "/api/user/public/**",
+                                // SSE 端点 - 通过 URL 参数认证
+                                "/api/sse/**",
                                 // API Documentation
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",

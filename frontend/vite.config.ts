@@ -23,6 +23,15 @@ export default defineConfig({
         target: 'http://localhost:8090',
         ws: true,
         changeOrigin: true
+      },
+      '/api/sse': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+        headers: {
+          Connection: 'keep-alive',
+          'Cache-Control': 'no-cache',
+          Accept: 'text/event-stream'
+        }
       }
     }
   },

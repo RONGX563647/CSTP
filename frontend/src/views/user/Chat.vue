@@ -117,7 +117,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Loading } from '@element-plus/icons-vue'
 import MobileLayout from '@/layouts/MobileLayout.vue'
 import { useAuthStore } from '@/stores/auth'
-import { wsService, type ChatMessage, type ConnectionStatus } from '@/utils/websocket'
+import { sseService, type ChatMessage, type ConnectionStatus } from '@/utils/sse'
 import {
   getConversation,
   getChatPartnersDetail,
@@ -143,7 +143,7 @@ const inputRef = ref<HTMLInputElement | null>(null)
 const loadingMessages = ref(false)
 const wsStatus = ref<ConnectionStatus>('disconnected')
 
-// WebSocket 回调引用
+// SSE 回调引用
 let messageCallback: ((msg: ChatMessage) => void) | null = null
 let statusCallback: ((status: ConnectionStatus) => void) | null = null
 
@@ -169,7 +169,7 @@ const statusText = computed(() => {
 // ===== 生命周期 =====
 
 onMounted(async () => {
-  await ensureWebSocket()
+  await ensureSSE()
   await loadChatPartners()
 
   // 如果路由带 userId 参数，直接打开聊天
@@ -183,59 +183,56 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  if (messageCallback) wsService.removeMessageCallback(messageCallback)
-  if (statusCallback) wsService.removeStatusCallback(statusCallback)
+  if (messageCallback) sseService.removeMessageCallback(messageCallback)
+  if (statusCallback) sseService.removeStatusCallback(statusCallback)
   messageCallback = null
   statusCallback = null
 })
 
-// ===== WebSocket 连接 =====
+// ===== SSE 连接 =====
 
-const ensureWebSocket = async () => {
-  // 注册状态回调
+const ensureSSE = async () => {
   statusCallback = (status: ConnectionStatus) => {
     wsStatus.value = status
   }
-  wsService.onStatusChange(statusCallback)
-  wsStatus.value = wsService.getStatus()
+  sseService.onStatusChange(statusCallback)
+  wsStatus.value = sseService.getStatus()
 
-  // 如果已连接，直接注册消息回调
-  if (wsService.isConnected()) {
+  if (sseService.isConnected()) {
     registerMessageCallback()
     return
   }
 
-  // 尝试连接
   const token = localStorage.getItem('token')
   if (token) {
     try {
-      await wsService.connect(token.replace('Bearer ', ''))
+      await sseService.connect(token.replace('Bearer ', ''))
       registerMessageCallback()
     } catch (e) {
-      console.error('WebSocket连接失败:', e)
+      console.error('SSE连接失败:', e)
     }
   }
 }
 
 const registerMessageCallback = () => {
-  if (messageCallback) return // 避免重复注册
+  if (messageCallback) return
 
   messageCallback = (msg: ChatMessage) => {
-    onWebSocketMessage(msg)
+    onSSEMessage(msg)
   }
-  wsService.onMessage(messageCallback)
+  sseService.onMessage(messageCallback)
 }
 
-// ===== WebSocket 消息处理 =====
+// ===== SSE 消息处理 =====
 
-const onWebSocketMessage = (msg: ChatMessage) => {
+const onSSEMessage = (msg: ChatMessage) => {
   if (!msg.id || !msg.senderId || !msg.content) {
-    console.warn('onWebSocketMessage: invalid message', msg)
+    console.warn('onSSEMessage: invalid message', msg)
     return
   }
 
   const partnerId = currentChatUser.value?.userId
-  console.log('WebSocket message received:', {
+  console.log('SSE message received:', {
     msgId: msg.id,
     senderId: msg.senderId,
     senderName: msg.senderName,
@@ -260,8 +257,6 @@ const onWebSocketMessage = (msg: ChatMessage) => {
     console.log('Message belongs to current chat, exists:', exists)
 
     if (!exists) {
-      // 对方发来的消息 -> 直接添加
-      // 自己发送的消息回执 -> 也添加（兼容 WebSocket 发送路径，HTTP 发送路径通过去重不会重复）
       messages.value.push(msg)
       console.log('Added message to list, total messages:', messages.value.length)
       scrollToBottom()
@@ -410,8 +405,6 @@ const sendMessage = async () => {
     console.log('HTTP response received:', msg)
 
     if (msg && msg.id) {
-      // 通过 HTTP 响应添加到消息列表
-      // WebSocket 回执会通过 onWebSocketMessage 的 exists 检查被自动去重
       const exists = messages.value.some(m => m.id === msg.id)
       console.log('HTTP: message exists in list?', exists)
       if (!exists) {

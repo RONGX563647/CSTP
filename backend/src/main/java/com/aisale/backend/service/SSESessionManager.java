@@ -42,6 +42,17 @@ public class SSESessionManager {
         });
 
         log.info("SSE registered for userId={}", userId);
+        
+        // 发送连接确认消息
+        try {
+            emitter.send(SseEmitter.event()
+                .name("connected")
+                .data("{\"userId\":" + userId + ",\"status\":\"connected\"}"));
+            log.debug("Connection confirmation sent to userId={}", userId);
+        } catch (IOException e) {
+            log.error("Failed to send connection confirmation to userId={}: {}", userId, e.getMessage());
+        }
+        
         return emitter;
     }
 

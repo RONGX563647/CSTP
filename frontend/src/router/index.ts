@@ -255,7 +255,7 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach(async (to, _from, next) => {
+router.beforeEach(async (to, _from) => {
   const authStore = useAuthStore()
 
   // 设置页面标题
@@ -272,53 +272,36 @@ router.beforeEach(async (to, _from, next) => {
     } catch (error) {
       console.error('获取用户信息失败:', error)
       authStore.logout()
-      next({ name: 'UserLogin', query: { redirect: to.fullPath } })
-      return
+      return { name: 'UserLogin', query: { redirect: to.fullPath } }
     }
   }
 
   // 需要认证的路由
   if (to.meta.requiresAuth) {
     if (!authStore.isLoggedIn) {
-      next({ name: 'UserLogin', query: { redirect: to.fullPath } })
-    } else {
-      // 检查管理员权限
-      if (to.meta.role === 'admin' && !authStore.isAdmin) {
-        next({ name: 'UserHome' })
-      } else {
-        next()
-      }
+      return { name: 'UserLogin', query: { redirect: to.fullPath } }
+    }
+    // 检查管理员权限
+    if (to.meta.role === 'admin' && !authStore.isAdmin) {
+      return { name: 'UserHome' }
     }
   }
   // 仅限访客（已登录用户不能访问登录/注册页）
   else if (to.meta.guest) {
     // 管理员登录页特殊处理
     if (to.name === 'AdminLogin') {
-      if (authStore.isLoggedIn) {
-        // 已登录管理员：重定向到管理员首页
-        if (authStore.isAdmin) {
-          next({ name: 'AdminProductList' })
-        } else {
-          // 已登录普通用户：允许访问管理员登录页（可以切换账号）
-          next()
-        }
-      } else {
-        // 未登录：允许访问
-        next()
+      if (authStore.isLoggedIn && authStore.isAdmin) {
+        return { name: 'AdminProductList' }
       }
     }
     // 用户登录/注册页
-    else {
-      if (authStore.isLoggedIn) {
-        next({ name: 'UserHome' })
-      } else {
-        next()
-      }
+    else if (authStore.isLoggedIn) {
+      return { name: 'UserHome' }
     }
   }
-  else {
-    next()
-  }
+
+  // 默认允许访问
+  return true
 })
 
 export default router
