@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>08 IM即时通讯模块开发</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #faf3f0 0%, #ffffff 100%);
+            color: #333;
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边导航 */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #f0e6e0;
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-title {
+            padding: 0 25px 20px;
+            border-bottom: 1px solid #f0e6e0;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-title h1 {
+            font-size: 18px;
+            color: #e07b5a;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-title p {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-list {
+            list-style: none;
+        }
+        
+        .nav-item {
+            padding: 0 20px;
+        }
+        
+        .nav-item a {
+            display: block;
+            padding: 12px 15px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item a:hover {
+            background: #faf3f0;
+            color: #e07b5a;
+        }
+        
+        .nav-item a.active {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            color: #e07b5a;
+            font-weight: 500;
+        }
+        
+        .nav-category {
+            padding: 15px 25px 8px;
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+        }
+        
+        .content-header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0e6e0;
+        }
+        
+        .content-header h1 {
+            font-size: 32px;
+            color: #2c2c2c;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .content-header p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .content-body h2 {
+            font-size: 24px;
+            color: #e07b5a;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .content-body h3 {
+            font-size: 20px;
+            color: #333;
+            margin: 30px 0 15px;
+        }
+        
+        .content-body h4 {
+            font-size: 17px;
+            color: #444;
+            margin: 25px 0 12px;
+        }
+        
+        .content-body p {
+            margin: 15px 0;
+            color: #555;
+        }
+        
+        .content-body ul, .content-body ol {
+            margin: 15px 0;
+            padding-left: 25px;
+            color: #555;
+        }
+        
+        .content-body li {
+            margin: 8px 0;
+        }
+        
+        .content-body a {
+            color: #e07b5a;
+            text-decoration: none;
+        }
+        
+        .content-body a:hover {
+            text-decoration: underline;
+        }
+        
+        .content-body strong {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        /* 代码块样式 */
+        .code-wrapper {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #faf8f6;
+            border: 1px solid #f0e6e0;
+        }
+        
+        .code-header {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .code-lang {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+        
+        .copy-btn {
+            background: #ffffff;
+            border: 1px solid #e0e6e0;
+            color: #666;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .copy-btn:hover {
+            background: #f5e6df;
+            border-color: #e07b5a;
+            color: #e07b5a;
+        }
+        
+        .copy-btn.copied {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: #fff;
+        }
+        
+        .code-wrapper pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            background: transparent;
+        }
+        
+        .code-wrapper code {
+            font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", Consolas, Monaco, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #444;
+            background: transparent;
+        }
+        
+        /* 表格样式 */
+        .content-body table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .content-body th {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #e07b5a;
+        }
+        
+        .content-body td {
+            padding: 12px 15px;
+            border-top: 1px solid #f0e6e0;
+        }
+        
+        /* 提示框样式 */
+        .tip-box {
+            background: #faf8f6;
+            border-left: 4px solid #e07b5a;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip-box p {
+            margin: 0;
+            color: #666;
+        }
+        
+        .tip-box strong {
+            color: #e07b5a;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: 240px;
+                padding: 30px 40px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边导航 -->
+        <nav class="sidebar">
+            <div class="sidebar-title">
+                <h1>📚 AiSale 教程</h1>
+                <p>校园二手交易平台学习指南</p>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">首页</a>
+                </li>
+                <li class="nav-category">基础篇</li>
+                <li class="nav-item">
+                    <a href="00-基础依赖与环境配置.html" class="nav-link">00 基础依赖与环境配置</a>
+                </li>
+                <li class="nav-item">
+                    <a href="01-项目初始化与基础设施.html" class="nav-link">01 项目初始化与基础设施</a>
+                </li>
+                <li class="nav-item">
+                    <a href="02-实体类与数据库设计.html" class="nav-link">02 实体类与数据库设计</a>
+                </li>
+                <li class="nav-category">核心篇</li>
+                <li class="nav-item">
+                    <a href="03-用户认证模块开发.html" class="nav-link">03 用户认证模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="04-商品管理模块开发.html" class="nav-link">04 商品管理模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="05-订单管理模块开发.html" class="nav-link">05 订单管理模块开发</a>
+                </li>
+                <li class="nav-category">进阶篇</li>
+                <li class="nav-item">
+                    <a href="06-用户地址与信息管理模块.html" class="nav-link">06 用户地址与信息管理</a>
+                </li>
+                <li class="nav-item">
+                    <a href="07-文件上传与OSS模块开发.html" class="nav-link">07 文件上传与OSS模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="08-IM即时通讯模块开发.html" class="nav-link">08 IM即时通讯模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="09-日志模块开发.html" class="nav-link">09 日志模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="10-商品搜索与推荐模块.html" class="nav-link">10 商品搜索与推荐模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="11-签到积分信誉模块开发.html" class="nav-link">11 签到积分信誉模块</a>
+                </li>
+                <li class="nav-category">前端与部署</li>
+                <li class="nav-item">
+                    <a href="12-前端开发完整指南.html" class="nav-link">12 前端开发完整指南</a>
+                </li>
+                <li class="nav-item">
+                    <a href="13-测试与部署.html" class="nav-link">13 测试与部署</a>
+                </li>
+                <li class="nav-item">
+                    <a href="14-项目总结与扩展.html" class="nav-link">14 项目总结与扩展</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>08 IM即时通讯模块开发</h1>
+                <p>AiSale 校园二手交易平台学习指南 - 08 IM即时通讯模块开发</p>
+            </div>
+            <div class="content-body">
+                <h2>08 IM即时通讯模块开发</h2>
+<p>学习时长: 2-3 天</p>
+<p>难度: ⭐⭐⭐⭐☆</p>
+<p>前置知识: WebSocket、RabbitMQ、SSE实时推送</p>
+<p>---</p>
+<h3>一、本章概述</h3>
+<p>本章将实现用户间的即时通讯功能，使用RabbitMQ+WebSocket实现消息传递。</p>
+<p><strong>学习内容:</strong></p>
+<ul><li>RabbitMQ配置</li>
+<li>聊天消息实体</li>
+<li>消息服务层</li>
+<li>WebSocket配置</li>
+<li>SSE实时推送</li>
+<li>聊天控制器</li></ul>
+<p>---</p>
+<h3>二、RabbitMQ配置</h3>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/config/RabbitMQConfig.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.config;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RabbitMQConfig {
+
+    public static final String CHAT_QUEUE = &quot;chat.message.queue&quot;;
+    public static final String CHAT_EXCHANGE = &quot;chat.exchange&quot;;
+    public static final String CHAT_ROUTING_KEY = &quot;chat.message&quot;;
+
+    @Bean
+    public Queue chatQueue() {
+        return new Queue(CHAT_QUEUE, true);
+    }
+
+    @Bean
+    public DirectExchange chatExchange() {
+        return new DirectExchange(CHAT_EXCHANGE);
+    }
+
+    @Bean
+    public Binding chatBinding() {
+        return BindingBuilder.bind(chatQueue())
+            .to(chatExchange())
+            .with(CHAT_ROUTING_KEY);
+    }
+
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(jsonMessageConverter());
+        return template;
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>三、聊天服务</h3>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.service;
+
+import com.aisale.backend.config.RabbitMQConfig;
+import com.aisale.backend.entity.ChatMessage;
+import com.aisale.backend.repository.ChatMessageRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class ChatService {
+
+    private final ChatMessageRepository chatMessageRepository;
+    private final RabbitTemplate rabbitTemplate;
+
+    @Transactional
+    public ChatMessage sendMessage(Long senderId, Long receiverId, String content, 
+                                   ChatMessage.MessageType messageType) {
+        ChatMessage message = ChatMessage.builder()
+                .senderId(senderId)
+                .receiverId(receiverId)
+                .content(content)
+                .messageType(messageType)
+                .isRead(false)
+                .build();
+
+        message = chatMessageRepository.save(message);
+        log.info(&quot;消息已保存: {}&quot;, message.getId());
+
+        // 发送消息到队列
+        rabbitTemplate.convertAndSend(
+            RabbitMQConfig.CHAT_EXCHANGE,
+            RabbitMQConfig.CHAT_ROUTING_KEY,
+            message
+        );
+
+        return message;
+    }
+
+    @RabbitListener(queues = RabbitMQConfig.CHAT_QUEUE)
+    public void receiveMessage(ChatMessage message) {
+        log.info(&quot;收到消息: {} -&gt; {}&quot;, message.getSenderId(), message.getReceiverId());
+        // 可通过WebSocket或SSE推送给接收者
+    }
+
+    public List&lt;ChatMessage&gt; getChatHistory(Long userId1, Long userId2) {
+        return chatMessageRepository
+            .findBySenderIdAndReceiverIdOrReceiverIdAndSenderIdOrderByCreatedAtAsc(
+                userId1, userId2, userId1, userId2
+            );
+    }
+
+    public List&lt;ChatMessage&gt; getUnreadMessages(Long receiverId) {
+        return chatMessageRepository.findByReceiverIdAndIsReadFalse(receiverId);
+    }
+
+    @Transactional
+    public void markAsRead(Long messageId) {
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -&gt; new RuntimeException(&quot;消息不存在&quot;));
+        message.setIsRead(true);
+        chatMessageRepository.save(message);
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>四、聊天控制器</h3>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.controller;
+
+import com.aisale.backend.dto.ApiResponse;
+import com.aisale.backend.entity.ChatMessage;
+import com.aisale.backend.service.ChatService;
+import com.aisale.backend.util.JwtRequestUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+@Tag(name = &quot;即时通讯&quot;, description = &quot;用户间聊天消息&quot;)
+@RestController
+@RequestMapping(&quot;/api/user/chat&quot;)
+@RequiredArgsConstructor
+public class ChatController {
+
+    private final ChatService chatService;
+    private final JwtRequestUtils jwtRequestUtils;
+
+    @Operation(summary = &quot;发送消息&quot;)
+    @PostMapping(&quot;/send&quot;)
+    public ApiResponse&lt;ChatMessage&gt; sendMessage(
+            @RequestParam Long receiverId,
+            @RequestParam String content,
+            @RequestParam(defaultValue = &quot;TEXT&quot;) String messageType,
+            HttpServletRequest request) {
+        Long senderId = jwtRequestUtils.getCurrentUserId(request);
+        ChatMessage message = chatService.sendMessage(
+            senderId, receiverId, content, 
+            ChatMessage.MessageType.valueOf(messageType)
+        );
+        return ApiResponse.success(&quot;发送成功&quot;, message);
+    }
+
+    @Operation(summary = &quot;获取聊天记录&quot;)
+    @GetMapping(&quot;/history/{userId}&quot;)
+    public ApiResponse&lt;List&lt;ChatMessage&gt;&gt; getChatHistory(
+            @PathVariable Long userId,
+            HttpServletRequest request) {
+        Long currentUserId = jwtRequestUtils.getCurrentUserId(request);
+        List&lt;ChatMessage&gt; messages = chatService.getChatHistory(currentUserId, userId);
+        return ApiResponse.success(messages);
+    }
+
+    @Operation(summary = &quot;获取未读消息&quot;)
+    @GetMapping(&quot;/unread&quot;)
+    public ApiResponse&lt;List&lt;ChatMessage&gt;&gt; getUnreadMessages(HttpServletRequest request) {
+        Long receiverId = jwtRequestUtils.getCurrentUserId(request);
+        List&lt;ChatMessage&gt; messages = chatService.getUnreadMessages(receiverId);
+        return ApiResponse.success(messages);
+    }
+
+    @Operation(summary = &quot;标记消息已读&quot;)
+    @PutMapping(&quot;/{messageId}/read&quot;)
+    public ApiResponse&lt;Void&gt; markAsRead(@PathVariable Long messageId) {
+        chatService.markAsRead(messageId);
+        return ApiResponse.success(&quot;已标记为已读&quot;, null);
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>五、前端聊天API</h3>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">TYPESCRIPT</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>import request from '@/utils/request'
+
+export const chatApi = {
+  sendMessage(receiverId: number, content: string, messageType: string = 'TEXT') {
+    return request.post&lt;any, ChatMessage&gt;('/user/chat/send', null, {
+      params: { receiverId, content, messageType }
+    })
+  },
+
+  getChatHistory(userId: number) {
+    return request.get&lt;any, ChatMessage[]&gt;(`/user/chat/history/${userId}`)
+  },
+
+  getUnreadMessages() {
+    return request.get&lt;any, ChatMessage[]&gt;('/user/chat/unread')
+  },
+
+  markAsRead(messageId: number) {
+    return request.put(`/user/chat/${messageId}/read`)
+  }
+}
+
+interface ChatMessage {
+  id: number
+  senderId: number
+  receiverId: number
+  content: string
+  messageType: 'TEXT' | 'IMAGE' | 'SYSTEM'
+  isRead: boolean
+  createdAt: string
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<p>最后更新: 2026-04-22</p>
+<p>文档版本: 1.0</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 代码复制功能
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-wrapper').querySelector('code');
+            const text = codeBlock.innerText;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ 已复制';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                btn.innerHTML = '✗ 失败';
+                setTimeout(() => {
+                    btn.innerHTML = '复制';
+                }, 2000);
+            });
+        }
+
+        // 页面加载完成后为所有代码块添加复制按钮
+        document.addEventListener('DOMContentLoaded', () => {
+            const codeWrappers = document.querySelectorAll('.code-wrapper');
+            codeWrappers.forEach(wrapper => {
+                if (!wrapper.querySelector('.copy-btn')) {
+                    const header = wrapper.querySelector('.code-header');
+                    if (header) {
+                        const btn = document.createElement('button');
+                        btn.className = 'copy-btn';
+                        btn.innerHTML = '📋 复制';
+                        btn.onclick = function() { copyCode(this); };
+                        header.appendChild(btn);
+                    }
+                }
+            });
+        });
+
+        // 设置当前页面高亮
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>05 订单管理模块开发</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #faf3f0 0%, #ffffff 100%);
+            color: #333;
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边导航 */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #f0e6e0;
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-title {
+            padding: 0 25px 20px;
+            border-bottom: 1px solid #f0e6e0;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-title h1 {
+            font-size: 18px;
+            color: #e07b5a;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-title p {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-list {
+            list-style: none;
+        }
+        
+        .nav-item {
+            padding: 0 20px;
+        }
+        
+        .nav-item a {
+            display: block;
+            padding: 12px 15px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item a:hover {
+            background: #faf3f0;
+            color: #e07b5a;
+        }
+        
+        .nav-item a.active {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            color: #e07b5a;
+            font-weight: 500;
+        }
+        
+        .nav-category {
+            padding: 15px 25px 8px;
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+        }
+        
+        .content-header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0e6e0;
+        }
+        
+        .content-header h1 {
+            font-size: 32px;
+            color: #2c2c2c;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .content-header p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .content-body h2 {
+            font-size: 24px;
+            color: #e07b5a;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .content-body h3 {
+            font-size: 20px;
+            color: #333;
+            margin: 30px 0 15px;
+        }
+        
+        .content-body h4 {
+            font-size: 17px;
+            color: #444;
+            margin: 25px 0 12px;
+        }
+        
+        .content-body p {
+            margin: 15px 0;
+            color: #555;
+        }
+        
+        .content-body ul, .content-body ol {
+            margin: 15px 0;
+            padding-left: 25px;
+            color: #555;
+        }
+        
+        .content-body li {
+            margin: 8px 0;
+        }
+        
+        .content-body a {
+            color: #e07b5a;
+            text-decoration: none;
+        }
+        
+        .content-body a:hover {
+            text-decoration: underline;
+        }
+        
+        .content-body strong {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        /* 代码块样式 */
+        .code-wrapper {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #faf8f6;
+            border: 1px solid #f0e6e0;
+        }
+        
+        .code-header {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .code-lang {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+        
+        .copy-btn {
+            background: #ffffff;
+            border: 1px solid #e0e6e0;
+            color: #666;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .copy-btn:hover {
+            background: #f5e6df;
+            border-color: #e07b5a;
+            color: #e07b5a;
+        }
+        
+        .copy-btn.copied {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: #fff;
+        }
+        
+        .code-wrapper pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            background: transparent;
+        }
+        
+        .code-wrapper code {
+            font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", Consolas, Monaco, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #444;
+            background: transparent;
+        }
+        
+        /* 表格样式 */
+        .content-body table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .content-body th {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #e07b5a;
+        }
+        
+        .content-body td {
+            padding: 12px 15px;
+            border-top: 1px solid #f0e6e0;
+        }
+        
+        /* 提示框样式 */
+        .tip-box {
+            background: #faf8f6;
+            border-left: 4px solid #e07b5a;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip-box p {
+            margin: 0;
+            color: #666;
+        }
+        
+        .tip-box strong {
+            color: #e07b5a;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: 240px;
+                padding: 30px 40px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边导航 -->
+        <nav class="sidebar">
+            <div class="sidebar-title">
+                <h1>📚 AiSale 教程</h1>
+                <p>校园二手交易平台学习指南</p>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">首页</a>
+                </li>
+                <li class="nav-category">基础篇</li>
+                <li class="nav-item">
+                    <a href="00-基础依赖与环境配置.html" class="nav-link">00 基础依赖与环境配置</a>
+                </li>
+                <li class="nav-item">
+                    <a href="01-项目初始化与基础设施.html" class="nav-link">01 项目初始化与基础设施</a>
+                </li>
+                <li class="nav-item">
+                    <a href="02-实体类与数据库设计.html" class="nav-link">02 实体类与数据库设计</a>
+                </li>
+                <li class="nav-category">核心篇</li>
+                <li class="nav-item">
+                    <a href="03-用户认证模块开发.html" class="nav-link">03 用户认证模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="04-商品管理模块开发.html" class="nav-link">04 商品管理模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="05-订单管理模块开发.html" class="nav-link">05 订单管理模块开发</a>
+                </li>
+                <li class="nav-category">进阶篇</li>
+                <li class="nav-item">
+                    <a href="06-用户地址与信息管理模块.html" class="nav-link">06 用户地址与信息管理</a>
+                </li>
+                <li class="nav-item">
+                    <a href="07-文件上传与OSS模块开发.html" class="nav-link">07 文件上传与OSS模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="08-IM即时通讯模块开发.html" class="nav-link">08 IM即时通讯模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="09-日志模块开发.html" class="nav-link">09 日志模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="10-商品搜索与推荐模块.html" class="nav-link">10 商品搜索与推荐模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="11-签到积分信誉模块开发.html" class="nav-link">11 签到积分信誉模块</a>
+                </li>
+                <li class="nav-category">前端与部署</li>
+                <li class="nav-item">
+                    <a href="12-前端开发完整指南.html" class="nav-link">12 前端开发完整指南</a>
+                </li>
+                <li class="nav-item">
+                    <a href="13-测试与部署.html" class="nav-link">13 测试与部署</a>
+                </li>
+                <li class="nav-item">
+                    <a href="14-项目总结与扩展.html" class="nav-link">14 项目总结与扩展</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>05 订单管理模块开发</h1>
+                <p>AiSale 校园二手交易平台学习指南 - 05 订单管理模块开发</p>
+            </div>
+            <div class="content-body">
+                <h2>05 订单管理模块开发</h2>
+<p>学习时长: 2-3 天</p>
+<p>难度: ⭐⭐⭐⭐☆</p>
+<p>前置知识: 事务管理、状态机模式、订单业务流程</p>
+<p>---</p>
+<h3>一、本章概述</h3>
+<p>本章将实现订单的完整管理功能，包括订单创建、支付、提货、确认、评价、取消等完整流程。</p>
+<p><strong>学习内容:</strong></p>
+<ul><li>订单状态机设计</li>
+<li>订单DTO设计</li>
+<li>订单服务层开发</li>
+<li>用户端订单接口</li>
+<li>管理端订单接口</li>
+<li>订单日志记录</li>
+<li>订单评价功能</li></ul>
+<p>---</p>
+<h3>二、订单状态机</h3>
+<h4>2.1 订单状态流转</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>PENDING_PAYMENT（待付款）
+      ↓
+PENDING_PICKUP（待提货）
+      ↓
+PENDING_CONFIRM（待确认）
+      ↓
+PENDING_REVIEW（待评价）
+      ↓
+COMPLETED（已完成）
+
+任何状态可转向：
+- CANCELLED（已取消）
+- REFUNDED（已退款）</code></pre>
+            </div>
+            
+<h4>2.2 操作权限表</h4>
+<table><thead><tr>
+<th>操作</th>
+<th>当前状态</th>
+<th>操作人</th>
+<th>下一状态</th>
+</tr></thead><tbody>
+<tr>
+<td>创建订单</td>
+<td>-</td>
+<td>买家</td>
+<td>PENDING_PAYMENT</td>
+</tr>
+<tr>
+<td>付款</td>
+<td>PENDING_PAYMENT</td>
+<td>买家</td>
+<td>PENDING_PICKUP</td>
+</tr>
+<tr>
+<td>提货</td>
+<td>PENDING_PICKUP</td>
+<td>买家</td>
+<td>PENDING_CONFIRM</td>
+</tr>
+<tr>
+<td>确认收款</td>
+<td>PENDING_CONFIRM</td>
+<td>卖家</td>
+<td>PENDING_REVIEW</td>
+</tr>
+<tr>
+<td>评价</td>
+<td>PENDING_REVIEW</td>
+<td>买卖双方</td>
+<td>COMPLETED</td>
+</tr>
+<tr>
+<td>取消</td>
+<td>非终态</td>
+<td>买家/卖家</td>
+<td>CANCELLED</td>
+</tr>
+</tbody></table>
+<p>---</p>
+<h3>三、订单DTO设计</h3>
+<h4>3.1 订单请求DTO</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.dto;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+public class OrderRequest {
+
+    @NotNull(message = &quot;商品ID不能为空&quot;)
+    private Long productId;
+
+    @NotNull(message = &quot;数量不能为空&quot;)
+    @Positive(message = &quot;数量必须大于0&quot;)
+    private Integer quantity = 1;
+
+    private String meetLocation;
+
+    private LocalDateTime meetTime;
+
+    private String buyerRemark;
+}</code></pre>
+            </div>
+            
+<h4>3.2 订单响应DTO</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.dto;
+
+import com.aisale.backend.entity.Order;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+public class OrderResponse {
+
+    private Long id;
+    private String orderNo;
+    private Long buyerId;
+    private String buyerName;
+    private Long sellerId;
+    private String sellerName;
+    private Long productId;
+    private String productName;
+    private String productImage;
+    private BigDecimal price;
+    private Integer quantity;
+    private BigDecimal totalAmount;
+    private String meetLocation;
+    private LocalDateTime meetTime;
+    private String buyerRemark;
+    private Order.OrderStatus status;
+    private LocalDateTime paymentTime;
+    private LocalDateTime pickupTime;
+    private LocalDateTime confirmTime;
+    private LocalDateTime completeTime;
+    private LocalDateTime cancelTime;
+    private String cancelReason;
+    private String adminRemark;
+    private Boolean hasBuyerReview;
+    private Boolean hasSellerReview;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    public static OrderResponse fromEntity(Order order) {
+        OrderResponse response = new OrderResponse();
+        response.setId(order.getId());
+        response.setOrderNo(order.getOrderNo());
+        response.setBuyerId(order.getBuyerId());
+        response.setSellerId(order.getSellerId());
+        response.setProductId(order.getProductId());
+        response.setProductName(order.getProductName());
+        response.setProductImage(order.getProductImage());
+        response.setPrice(order.getPrice());
+        response.setQuantity(order.getQuantity());
+        response.setTotalAmount(order.getTotalAmount());
+        response.setMeetLocation(order.getMeetLocation());
+        response.setMeetTime(order.getMeetTime());
+        response.setBuyerRemark(order.getBuyerRemark());
+        response.setStatus(order.getStatus());
+        response.setPaymentTime(order.getPaymentTime());
+        response.setPickupTime(order.getPickupTime());
+        response.setConfirmTime(order.getConfirmTime());
+        response.setCompleteTime(order.getCompleteTime());
+        response.setCancelTime(order.getCancelTime());
+        response.setCancelReason(order.getCancelReason());
+        response.setAdminRemark(order.getAdminRemark());
+        response.setCreatedAt(order.getCreatedAt());
+        response.setUpdatedAt(order.getUpdatedAt());
+        
+        if (order.getBuyer() != null) {
+            response.setBuyerName(order.getBuyer().getNickname());
+        }
+        if (order.getSeller() != null) {
+            response.setSellerName(order.getSeller().getNickname());
+        }
+        
+        return response;
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>四、订单Repository增强</h3>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.Order;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Repository
+public interface OrderRepository extends JpaRepository&lt;Order, Long&gt; {
+    
+    // 基础查询
+    Page&lt;Order&gt; findByBuyerId(Long buyerId, Pageable pageable);
+    Page&lt;Order&gt; findBySellerId(Long sellerId, Pageable pageable);
+    Page&lt;Order&gt; findByStatus(Order.OrderStatus status, Pageable pageable);
+    Page&lt;Order&gt; findByBuyerIdAndStatus(Long buyerId, Order.OrderStatus status, Pageable pageable);
+    Page&lt;Order&gt; findBySellerIdAndStatus(Long sellerId, Order.OrderStatus status, Pageable pageable);
+    boolean existsByOrderNo(String orderNo);
+    long countByStatus(Order.OrderStatus status);
+    
+    // 检查是否有未完成订单
+    @Query(&quot;SELECT COUNT(o) &gt; 0 FROM Order o WHERE o.productId = :productId AND o.status IN ('PENDING_PAYMENT', 'PENDING_PICKUP', 'PENDING_CONFIRM', 'PENDING_REVIEW')&quot;)
+    boolean hasActiveOrder(@Param(&quot;productId&quot;) Long productId);
+    
+    // 多条件查询
+    @Query(&quot;SELECT o FROM Order o WHERE &quot; +
+           &quot;(:orderNo IS NULL OR o.orderNo LIKE %:orderNo%) AND &quot; +
+           &quot;(:buyerId IS NULL OR o.buyerId = :buyerId) AND &quot; +
+           &quot;(:sellerId IS NULL OR o.sellerId = :sellerId) AND &quot; +
+           &quot;(:status IS NULL OR o.status = :status) AND &quot; +
+           &quot;(:startTime IS NULL OR o.createdAt &gt;= :startTime) AND &quot; +
+           &quot;(:endTime IS NULL OR o.createdAt &lt;= :endTime)&quot;)
+    Page&lt;Order&gt; searchOrders(
+        @Param(&quot;orderNo&quot;) String orderNo,
+        @Param(&quot;buyerId&quot;) Long buyerId,
+        @Param(&quot;sellerId&quot;) Long sellerId,
+        @Param(&quot;status&quot;) Order.OrderStatus status,
+        @Param(&quot;startTime&quot;) LocalDateTime startTime,
+        @Param(&quot;endTime&quot;) LocalDateTime endTime,
+        Pageable pageable
+    );
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>五、订单服务层开发</h3>
+<h4>5.1 核心方法</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.service;
+
+import com.aisale.backend.dto.OrderRequest;
+import com.aisale.backend.dto.OrderResponse;
+import com.aisale.backend.entity.Order;
+import com.aisale.backend.entity.OrderLog;
+import com.aisale.backend.entity.Product;
+import com.aisale.backend.exception.business.ConflictException;
+import com.aisale.backend.exception.business.ForbiddenException;
+import com.aisale.backend.exception.business.NotFoundException;
+import com.aisale.backend.repository.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Random;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+    private final OrderReviewRepository orderReviewRepository;
+    private final OrderLogRepository orderLogRepository;
+    private final ProductRepository productRepository;
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(&quot;yyyyMMddHHmmss&quot;);
+
+    // 生成订单号
+    private String generateOrderNo() {
+        String timestamp = LocalDateTime.now().format(FORMATTER);
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i &lt; 6; i++) {
+            sb.append(random.nextInt(10));
+        }
+        return timestamp + sb;
+    }
+
+    // 创建订单
+    @Transactional
+    public OrderResponse createOrder(OrderRequest request, Long buyerId) {
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -&gt; new NotFoundException(&quot;商品不存在&quot;));
+
+        if (!product.getIsOnSale() || product.getStatus() != Product.ProductStatus.ON_SALE) {
+            throw new ConflictException(&quot;商品已下架或不可售&quot;);
+        }
+
+        if (product.getStock() &lt; request.getQuantity()) {
+            throw new ConflictException(&quot;库存不足&quot;);
+        }
+
+        if (orderRepository.hasActiveOrder(request.getProductId())) {
+            throw new ConflictException(&quot;该商品已有进行中的订单&quot;);
+        }
+
+        if (product.getSellerId().equals(buyerId)) {
+            throw new ForbiddenException(&quot;不能购买自己的商品&quot;);
+        }
+
+        String orderNo = generateOrderNo();
+
+        Order order = new Order();
+        order.setOrderNo(orderNo);
+        order.setBuyerId(buyerId);
+        order.setSellerId(product.getSellerId());
+        order.setProductId(product.getId());
+        order.setProductName(product.getName());
+        order.setProductImage(product.getMainImage());
+        order.setPrice(product.getPrice());
+        order.setQuantity(request.getQuantity());
+        order.setTotalAmount(product.getPrice().multiply(new java.math.BigDecimal(request.getQuantity())));
+        order.setMeetLocation(request.getMeetLocation());
+        order.setMeetTime(request.getMeetTime());
+        order.setBuyerRemark(request.getBuyerRemark());
+
+        order = orderRepository.save(order);
+
+        // 扣减库存
+        product.setStock(product.getStock() - request.getQuantity());
+        if (product.getStock() == 0) {
+            product.setStatus(Product.ProductStatus.OUT_OF_STOCK);
+        }
+        productRepository.save(product);
+
+        // 记录订单日志
+        logOrderAction(order.getId(), buyerId, OrderLog.OperatorRole.BUYER,
+                       &quot;CREATE_ORDER&quot;, null, Order.OrderStatus.PENDING_PAYMENT,
+                       &quot;订单创建成功&quot;);
+
+        return OrderResponse.fromEntity(order);
+    }
+
+    // 买家付款
+    @Transactional
+    public OrderResponse payOrder(Long orderId, Long buyerId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;订单不存在&quot;));
+
+        if (!order.getBuyerId().equals(buyerId)) {
+            throw new ForbiddenException(&quot;无权操作此订单&quot;);
+        }
+
+        if (order.getStatus() != Order.OrderStatus.PENDING_PAYMENT) {
+            throw new ConflictException(&quot;订单状态不允许付款&quot;);
+        }
+
+        Order.OrderStatus oldStatus = order.getStatus();
+        order.setStatus(Order.OrderStatus.PENDING_PICKUP);
+        order.setPaymentTime(LocalDateTime.now());
+        order = orderRepository.save(order);
+
+        logOrderAction(orderId, buyerId, OrderLog.OperatorRole.BUYER,
+                       &quot;PAY_ORDER&quot;, oldStatus, order.getStatus(), &quot;买家已确认付款&quot;);
+
+        return OrderResponse.fromEntity(order);
+    }
+
+    // 买家提货
+    @Transactional
+    public OrderResponse confirmPickup(Long orderId, Long buyerId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;订单不存在&quot;));
+
+        if (!order.getBuyerId().equals(buyerId)) {
+            throw new ForbiddenException(&quot;无权操作此订单&quot;);
+        }
+
+        if (order.getStatus() != Order.OrderStatus.PENDING_PICKUP) {
+            throw new ConflictException(&quot;订单状态不允许提货&quot;);
+        }
+
+        Order.OrderStatus oldStatus = order.getStatus();
+        order.setStatus(Order.OrderStatus.PENDING_CONFIRM);
+        order.setPickupTime(LocalDateTime.now());
+        order = orderRepository.save(order);
+
+        logOrderAction(orderId, buyerId, OrderLog.OperatorRole.BUYER,
+                       &quot;CONFIRM_PICKUP&quot;, oldStatus, order.getStatus(), &quot;买家已确认提货&quot;);
+
+        return OrderResponse.fromEntity(order);
+    }
+
+    // 卖家确认
+    @Transactional
+    public OrderResponse confirmPayment(Long orderId, Long sellerId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;订单不存在&quot;));
+
+        if (!order.getSellerId().equals(sellerId)) {
+            throw new ForbiddenException(&quot;无权操作此订单&quot;);
+        }
+
+        if (order.getStatus() != Order.OrderStatus.PENDING_CONFIRM) {
+            throw new ConflictException(&quot;订单状态不允许确认&quot;);
+        }
+
+        Order.OrderStatus oldStatus = order.getStatus();
+        order.setStatus(Order.OrderStatus.PENDING_REVIEW);
+        order.setConfirmTime(LocalDateTime.now());
+        order = orderRepository.save(order);
+
+        logOrderAction(orderId, sellerId, OrderLog.OperatorRole.SELLER,
+                       &quot;CONFIRM_PAYMENT&quot;, oldStatus, order.getStatus(), &quot;卖家已确认收款&quot;);
+
+        return OrderResponse.fromEntity(order);
+    }
+
+    // 取消订单
+    @Transactional
+    public OrderResponse cancelOrder(Long orderId, Long userId, String reason, boolean isBuyer) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;订单不存在&quot;));
+
+        if (isBuyer &amp;&amp; !order.getBuyerId().equals(userId)) {
+            throw new ForbiddenException(&quot;无权取消此订单&quot;);
+        }
+        if (!isBuyer &amp;&amp; !order.getSellerId().equals(userId)) {
+            throw new ForbiddenException(&quot;无权取消此订单&quot;);
+        }
+
+        if (order.getStatus() == Order.OrderStatus.COMPLETED ||
+            order.getStatus() == Order.OrderStatus.CANCELLED ||
+            order.getStatus() == Order.OrderStatus.REFUNDED) {
+            throw new ConflictException(&quot;当前订单状态无法取消&quot;);
+        }
+
+        Order.OrderStatus oldStatus = order.getStatus();
+        order.setStatus(Order.OrderStatus.CANCELLED);
+        order.setCancelTime(LocalDateTime.now());
+        order.setCancelReason(reason);
+        order.setCancelRole(isBuyer ? Order.CancelRole.BUYER : Order.CancelRole.SELLER);
+        order = orderRepository.save(order);
+
+        // 恢复库存
+        Product product = productRepository.findById(order.getProductId())
+                .orElseThrow(() -&gt; new NotFoundException(&quot;商品不存在&quot;));
+        product.setStock(product.getStock() + order.getQuantity());
+        if (product.getIsOnSale() &amp;&amp; product.getStock() &gt; 0) {
+            product.setStatus(Product.ProductStatus.ON_SALE);
+        }
+        productRepository.save(product);
+
+        logOrderAction(orderId, userId, isBuyer ? OrderLog.OperatorRole.BUYER : OrderLog.OperatorRole.SELLER,
+                       &quot;CANCEL_ORDER&quot;, oldStatus, Order.OrderStatus.CANCELLED,
+                       reason != null ? reason : (isBuyer ? &quot;买家取消订单&quot; : &quot;卖家取消订单&quot;));
+
+        return OrderResponse.fromEntity(order);
+    }
+
+    // 查询方法
+    public OrderResponse getOrderById(Long orderId, Long userId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;订单不存在&quot;));
+
+        if (!order.getBuyerId().equals(userId) &amp;&amp; !order.getSellerId().equals(userId)) {
+            throw new ForbiddenException(&quot;无权查看此订单&quot;);
+        }
+
+        OrderResponse response = OrderResponse.fromEntity(order);
+
+        // 设置评价状态
+        var reviews = orderReviewRepository.findByOrderId(orderId);
+        response.setHasBuyerReview(reviews.stream()
+                .anyMatch(r -&gt; r.getReviewType() == OrderReview.ReviewType.BUYER_REVIEW));
+        response.setHasSellerReview(reviews.stream()
+                .anyMatch(r -&gt; r.getReviewType() == OrderReview.ReviewType.SELLER_REVIEW));
+
+        return response;
+    }
+
+    public Page&lt;OrderResponse&gt; getBuyerOrders(Long buyerId, Pageable pageable) {
+        return orderRepository.findByBuyerId(buyerId, pageable)
+                .map(OrderResponse::fromEntity);
+    }
+
+    public Page&lt;OrderResponse&gt; getSellerOrders(Long sellerId, Pageable pageable) {
+        return orderRepository.findBySellerId(sellerId, pageable)
+                .map(OrderResponse::fromEntity);
+    }
+
+    // 记录订单日志
+    private void logOrderAction(Long orderId, Long operatorId, OrderLog.OperatorRole role,
+                                String action, Order.OrderStatus fromStatus,
+                                Order.OrderStatus toStatus, String remark) {
+        OrderLog log = new OrderLog();
+        log.setOrderId(orderId);
+        log.setOperatorId(operatorId);
+        log.setOperatorRole(role);
+        log.setAction(action);
+        log.setFromStatus(fromStatus);
+        log.setToStatus(toStatus);
+        log.setRemark(remark);
+        orderLogRepository.save(log);
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>六、用户端订单控制器</h3>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.controller;
+
+import com.aisale.backend.dto.ApiResponse;
+import com.aisale.backend.dto.OrderRequest;
+import com.aisale.backend.dto.OrderResponse;
+import com.aisale.backend.entity.Order;
+import com.aisale.backend.service.OrderService;
+import com.aisale.backend.util.JwtRequestUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
+@Tag(name = &quot;用户端订单&quot;, description = &quot;用户订单管理接口&quot;)
+@RestController
+@RequestMapping(&quot;/api/user/orders&quot;)
+@RequiredArgsConstructor
+public class UserOrderController {
+
+    private final OrderService orderService;
+    private final JwtRequestUtils jwtRequestUtils;
+
+    @Operation(summary = &quot;创建订单&quot;)
+    @PostMapping
+    public ApiResponse&lt;OrderResponse&gt; createOrder(
+            @Valid @RequestBody OrderRequest request,
+            HttpServletRequest httpRequest) {
+        Long buyerId = jwtRequestUtils.getCurrentUserId(httpRequest);
+        OrderResponse order = orderService.createOrder(request, buyerId);
+        return ApiResponse.success(&quot;订单创建成功&quot;, order);
+    }
+
+    @Operation(summary = &quot;获取订单列表（买家视角）&quot;)
+    @GetMapping(&quot;/buyer&quot;)
+    public ApiResponse&lt;Page&lt;OrderResponse&gt;&gt; getBuyerOrders(
+            HttpServletRequest request,
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size) {
+        Long buyerId = jwtRequestUtils.getCurrentUserId(request);
+        Pageable pageable = PageRequest.of(page, size);
+        Page&lt;OrderResponse&gt; orders = orderService.getBuyerOrders(buyerId, pageable);
+        return ApiResponse.success(orders);
+    }
+
+    @Operation(summary = &quot;获取订单列表（卖家视角）&quot;)
+    @GetMapping(&quot;/seller&quot;)
+    public ApiResponse&lt;Page&lt;OrderResponse&gt;&gt; getSellerOrders(
+            HttpServletRequest request,
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size) {
+        Long sellerId = jwtRequestUtils.getCurrentUserId(request);
+        Pageable pageable = PageRequest.of(page, size);
+        Page&lt;OrderResponse&gt; orders = orderService.getSellerOrders(sellerId, pageable);
+        return ApiResponse.success(orders);
+    }
+
+    @Operation(summary = &quot;获取订单详情&quot;)
+    @GetMapping(&quot;/{id}&quot;)
+    public ApiResponse&lt;OrderResponse&gt; getOrderById(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        Long userId = jwtRequestUtils.getCurrentUserId(request);
+        OrderResponse order = orderService.getOrderById(id, userId);
+        return ApiResponse.success(order);
+    }
+
+    @Operation(summary = &quot;付款&quot;)
+    @PutMapping(&quot;/{id}/pay&quot;)
+    public ApiResponse&lt;OrderResponse&gt; payOrder(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        Long buyerId = jwtRequestUtils.getCurrentUserId(request);
+        OrderResponse order = orderService.payOrder(id, buyerId);
+        return ApiResponse.success(&quot;付款成功&quot;, order);
+    }
+
+    @Operation(summary = &quot;确认提货&quot;)
+    @PutMapping(&quot;/{id}/pickup&quot;)
+    public ApiResponse&lt;OrderResponse&gt; confirmPickup(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        Long buyerId = jwtRequestUtils.getCurrentUserId(request);
+        OrderResponse order = orderService.confirmPickup(id, buyerId);
+        return ApiResponse.success(&quot;提货成功&quot;, order);
+    }
+
+    @Operation(summary = &quot;确认收款（卖家）&quot;)
+    @PutMapping(&quot;/{id}/confirm&quot;)
+    public ApiResponse&lt;OrderResponse&gt; confirmPayment(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        Long sellerId = jwtRequestUtils.getCurrentUserId(request);
+        OrderResponse order = orderService.confirmPayment(id, sellerId);
+        return ApiResponse.success(&quot;确认收款成功&quot;, order);
+    }
+
+    @Operation(summary = &quot;取消订单&quot;)
+    @PutMapping(&quot;/{id}/cancel&quot;)
+    public ApiResponse&lt;OrderResponse&gt; cancelOrder(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason,
+            HttpServletRequest request) {
+        Long userId = jwtRequestUtils.getCurrentUserId(request);
+        OrderResponse order = orderService.cancelOrder(id, userId, reason, true);
+        return ApiResponse.success(&quot;订单已取消&quot;, order);
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>七、管理端订单控制器</h3>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.controller;
+
+import com.aisale.backend.dto.ApiResponse;
+import com.aisale.backend.dto.OrderResponse;
+import com.aisale.backend.entity.Order;
+import com.aisale.backend.entity.OrderLog;
+import com.aisale.backend.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.*;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Tag(name = &quot;订单管理&quot;, description = &quot;订单管理接口（管理端）&quot;)
+@RestController
+@RequestMapping(&quot;/api/admin/orders&quot;)
+@RequiredArgsConstructor
+public class AdminOrderController {
+
+    private final OrderService orderService;
+
+    @Operation(summary = &quot;获取所有订单&quot;)
+    @GetMapping
+    public ApiResponse&lt;Page&lt;OrderResponse&gt;&gt; getAllOrders(
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page&lt;OrderResponse&gt; orders = orderService.getAllOrders(pageable);
+        return ApiResponse.success(orders);
+    }
+
+    @Operation(summary = &quot;获取订单详情&quot;)
+    @GetMapping(&quot;/{id}&quot;)
+    public ApiResponse&lt;OrderResponse&gt; getOrderById(@PathVariable Long id) {
+        OrderResponse order = orderService.getOrderByIdForAdmin(id);
+        return ApiResponse.success(order);
+    }
+
+    @Operation(summary = &quot;多条件查询订单&quot;)
+    @GetMapping(&quot;/search&quot;)
+    public ApiResponse&lt;Page&lt;OrderResponse&gt;&gt; searchOrders(
+            @RequestParam(required = false) String orderNo,
+            @RequestParam(required = false) Long buyerId,
+            @RequestParam(required = false) Long sellerId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;10&quot;) int size) {
+
+        Order.OrderStatus orderStatus = null;
+        if (status != null &amp;&amp; !status.isEmpty()) {
+            orderStatus = Order.OrderStatus.valueOf(status.toUpperCase());
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page&lt;OrderResponse&gt; orders = orderService.searchOrders(
+                orderNo, buyerId, sellerId, orderStatus, startTime, endTime, pageable);
+        return ApiResponse.success(orders);
+    }
+
+    @Operation(summary = &quot;修改订单状态&quot;)
+    @PutMapping(&quot;/{id}/status&quot;)
+    public ApiResponse&lt;OrderResponse&gt; updateOrderStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+        Order.OrderStatus orderStatus = Order.OrderStatus.valueOf(status.toUpperCase());
+        OrderResponse order = orderService.updateOrderStatus(id, orderStatus, null);
+        return ApiResponse.success(&quot;订单状态已更新&quot;, order);
+    }
+
+    @Operation(summary = &quot;添加管理员备注&quot;)
+    @PutMapping(&quot;/{id}/remark&quot;)
+    public ApiResponse&lt;OrderResponse&gt; updateAdminRemark(
+            @PathVariable Long id,
+            @RequestParam String remark) {
+        OrderResponse order = orderService.updateAdminRemark(id, remark, null);
+        return ApiResponse.success(&quot;备注已添加&quot;, order);
+    }
+
+    @Operation(summary = &quot;获取订单统计&quot;)
+    @GetMapping(&quot;/stats&quot;)
+    public ApiResponse&lt;OrderService.OrderStats&gt; getOrderStats() {
+        OrderService.OrderStats stats = orderService.getOrderStats();
+        return ApiResponse.success(stats);
+    }
+
+    @Operation(summary = &quot;获取订单日志&quot;)
+    @GetMapping(&quot;/{id}/logs&quot;)
+    public ApiResponse&lt;List&lt;OrderLog&gt;&gt; getOrderLogs(@PathVariable Long id) {
+        List&lt;OrderLog&gt; logs = orderService.getOrderLogs(id);
+        return ApiResponse.success(logs);
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>八、订单API接口清单</h3>
+<h4>8.1 用户端接口</h4>
+<table><thead><tr>
+<th>方法</th>
+<th>路径</th>
+<th>说明</th>
+<th>权限</th>
+</tr></thead><tbody>
+<tr>
+<td>POST</td>
+<td>/api/user/orders</td>
+<td>创建订单</td>
+<td>登录</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/user/orders/buyer</td>
+<td>买家订单列表</td>
+<td>登录</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/user/orders/seller</td>
+<td>卖家订单列表</td>
+<td>登录</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/user/orders/{id}</td>
+<td>订单详情</td>
+<td>登录</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>/api/user/orders/{id}/pay</td>
+<td>付款</td>
+<td>登录</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>/api/user/orders/{id}/pickup</td>
+<td>确认提货</td>
+<td>登录</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>/api/user/orders/{id}/confirm</td>
+<td>确认收款（卖家）</td>
+<td>登录</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>/api/user/orders/{id}/cancel</td>
+<td>取消订单</td>
+<td>登录</td>
+</tr>
+</tbody></table>
+<h4>8.2 管理端接口</h4>
+<table><thead><tr>
+<th>方法</th>
+<th>路径</th>
+<th>说明</th>
+<th>权限</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td>/api/admin/orders</td>
+<td>所有订单</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/admin/orders/{id}</td>
+<td>订单详情</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/admin/orders/search</td>
+<td>多条件查询</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>/api/admin/orders/{id}/status</td>
+<td>修改状态</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>/api/admin/orders/{id}/remark</td>
+<td>添加备注</td>
+<td>ADMIN</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/api/admin/orders/stats</td>
+<td>订单统计</td>
+<td>ADMIN</td>
+</tr>
+</tbody></table>
+<p>---</p>
+<h3>九、前端订单API封装</h3>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">TYPESCRIPT</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>import request from '@/utils/request'
+import type { OrderRequest, OrderResponse } from './types'
+
+export const orderApi = {
+  // 用户接口
+  createOrder(data: OrderRequest) {
+    return request.post&lt;any, OrderResponse&gt;('/user/orders', data)
+  },
+
+  getBuyerOrders(page: number = 0, size: number = 10) {
+    return request.get&lt;any, Page&lt;OrderResponse&gt;&gt;('/user/orders/buyer', {
+      params: { page, size }
+    })
+  },
+
+  getSellerOrders(page: number = 0, size: number = 10) {
+    return request.get&lt;any, Page&lt;OrderResponse&gt;&gt;('/user/orders/seller', {
+      params: { page, size }
+    })
+  },
+
+  getOrderById(id: number) {
+    return request.get&lt;any, OrderResponse&gt;(`/user/orders/${id}`)
+  },
+
+  payOrder(id: number) {
+    return request.put&lt;any, OrderResponse&gt;(`/user/orders/${id}/pay`)
+  },
+
+  confirmPickup(id: number) {
+    return request.put&lt;any, OrderResponse&gt;(`/user/orders/${id}/pickup`)
+  },
+
+  confirmPayment(id: number) {
+    return request.put&lt;any, OrderResponse&gt;(`/user/orders/${id}/confirm`)
+  },
+
+  cancelOrder(id: number, reason?: string) {
+    return request.put&lt;any, OrderResponse&gt;(`/user/orders/${id}/cancel`, null, {
+      params: { reason }
+    })
+  },
+
+  // 管理接口
+  getAllOrders(params: any) {
+    return request.get&lt;any, Page&lt;OrderResponse&gt;&gt;('/admin/orders', { params })
+  },
+
+  getOrderStats() {
+    return request.get&lt;any, OrderStats&gt;('/admin/orders/stats')
+  },
+
+  updateOrderStatus(id: number, status: string) {
+    return request.put&lt;any, OrderResponse&gt;(`/admin/orders/${id}/status`, null, {
+      params: { status }
+    })
+  },
+
+  getOrderLogs(id: number) {
+    return request.get&lt;any, OrderLog[]&gt;(`/admin/orders/${id}/logs`)
+  }
+}
+
+interface Page&lt;T&gt; {
+  content: T[]
+  totalElements: number
+  totalPages: number
+  number: number
+  size: number
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>十、订单状态颜色标识</h3>
+<p>在前端展示订单状态时，可使用以下颜色：</p>
+<table><thead><tr>
+<th>状态</th>
+<th>颜色</th>
+<th>说明</th>
+</tr></thead><tbody>
+<tr>
+<td>PENDING_PAYMENT</td>
+<td>orange</td>
+<td>待付款，需要提醒用户</td>
+</tr>
+<tr>
+<td>PENDING_PICKUP</td>
+<td>blue</td>
+<td>待提货，进行中</td>
+</tr>
+<tr>
+<td>PENDING_CONFIRM</td>
+<td>purple</td>
+<td>待确认，进行中</td>
+</tr>
+<tr>
+<td>PENDING_REVIEW</td>
+<td>cyan</td>
+<td>待评价，接近完成</td>
+</tr>
+<tr>
+<td>COMPLETED</td>
+<td>green</td>
+<td>已完成，成功状态</td>
+</tr>
+<tr>
+<td>CANCELLED</td>
+<td>gray</td>
+<td>已取消，终止状态</td>
+</tr>
+<tr>
+<td>REFUNDED</td>
+<td>red</td>
+<td>已退款，异常状态</td>
+</tr>
+</tbody></table>
+<p>---</p>
+<h3>十一、常见问题</h3>
+<h4>11.1 订单号生成</h4>
+<p><strong>Q: 如何避免订单号重复？</strong></p>
+<p>A: 使用时间戳+随机数，或数据库序列：</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>private String generateOrderNo() {
+    String timestamp = LocalDateTime.now().format(FORMATTER);
+    Random random = new Random();
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i &lt; 6; i++) {
+        sb.append(random.nextInt(10));
+    }
+    return timestamp + sb;
+}</code></pre>
+            </div>
+            
+<h4>11.2 并发控制</h4>
+<p><strong>Q: 如何防止并发创建订单？</strong></p>
+<p>A: 使用数据库事务+唯一约束：</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>@Transactional
+public OrderResponse createOrder(...) {
+    // 在事务内检查+创建
+}</code></pre>
+            </div>
+            
+<h4>11.3 订单超时取消</h4>
+<p><strong>Q: 如何实现订单超时自动取消？</strong></p>
+<p>A: 使用定时任务：</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>@Scheduled(fixedRate = 60000) // 每分钟执行
+public void cancelExpiredOrders() {
+    LocalDateTime expireTime = LocalDateTime.now().minusMinutes(30);
+    // 查询并取消超时订单
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<p>最后更新: 2026-04-22</p>
+<p>文档版本: 1.0</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 代码复制功能
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-wrapper').querySelector('code');
+            const text = codeBlock.innerText;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ 已复制';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                btn.innerHTML = '✗ 失败';
+                setTimeout(() => {
+                    btn.innerHTML = '复制';
+                }, 2000);
+            });
+        }
+
+        // 页面加载完成后为所有代码块添加复制按钮
+        document.addEventListener('DOMContentLoaded', () => {
+            const codeWrappers = document.querySelectorAll('.code-wrapper');
+            codeWrappers.forEach(wrapper => {
+                if (!wrapper.querySelector('.copy-btn')) {
+                    const header = wrapper.querySelector('.code-header');
+                    if (header) {
+                        const btn = document.createElement('button');
+                        btn.className = 'copy-btn';
+                        btn.innerHTML = '📋 复制';
+                        btn.onclick = function() { copyCode(this); };
+                        header.appendChild(btn);
+                    }
+                }
+            });
+        });
+
+        // 设置当前页面高亮
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

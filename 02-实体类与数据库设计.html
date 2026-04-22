@@ -1,0 +1,2546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>02 实体类与数据库设计</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #faf3f0 0%, #ffffff 100%);
+            color: #333;
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边导航 */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #f0e6e0;
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-title {
+            padding: 0 25px 20px;
+            border-bottom: 1px solid #f0e6e0;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-title h1 {
+            font-size: 18px;
+            color: #e07b5a;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-title p {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-list {
+            list-style: none;
+        }
+        
+        .nav-item {
+            padding: 0 20px;
+        }
+        
+        .nav-item a {
+            display: block;
+            padding: 12px 15px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item a:hover {
+            background: #faf3f0;
+            color: #e07b5a;
+        }
+        
+        .nav-item a.active {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            color: #e07b5a;
+            font-weight: 500;
+        }
+        
+        .nav-category {
+            padding: 15px 25px 8px;
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+        }
+        
+        .content-header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0e6e0;
+        }
+        
+        .content-header h1 {
+            font-size: 32px;
+            color: #2c2c2c;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .content-header p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .content-body h2 {
+            font-size: 24px;
+            color: #e07b5a;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .content-body h3 {
+            font-size: 20px;
+            color: #333;
+            margin: 30px 0 15px;
+        }
+        
+        .content-body h4 {
+            font-size: 17px;
+            color: #444;
+            margin: 25px 0 12px;
+        }
+        
+        .content-body p {
+            margin: 15px 0;
+            color: #555;
+        }
+        
+        .content-body ul, .content-body ol {
+            margin: 15px 0;
+            padding-left: 25px;
+            color: #555;
+        }
+        
+        .content-body li {
+            margin: 8px 0;
+        }
+        
+        .content-body a {
+            color: #e07b5a;
+            text-decoration: none;
+        }
+        
+        .content-body a:hover {
+            text-decoration: underline;
+        }
+        
+        .content-body strong {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        /* 代码块样式 */
+        .code-wrapper {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #faf8f6;
+            border: 1px solid #f0e6e0;
+        }
+        
+        .code-header {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0e6e0;
+        }
+        
+        .code-lang {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+        
+        .copy-btn {
+            background: #ffffff;
+            border: 1px solid #e0e6e0;
+            color: #666;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .copy-btn:hover {
+            background: #f5e6df;
+            border-color: #e07b5a;
+            color: #e07b5a;
+        }
+        
+        .copy-btn.copied {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: #fff;
+        }
+        
+        .code-wrapper pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            background: transparent;
+        }
+        
+        .code-wrapper code {
+            font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", Consolas, Monaco, "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #444;
+            background: transparent;
+        }
+        
+        /* 表格样式 */
+        .content-body table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .content-body th {
+            background: linear-gradient(135deg, #f5e6df, #faf3f0);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #e07b5a;
+        }
+        
+        .content-body td {
+            padding: 12px 15px;
+            border-top: 1px solid #f0e6e0;
+        }
+        
+        /* 提示框样式 */
+        .tip-box {
+            background: #faf8f6;
+            border-left: 4px solid #e07b5a;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip-box p {
+            margin: 0;
+            color: #666;
+        }
+        
+        .tip-box strong {
+            color: #e07b5a;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: 240px;
+                padding: 30px 40px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边导航 -->
+        <nav class="sidebar">
+            <div class="sidebar-title">
+                <h1>📚 AiSale 教程</h1>
+                <p>校园二手交易平台学习指南</p>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">首页</a>
+                </li>
+                <li class="nav-category">基础篇</li>
+                <li class="nav-item">
+                    <a href="00-基础依赖与环境配置.html" class="nav-link">00 基础依赖与环境配置</a>
+                </li>
+                <li class="nav-item">
+                    <a href="01-项目初始化与基础设施.html" class="nav-link">01 项目初始化与基础设施</a>
+                </li>
+                <li class="nav-item">
+                    <a href="02-实体类与数据库设计.html" class="nav-link">02 实体类与数据库设计</a>
+                </li>
+                <li class="nav-category">核心篇</li>
+                <li class="nav-item">
+                    <a href="03-用户认证模块开发.html" class="nav-link">03 用户认证模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="04-商品管理模块开发.html" class="nav-link">04 商品管理模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="05-订单管理模块开发.html" class="nav-link">05 订单管理模块开发</a>
+                </li>
+                <li class="nav-category">进阶篇</li>
+                <li class="nav-item">
+                    <a href="06-用户地址与信息管理模块.html" class="nav-link">06 用户地址与信息管理</a>
+                </li>
+                <li class="nav-item">
+                    <a href="07-文件上传与OSS模块开发.html" class="nav-link">07 文件上传与OSS模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="08-IM即时通讯模块开发.html" class="nav-link">08 IM即时通讯模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="09-日志模块开发.html" class="nav-link">09 日志模块开发</a>
+                </li>
+                <li class="nav-item">
+                    <a href="10-商品搜索与推荐模块.html" class="nav-link">10 商品搜索与推荐模块</a>
+                </li>
+                <li class="nav-item">
+                    <a href="11-签到积分信誉模块开发.html" class="nav-link">11 签到积分信誉模块</a>
+                </li>
+                <li class="nav-category">前端与部署</li>
+                <li class="nav-item">
+                    <a href="12-前端开发完整指南.html" class="nav-link">12 前端开发完整指南</a>
+                </li>
+                <li class="nav-item">
+                    <a href="13-测试与部署.html" class="nav-link">13 测试与部署</a>
+                </li>
+                <li class="nav-item">
+                    <a href="14-项目总结与扩展.html" class="nav-link">14 项目总结与扩展</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>02 实体类与数据库设计</h1>
+                <p>AiSale 校园二手交易平台学习指南 - 02 实体类与数据库设计</p>
+            </div>
+            <div class="content-body">
+                <h2>02 实体类与数据库设计</h2>
+<p>学习时长: 2-3 天</p>
+<p>难度: ⭐⭐⭐☆☆</p>
+<p>前置知识: JPA基础、数据库设计基础、Java泛型</p>
+<p>---</p>
+<h3>一、本章概述</h3>
+<p>本章将创建项目中所有的实体类（Entity）和数据访问层（Repository），这是整个项目的数据基础。</p>
+<p><strong>学习内容:</strong></p>
+<ul><li>用户相关实体（User、Admin、Address）</li>
+<li>商品相关实体（Product）</li>
+<li>订单相关实体（Order、OrderReview、OrderLog）</li>
+<li>聊天相关实体（ChatMessage）</li>
+<li>积分/信誉/签到实体（PointAccount、PointRecord、ReputationAccount、ReputationRecord、CheckIn）</li>
+<li>系统相关实体（OperationLog、SearchHistory）</li>
+<li>Repository接口开发</li></ul>
+<p>---</p>
+<h3>二、实体类开发</h3>
+<h4>2.1 用户实体（User）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/User.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;users&quot;)
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(unique = true)
+    private String email;
+
+    @Column(unique = true)
+    private String phone;
+
+    private String nickname;
+
+    private String avatar;
+
+    @Enumerated(EnumType.STRING)
+    private UserStatus status = UserStatus.ACTIVE;
+
+    private Boolean emailVerified = false;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    public enum UserStatus {
+        ACTIVE, INACTIVE, BANNED
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>字段说明:</strong></p>
+<table><thead><tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>Long</td>
+<td>主键，自增</td>
+</tr>
+<tr>
+<td>username</td>
+<td>String</td>
+<td>用户名，唯一</td>
+</tr>
+<tr>
+<td>password</td>
+<td>String</td>
+<td>密码（加密后）</td>
+</tr>
+<tr>
+<td>email</td>
+<td>String</td>
+<td>邮箱，唯一</td>
+</tr>
+<tr>
+<td>phone</td>
+<td>String</td>
+<td>手机号，唯一</td>
+</tr>
+<tr>
+<td>nickname</td>
+<td>String</td>
+<td>昵称</td>
+</tr>
+<tr>
+<td>avatar</td>
+<td>String</td>
+<td>头像URL</td>
+</tr>
+<tr>
+<td>status</td>
+<td>Enum</td>
+<td>状态：ACTIVE/INACTIVE/BANNED</td>
+</tr>
+<tr>
+<td>emailVerified</td>
+<td>Boolean</td>
+<td>邮箱是否验证</td>
+</tr>
+<tr>
+<td>createdAt</td>
+<td>LocalDateTime</td>
+<td>创建时间</td>
+</tr>
+<tr>
+<td>updatedAt</td>
+<td>LocalDateTime</td>
+<td>更新时间</td>
+</tr>
+</tbody></table>
+<h4>2.2 管理员实体（Admin）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/Admin.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;admins&quot;)
+public class Admin {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(unique = true)
+    private String email;
+
+    private String nickname;
+
+    private String avatar;
+
+    @Enumerated(EnumType.STRING)
+    private AdminRole role = AdminRole.ADMIN;
+
+    @Enumerated(EnumType.STRING)
+    private AdminStatus status = AdminStatus.ACTIVE;
+
+    private LocalDateTime lastLoginAt;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    public enum AdminRole {
+        SUPER_ADMIN, ADMIN
+    }
+
+    public enum AdminStatus {
+        ACTIVE, INACTIVE
+    }
+}</code></pre>
+            </div>
+            
+<h4>2.3 地址实体（Address）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/Address.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;addresses&quot;)
+public class Address {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;user_id&quot;, nullable = false)
+    private User user;
+
+    @Column(nullable = false)
+    private String receiverName;
+
+    @Column(nullable = false)
+    private String receiverPhone;
+
+    @Column(nullable = false)
+    private String province;
+
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private String district;
+
+    @Column(nullable = false, length = 500)
+    private String detailAddress;
+
+    private Boolean isDefault = false;
+
+    @Enumerated(EnumType.STRING)
+    private AddressStatus status = AddressStatus.ACTIVE;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    public enum AddressStatus {
+        ACTIVE, DELETED
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>关系说明:</strong></p>
+<ul><li>与User是<strong>多对一</strong>关系（一个用户有多个地址）</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@ManyToOne(fetch = FetchType.LAZY)</code> 懒加载，避免N+1查询</li></ul>
+<h4>2.4 商品实体（Product）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/Product.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@Entity
+@Table(name = &quot;products&quot;, indexes = {
+    @Index(name = &quot;idx_product_name&quot;, columnList = &quot;name&quot;),
+    @Index(name = &quot;idx_product_category&quot;, columnList = &quot;category&quot;),
+    @Index(name = &quot;idx_product_status&quot;, columnList = &quot;status&quot;),
+    @Index(name = &quot;idx_product_sales&quot;, columnList = &quot;sales_count&quot;),
+    @Index(name = &quot;idx_product_views&quot;, columnList = &quot;view_count&quot;),
+    @Index(name = &quot;idx_product_status_sales&quot;, columnList = &quot;status, sales_count DESC&quot;),
+    @Index(name = &quot;idx_product_price&quot;, columnList = &quot;price&quot;),
+    @Index(name = &quot;idx_product_created&quot;, columnList = &quot;createdAt DESC&quot;)
+})
+public class Product {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(length = 2000)
+    private String description;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal originalPrice;
+
+    @Column(nullable = false)
+    private Integer stock = 0;
+
+    private String mainImage;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = &quot;product_images&quot;, joinColumns = @JoinColumn(name = &quot;product_id&quot;))
+    @Column(name = &quot;image_url&quot;)
+    private List&lt;String&gt; images = new ArrayList&lt;&gt;();
+
+    @Column(length = 50)
+    private String category;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = &quot;product_tags&quot;, joinColumns = @JoinColumn(name = &quot;product_id&quot;))
+    @Column(name = &quot;tag&quot;)
+    private List&lt;String&gt; tags = new ArrayList&lt;&gt;();
+
+    @Column(precision = 3, scale = 2)
+    private BigDecimal discount;
+
+    private Boolean isOnSale = true;
+
+    private Boolean isFeatured = false;
+
+    private Integer salesCount = 0;
+
+    private Integer viewCount = 0;
+
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status = ProductStatus.ON_SALE;
+
+    @Column(name = &quot;seller_id&quot;)
+    private Long sellerId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;seller_id&quot;, insertable = false, updatable = false)
+    private User seller;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (originalPrice.compareTo(BigDecimal.ZERO) == 0) {
+            originalPrice = price;
+        }
+        if (originalPrice.compareTo(BigDecimal.ZERO) &gt; 0) {
+            discount = price.divide(originalPrice, 2, java.math.RoundingMode.HALF_UP);
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+        if (originalPrice.compareTo(BigDecimal.ZERO) &gt; 0) {
+            discount = price.divide(originalPrice, 2, java.math.RoundingMode.HALF_UP);
+        }
+    }
+
+    public enum ProductStatus {
+        ON_SALE,      // 在售
+        OFF_SALE,     // 下架
+        OUT_OF_STOCK  // 售罄
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>特殊设计说明:</strong></p>
+<ol><li><strong>索引优化</strong>: 添加了8个索引，提升查询性能</li>
+<li><strong>ElementCollection</strong>: 用于存储多值字段（图片列表、标签列表）</li>
+<li><strong>自动计算折扣</strong>: 在<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@PrePersist</code>和<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@PreUpdate</code>中自动计算折扣</li>
+<li><strong>关系映射</strong>:</li></ol>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Column(name = "seller_id")</code> 存储卖家ID</p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@ManyToOne</code> 关联User实体，用于查询时获取卖家信息</p>
+<h4>2.5 订单实体（Order）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/Order.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;orders&quot;)
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;order_no&quot;, unique = true, nullable = false, length = 32)
+    private String orderNo;
+
+    @Column(name = &quot;buyer_id&quot;, nullable = false)
+    private Long buyerId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;buyer_id&quot;, insertable = false, updatable = false)
+    private User buyer;
+
+    @Column(name = &quot;seller_id&quot;, nullable = false)
+    private Long sellerId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;seller_id&quot;, insertable = false, updatable = false)
+    private User seller;
+
+    @Column(name = &quot;product_id&quot;, nullable = false)
+    private Long productId;
+
+    @Column(name = &quot;product_name&quot;, nullable = false, length = 255)
+    private String productName;
+
+    @Column(name = &quot;product_image&quot;, length = 500)
+    private String productImage;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+
+    @Column(nullable = false)
+    private Integer quantity = 1;
+
+    @Column(name = &quot;total_amount&quot;, nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalAmount;
+
+    @Column(name = &quot;meet_location&quot;, length = 500)
+    private String meetLocation;
+
+    @Column(name = &quot;meet_time&quot;)
+    private LocalDateTime meetTime;
+
+    @Column(name = &quot;buyer_remark&quot;, length = 500)
+    private String buyerRemark;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status = OrderStatus.PENDING_PAYMENT;
+
+    @Column(name = &quot;payment_time&quot;)
+    private LocalDateTime paymentTime;
+
+    @Column(name = &quot;pickup_time&quot;)
+    private LocalDateTime pickupTime;
+
+    @Column(name = &quot;confirm_time&quot;)
+    private LocalDateTime confirmTime;
+
+    @Column(name = &quot;complete_time&quot;)
+    private LocalDateTime completeTime;
+
+    @Column(name = &quot;cancel_time&quot;)
+    private LocalDateTime cancelTime;
+
+    @Column(name = &quot;cancel_reason&quot;, length = 500)
+    private String cancelReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;cancel_role&quot;)
+    private CancelRole cancelRole;
+
+    @Column(name = &quot;admin_remark&quot;, length = 500)
+    private String adminRemark;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 订单状态枚举
+     */
+    public enum OrderStatus {
+        PENDING_PAYMENT,  // 待付款
+        PENDING_PICKUP,   // 待提货
+        PENDING_CONFIRM,  // 待确认
+        PENDING_REVIEW,   // 待评价
+        COMPLETED,        // 已完成
+        CANCELLED,        // 已取消
+        REFUNDED          // 已退款
+    }
+
+    /**
+     * 取消方枚举
+     */
+    public enum CancelRole {
+        BUYER,   // 买家取消
+        SELLER,  // 卖家取消
+        SYSTEM   // 系统取消
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>订单状态流转:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>PENDING_PAYMENT → PENDING_PICKUP → PENDING_CONFIRM → PENDING_REVIEW → COMPLETED
+       ↓                  ↓                ↓
+   CANCELLED          CANCELLED        CANCELLED</code></pre>
+            </div>
+            
+<p><strong>特殊设计:</strong></p>
+<ul><li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">orderNo</code>: 唯一订单号，用于业务查询</li>
+<li>冗余字段: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">productName</code>、<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">productImage</code> 避免关联查询</li>
+<li>时间戳: 记录每个状态变更的时间</li></ul>
+<h4>2.6 订单评价实体（OrderReview）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/OrderReview.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;order_reviews&quot;)
+public class OrderReview {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;order_id&quot;, nullable = false)
+    private Long orderId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;order_id&quot;, insertable = false, updatable = false)
+    private Order order;
+
+    @Column(name = &quot;reviewer_id&quot;, nullable = false)
+    private Long reviewerId;
+
+    @Column(name = &quot;reviewee_id&quot;, nullable = false)
+    private Long revieweeId;
+
+    @Column(name = &quot;product_id&quot;)
+    private Long productId;
+
+    @Column(nullable = false)
+    private Integer rating;
+
+    @Column(length = 1000)
+    private String content;
+
+    @Column(name = &quot;reply_content&quot;, length = 1000)
+    private String replyContent;
+
+    @Column(name = &quot;reply_time&quot;)
+    private LocalDateTime replyTime;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;review_type&quot;, nullable = false)
+    private ReviewType reviewType;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 评价类型枚举
+     */
+    public enum ReviewType {
+        BUYER_REVIEW,   // 买家评价卖家
+        SELLER_REVIEW   // 卖家评价买家
+    }
+}</code></pre>
+            </div>
+            
+<h4>2.7 订单日志实体（OrderLog）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/OrderLog.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;order_logs&quot;)
+public class OrderLog {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;order_id&quot;, nullable = false)
+    private Long orderId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;order_id&quot;, insertable = false, updatable = false)
+    private Order order;
+
+    @Column(name = &quot;operator_id&quot;)
+    private Long operatorId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;operator_role&quot;)
+    private OperatorRole operatorRole;
+
+    @Column(nullable = false, length = 50)
+    private String action;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;from_status&quot;)
+    private Order.OrderStatus fromStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;to_status&quot;)
+    private Order.OrderStatus toStatus;
+
+    @Column(length = 500)
+    private String remark;
+
+    @Column(name = &quot;create_time&quot;)
+    private LocalDateTime createTime;
+
+    @PrePersist
+    protected void onCreate() {
+        createTime = LocalDateTime.now();
+    }
+
+    /**
+     * 操作人角色枚举
+     */
+    public enum OperatorRole {
+        BUYER,    // 买家
+        SELLER,   // 卖家
+        SYSTEM,   // 系统
+        ADMIN     // 管理员
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>用途:</strong> 记录订单的所有状态变更历史，用于追溯和审计。</p>
+<h4>2.8 聊天消息实体（ChatMessage）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/ChatMessage.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = &quot;chat_messages&quot;)
+public class ChatMessage {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;sender_id&quot;, nullable = false)
+    private Long senderId;
+
+    @Column(name = &quot;receiver_id&quot;, nullable = false)
+    private Long receiverId;
+
+    @Column(name = &quot;content&quot;, nullable = false, length = 1000)
+    private String content;
+
+    @Column(name = &quot;message_type&quot;, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private MessageType messageType;
+
+    @Column(name = &quot;is_read&quot;)
+    @Builder.Default
+    private Boolean isRead = false;
+
+    @Column(name = &quot;created_at&quot;, nullable = false)
+    private LocalDateTime createdAt;
+
+    public enum MessageType {
+        TEXT,
+        IMAGE,
+        SYSTEM
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>特殊注解:</strong></p>
+<ul><li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Builder</code>: 支持Builder模式创建对象</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Builder.Default</code>: 设置Builder模式下的默认值</li></ul>
+<h4>2.9 积分账户实体（PointAccount）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/PointAccount.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;point_accounts&quot;, indexes = {
+    @Index(name = &quot;idx_point_account_user&quot;, columnList = &quot;user_id&quot;, unique = true)
+})
+public class PointAccount {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;user_id&quot;, nullable = false, unique = true)
+    private Long userId;
+
+    /** 总累计积分 */
+    @Column(name = &quot;total_points&quot;, nullable = false)
+    private Integer totalPoints = 0;
+
+    /** 可用积分（总积分 - 已消费积分） */
+    @Column(name = &quot;available_points&quot;, nullable = false)
+    private Integer availablePoints = 0;
+
+    /** 已消费积分 */
+    @Column(name = &quot;used_points&quot;, nullable = false)
+    private Integer usedPoints = 0;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}</code></pre>
+            </div>
+            
+<h4>2.10 积分记录实体（PointRecord）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/PointRecord.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;point_records&quot;, indexes = {
+    @Index(name = &quot;idx_point_record_user&quot;, columnList = &quot;user_id&quot;),
+    @Index(name = &quot;idx_point_record_user_type&quot;, columnList = &quot;user_id, type&quot;),
+    @Index(name = &quot;idx_point_record_created&quot;, columnList = &quot;created_at&quot;)
+})
+public class PointRecord {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;user_id&quot;, nullable = false)
+    private Long userId;
+
+    /** 积分变动类型 */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private PointType type;
+
+    /** 变动积分（正数增加，负数扣减） */
+    @Column(name = &quot;points&quot;, nullable = false)
+    private Integer points;
+
+    /** 变动后可用余额 */
+    @Column(name = &quot;balance_after&quot;, nullable = false)
+    private Integer balanceAfter;
+
+    /** 关联业务ID（如签到记录ID、订单ID等） */
+    @Column(name = &quot;related_id&quot;)
+    private Long relatedId;
+
+    /** 描述 */
+    @Column(length = 200)
+    private String description;
+
+    @Column(name = &quot;created_at&quot;, nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
+    /**
+     * 积分变动类型
+     */
+    public enum PointType {
+        /** 签到奖励 */
+        CHECK_IN,
+        /** 订单完成奖励 */
+        ORDER_COMPLETE,
+        /** 订单取消扣回 */
+        ORDER_CANCEL,
+        /** 管理员调整（加） */
+        ADMIN_ADD,
+        /** 管理员调整（减） */
+        ADMIN_DEDUCT,
+        /** 积分兑换消费 */
+        EXCHANGE
+    }
+}</code></pre>
+            </div>
+            
+<h4>2.11 信誉账户实体（ReputationAccount）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/ReputationAccount.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+/**
+ * 用户信誉账户实体
+ * 存储用户的信誉分、评价统计和等级信息
+ */
+@Data
+@Entity
+@Table(name = &quot;reputation_accounts&quot;, indexes = {
+    @Index(name = &quot;idx_reputation_account_user&quot;, columnList = &quot;user_id&quot;, unique = true)
+})
+public class ReputationAccount {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;user_id&quot;, nullable = false, unique = true)
+    private Long userId;
+
+    /** 总信誉分（初始100分） */
+    @Column(name = &quot;total_score&quot;, nullable = false)
+    private Integer totalScore = 100;
+
+    /** 收到的评价总数 */
+    @Column(name = &quot;total_reviews&quot;, nullable = false)
+    private Integer totalReviews = 0;
+
+    /** 好评数（4-5分） */
+    @Column(name = &quot;good_reviews&quot;, nullable = false)
+    private Integer goodReviews = 0;
+
+    /** 中评数（3分） */
+    @Column(name = &quot;neutral_reviews&quot;, nullable = false)
+    private Integer neutralReviews = 0;
+
+    /** 差评数（1-2分） */
+    @Column(name = &quot;bad_reviews&quot;, nullable = false)
+    private Integer badReviews = 0;
+
+    /** 平均评分（1-5） */
+    @Column(name = &quot;avg_rating&quot;)
+    private Double avgRating = 0.0;
+
+    /** 信誉等级（1-5级） */
+    @Column(name = &quot;level&quot;, nullable = false)
+    private Integer level = 3;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 信誉等级枚举
+     * 5级（优秀）：avgRating &gt;= 4.8, totalReviews &gt;= 50
+     * 4级（良好）：avgRating &gt;= 4.5, totalReviews &gt;= 20
+     * 3级（一般）：avgRating &gt;= 4.0 或 无评价
+     * 2级（较差）：avgRating &lt; 4.0
+     * 1级（极差）：avgRating &lt; 3.0
+     */
+    public enum ReputationLevel {
+        EXCELLENT(5, &quot;优秀&quot;, &quot;🌟🌟🌟🌟🌟&quot;),
+        GOOD(4, &quot;良好&quot;, &quot;🌟🌟🌟🌟&quot;),
+        NORMAL(3, &quot;一般&quot;, &quot;🌟🌟🌟&quot;),
+        POOR(2, &quot;较差&quot;, &quot;🌟🌟&quot;),
+        BAD(1, &quot;极差&quot;, &quot;🌟&quot;);
+
+        private final int level;
+        private final String name;
+        private final String icon;
+
+        ReputationLevel(int level, String name, String icon) {
+            this.level = level;
+            this.name = name;
+            this.icon = icon;
+        }
+
+        public int getLevel() {
+            return level;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getIcon() {
+            return icon;
+        }
+
+        public static ReputationLevel fromLevel(int level) {
+            for (ReputationLevel rl : values()) {
+                if (rl.level == level) {
+                    return rl;
+                }
+            }
+            return NORMAL;
+        }
+
+        /**
+         * 根据评分和评价数计算等级
+         */
+        public static ReputationLevel calculate(double avgRating, int totalReviews) {
+            if (totalReviews == 0) {
+                return NORMAL; // 无评价默认一般
+            }
+            if (avgRating &gt;= 4.8 &amp;&amp; totalReviews &gt;= 50) {
+                return EXCELLENT;
+            }
+            if (avgRating &gt;= 4.5 &amp;&amp; totalReviews &gt;= 20) {
+                return GOOD;
+            }
+            if (avgRating &lt; 3.0) {
+                return BAD;
+            }
+            if (avgRating &lt; 4.0) {
+                return POOR;
+            }
+            return NORMAL;
+        }
+    }
+}</code></pre>
+            </div>
+            
+<h4>2.12 信誉记录实体（ReputationRecord）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/ReputationRecord.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+/**
+ * 信誉流水记录实体
+ * 记录用户信誉分变化的详细历史
+ */
+@Data
+@Entity
+@Table(name = &quot;reputation_records&quot;, indexes = {
+    @Index(name = &quot;idx_reputation_record_user&quot;, columnList = &quot;user_id&quot;),
+    @Index(name = &quot;idx_reputation_record_time&quot;, columnList = &quot;created_at&quot;)
+})
+public class ReputationRecord {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;user_id&quot;, nullable = false)
+    private Long userId;
+
+    /** 关联评价ID */
+    @Column(name = &quot;review_id&quot;)
+    private Long reviewId;
+
+    /** 记录类型 */
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;record_type&quot;, nullable = false)
+    private RecordType type;
+
+    /** 信誉变化（正/负） */
+    @Column(name = &quot;score_change&quot;, nullable = false)
+    private Integer scoreChange;
+
+    /** 变化后信誉分 */
+    @Column(name = &quot;balance_after&quot;, nullable = false)
+    private Integer balanceAfter;
+
+    /** 本次评分（如果来自评价） */
+    private Integer rating;
+
+    /** 评价内容摘要 */
+    @Column(length = 200)
+    private String content;
+
+    /** 描述说明 */
+    @Column(length = 500)
+    private String description;
+
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
+    /**
+     * 记录类型枚举
+     */
+    public enum RecordType {
+        /** 收到新评价 */
+        REVIEW_ADD,
+        /** 评价被回复 */
+        REVIEW_REPLY,
+        /** 管理员调整 */
+        ADMIN_ADJUST
+    }
+}</code></pre>
+            </div>
+            
+<h4>2.13 签到实体（CheckIn）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/CheckIn.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;check_ins&quot;, indexes = {
+    @Index(name = &quot;idx_checkin_user_date&quot;, columnList = &quot;user_id, check_in_date&quot;, unique = true)
+})
+public class CheckIn {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;user_id&quot;, nullable = false)
+    private Long userId;
+
+    @Column(name = &quot;check_in_date&quot;, nullable = false)
+    private LocalDate checkInDate;
+
+    @Column(name = &quot;continuous_days&quot;, nullable = false)
+    private Integer continuousDays = 1;
+
+    @Column(name = &quot;reward_points&quot;)
+    private Integer rewardPoints = 0;
+
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+}</code></pre>
+            </div>
+            
+<p><strong>特殊设计:</strong></p>
+<ul><li>唯一索引<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">(user<em>id, check</em>in_date)</code>确保每天只能签到一次</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">continuousDays</code>: 连续签到天数，用于计算额外奖励</li></ul>
+<h4>2.14 操作日志实体（OperationLog）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/OperationLog.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+/**
+ * 操作日志实体
+ * 记录系统中所有用户和管理员的操作行为
+ */
+@Data
+@Entity
+@Table(name = &quot;operation_logs&quot;, indexes = {
+    @Index(name = &quot;idx_operator_id&quot;, columnList = &quot;operatorId&quot;),
+    @Index(name = &quot;idx_module&quot;, columnList = &quot;module&quot;),
+    @Index(name = &quot;idx_action&quot;, columnList = &quot;action&quot;),
+    @Index(name = &quot;idx_create_time&quot;, columnList = &quot;createTime&quot;),
+    @Index(name = &quot;idx_operator_role&quot;, columnList = &quot;operatorRole&quot;)
+})
+public class OperationLog {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    /**
+     * 操作模块：如 USER, ORDER, PRODUCT, ADMIN 等
+     */
+    @Column(nullable = false, length = 50)
+    private String module;
+
+    /**
+     * 操作类型：如 LOGIN, LOGOUT, CREATE, UPDATE, DELETE, VIEW 等
+     */
+    @Column(nullable = false, length = 50)
+    private String action;
+
+    /**
+     * 操作人ID
+     */
+    @Column(name = &quot;operator_id&quot;)
+    private Long operatorId;
+
+    /**
+     * 操作人用户名
+     */
+    @Column(name = &quot;operator_name&quot;, length = 100)
+    private String operatorName;
+
+    /**
+     * 操作人角色
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;operator_role&quot;, length = 20)
+    private OperatorRole operatorRole;
+
+    /**
+     * 操作描述
+     */
+    @Column(length = 500)
+    private String description;
+
+    /**
+     * 请求方法
+     */
+    @Column(length = 10)
+    private String requestMethod;
+
+    /**
+     * 请求URL
+     */
+    @Column(length = 500)
+    private String requestUrl;
+
+    /**
+     * 请求参数
+     */
+    @Column(columnDefinition = &quot;TEXT&quot;)
+    private String requestParams;
+
+    /**
+     * 响应状态：SUCCESS, FAIL
+     */
+    @Column(length = 20)
+    private String status;
+
+    /**
+     * 响应消息
+     */
+    @Column(length = 500)
+    private String message;
+
+    /**
+     * 操作耗时（毫秒）
+     */
+    private Long duration;
+
+    /**
+     * 操作IP地址
+     */
+    @Column(length = 50)
+    private String ip;
+
+    /**
+     * 用户代理
+     */
+    @Column(length = 500)
+    private String userAgent;
+
+    /**
+     * 关联业务ID（如订单ID、用户ID等）
+     */
+    @Column(name = &quot;biz_id&quot;)
+    private Long bizId;
+
+    /**
+     * 关联业务类型
+     */
+    @Column(name = &quot;biz_type&quot;, length = 50)
+    private String bizType;
+
+    /**
+     * 创建时间
+     */
+    @Column(name = &quot;create_time&quot;)
+    private LocalDateTime createTime;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createTime == null) {
+            createTime = LocalDateTime.now();
+        }
+    }
+
+    /**
+     * 操作人角色枚举
+     */
+    public enum OperatorRole {
+        BUYER,    // 买家
+        SELLER,   // 卖家
+        ADMIN,   // 管理员
+        SYSTEM   // 系统
+    }
+
+    /**
+     * 操作模块枚举
+     */
+    public enum Module {
+        USER(&quot;用户模块&quot;),
+        PRODUCT(&quot;商品模块&quot;),
+        ORDER(&quot;订单模块&quot;),
+        ADDRESS(&quot;地址模块&quot;),
+        CHAT(&quot;聊天模块&quot;),
+        AUTH(&quot;认证模块&quot;),
+        ADMIN(&quot;管理模块&quot;),
+        SYSTEM(&quot;系统模块&quot;);
+
+        private final String description;
+
+        Module(String description) {
+            this.description = description;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+    }
+
+    /**
+     * 操作类型枚举
+     */
+    public enum ActionType {
+        LOGIN(&quot;登录&quot;),
+        LOGOUT(&quot;登出&quot;),
+        REGISTER(&quot;注册&quot;),
+        CREATE(&quot;创建&quot;),
+        UPDATE(&quot;更新&quot;),
+        DELETE(&quot;删除&quot;),
+        VIEW(&quot;查看&quot;),
+        QUERY(&quot;查询&quot;),
+        EXPORT(&quot;导出&quot;),
+        IMPORT(&quot;导入&quot;),
+        ENABLE(&quot;启用&quot;),
+        DISABLE(&quot;禁用&quot;),
+        APPROVE(&quot;审批通过&quot;),
+        REJECT(&quot;审批拒绝&quot;),
+        CANCEL(&quot;取消&quot;),
+        REFUND(&quot;退款&quot;),
+        SHIP(&quot;发货&quot;),
+        CONFIRM(&quot;确认&quot;);
+
+        private final String description;
+
+        ActionType(String description) {
+            this.description = description;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+    }
+}</code></pre>
+            </div>
+            
+<h4>2.15 搜索历史实体（SearchHistory）</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/SearchHistory.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;search_history&quot;)
+public class SearchHistory {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;user_id&quot;)
+    private Long userId;
+
+    @Column(nullable = false)
+    private String keyword;
+
+    @Column(name = &quot;search_count&quot;)
+    private Integer searchCount = 1;
+
+    @Column(name = &quot;last_search_time&quot;)
+    private LocalDateTime lastSearchTime;
+
+    @PrePersist
+    protected void onCreate() {
+        if (lastSearchTime == null) {
+            lastSearchTime = LocalDateTime.now();
+        }
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>三、Repository接口开发</h3>
+<h4>3.1 UserRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/UserRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
+
+@Repository
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    Optional&lt;User&gt; findByUsername(String username);
+    boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
+    boolean existsByPhone(String phone);
+}</code></pre>
+            </div>
+            
+<h4>3.2 AdminRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/AdminRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.Admin;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
+
+@Repository
+public interface AdminRepository extends JpaRepository&lt;Admin, Long&gt; {
+    Optional&lt;Admin&gt; findByUsername(String username);
+    boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
+}</code></pre>
+            </div>
+            
+<h4>3.3 AddressRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/AddressRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.Address;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface AddressRepository extends JpaRepository&lt;Address, Long&gt; {
+    List&lt;Address&gt; findByUserIdAndStatus(Long userId, Address.AddressStatus status);
+    Optional&lt;Address&gt; findByUserIdAndIsDefaultTrue(Long userId);
+    long countByUserIdAndStatus(Long userId, Address.AddressStatus status);
+}</code></pre>
+            </div>
+            
+<h4>3.4 ProductRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/ProductRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface ProductRepository extends JpaRepository&lt;Product, Long&gt; {
+    Page&lt;Product&gt; findByStatus(Product.ProductStatus status, Pageable pageable);
+    Page&lt;Product&gt; findBySellerId(Long sellerId, Pageable pageable);
+    Page&lt;Product&gt; findByCategory(String category, Pageable pageable);
+    
+    @Query(&quot;SELECT p FROM Product p WHERE p.status = 'ON_SALE' AND &quot; +
+           &quot;(p.name LIKE %:keyword% OR p.description LIKE %:keyword%)&quot;)
+    Page&lt;Product&gt; searchByKeyword(@Param(&quot;keyword&quot;) String keyword, Pageable pageable);
+    
+    @Query(&quot;SELECT p FROM Product p WHERE p.status = 'ON_SALE' ORDER BY p.salesCount DESC&quot;)
+    Page&lt;Product&gt; findHotProducts(Pageable pageable);
+    
+    @Query(&quot;SELECT p FROM Product p WHERE p.status = 'ON_SALE' ORDER BY p.createdAt DESC&quot;)
+    Page&lt;Product&gt; findLatestProducts(Pageable pageable);
+}</code></pre>
+            </div>
+            
+<h4>3.5 OrderRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/OrderRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.Order;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface OrderRepository extends JpaRepository&lt;Order, Long&gt; {
+    Page&lt;Order&gt; findByBuyerId(Long buyerId, Pageable pageable);
+    Page&lt;Order&gt; findBySellerId(Long sellerId, Pageable pageable);
+    Page&lt;Order&gt; findByStatus(Order.OrderStatus status, Pageable pageable);
+    boolean existsByOrderNo(String orderNo);
+}</code></pre>
+            </div>
+            
+<h4>3.6 OrderReviewRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/OrderReviewRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.OrderReview;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface OrderReviewRepository extends JpaRepository&lt;OrderReview, Long&gt; {
+    List&lt;OrderReview&gt; findByOrderId(Long orderId);
+    List&lt;OrderReview&gt; findByRevieweeId(Long revieweeId);
+    boolean existsByOrderIdAndReviewerId(Long orderId, Long reviewerId);
+}</code></pre>
+            </div>
+            
+<h4>3.7 OrderLogRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/OrderLogRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.OrderLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface OrderLogRepository extends JpaRepository&lt;OrderLog, Long&gt; {
+    List&lt;OrderLog&gt; findByOrderIdOrderByCreateTimeAsc(Long orderId);
+}</code></pre>
+            </div>
+            
+<h4>3.8 ChatMessageRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/ChatMessageRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.ChatMessage;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface ChatMessageRepository extends JpaRepository&lt;ChatMessage, Long&gt; {
+    List&lt;ChatMessage&gt; findBySenderIdAndReceiverIdOrReceiverIdAndSenderIdOrderByCreatedAtAsc(
+        Long senderId, Long receiverId, Long receiverId2, Long senderId2);
+    List&lt;ChatMessage&gt; findByReceiverIdAndIsReadFalse(Long receiverId);
+}</code></pre>
+            </div>
+            
+<h4>3.9 PointAccountRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/PointAccountRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.PointAccount;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
+
+@Repository
+public interface PointAccountRepository extends JpaRepository&lt;PointAccount, Long&gt; {
+    Optional&lt;PointAccount&gt; findByUserId(Long userId);
+}</code></pre>
+            </div>
+            
+<h4>3.10 PointRecordRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/PointRecordRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.PointRecord;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface PointRecordRepository extends JpaRepository&lt;PointRecord, Long&gt; {
+    Page&lt;PointRecord&gt; findByUserId(Long userId, Pageable pageable);
+}</code></pre>
+            </div>
+            
+<h4>3.11 ReputationAccountRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/ReputationAccountRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.ReputationAccount;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
+
+@Repository
+public interface ReputationAccountRepository extends JpaRepository&lt;ReputationAccount, Long&gt; {
+    Optional&lt;ReputationAccount&gt; findByUserId(Long userId);
+}</code></pre>
+            </div>
+            
+<h4>3.12 ReputationRecordRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/ReputationRecordRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.ReputationRecord;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface ReputationRecordRepository extends JpaRepository&lt;ReputationRecord, Long&gt; {
+    Page&lt;ReputationRecord&gt; findByUserId(Long userId, Pageable pageable);
+}</code></pre>
+            </div>
+            
+<h4>3.13 CheckInRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/CheckInRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.CheckIn;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface CheckInRepository extends JpaRepository&lt;CheckIn, Long&gt; {
+    Optional&lt;CheckIn&gt; findByUserIdAndCheckInDate(Long userId, LocalDate date);
+    List&lt;CheckIn&gt; findByUserIdOrderByCheckInDateDesc(Long userId);
+    
+    @Query(&quot;SELECT MAX(c.continuousDays) FROM CheckIn c WHERE c.userId = :userId&quot;)
+    Integer findMaxContinuousDays(@Param(&quot;userId&quot;) Long userId);
+}</code></pre>
+            </div>
+            
+<h4>3.14 OperationLogRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/OperationLogRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.OperationLog;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface OperationLogRepository extends JpaRepository&lt;OperationLog, Long&gt; {
+    Page&lt;OperationLog&gt; findByOperatorId(Long operatorId, Pageable pageable);
+    Page&lt;OperationLog&gt; findByModule(String module, Pageable pageable);
+    Page&lt;OperationLog&gt; findAllByOrderByCreateTimeDesc(Pageable pageable);
+}</code></pre>
+            </div>
+            
+<h4>3.15 SearchHistoryRepository</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/repository/SearchHistoryRepository.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.repository;
+
+import com.aisale.backend.entity.SearchHistory;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface SearchHistoryRepository extends JpaRepository&lt;SearchHistory, Long&gt; {
+    List&lt;SearchHistory&gt; findByUserIdOrderByLastSearchTimeDesc(Long userId);
+    Optional&lt;SearchHistory&gt; findByUserIdAndKeyword(Long userId, String keyword);
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>四、数据库表关系图</h3>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>用户体系:
+┌─────────┐       ┌──────────┐
+│  User   │1     n│ Address  │
+└────┬────┘       └──────────┘
+     │
+     │ 1
+     │
+     │ n
+┌────┴────┐       ┌──────────┐
+│ Product │1     n│  Order   │
+└─────────┘       └────┬─────┘
+                       │
+                       │ 1
+                       │
+                       │ n
+                 ┌─────┴─────┐
+                 │OrderReview│
+                 └───────────┘
+
+积分/信誉/签到:
+┌─────────┐       ┌────────────┐
+│  User   │1    1│PointAccount│
+└────┬────┘       └────────────┘
+     │
+     │ 1
+     │
+     │ n
+┌────┴─────┐      ┌──────────────┐
+│PointRecord│     │ReputationAcct│
+└──────────┘      └──────┬───────┘
+                         │
+                         │ 1
+                         │
+                         │ n
+                  ┌──────┴───────┐
+                  │ReputationRec │
+                  └──────────────┘
+
+系统日志:
+┌──────────────┐    ┌─────────────┐
+│ OperationLog │    │  ChatMsg    │
+└──────────────┘    └──────┬──────┘
+                           │
+                           │
+                    ┌──────┴──────┐
+                    │SearchHistory│
+                    └─────────────┘</code></pre>
+            </div>
+            
+<p><strong>关系说明:</strong></p>
+<ul><li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">User</code> ↔ <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Address</code>: 一对多</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">User</code> ↔ <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Product</code>: 一对多（作为卖家）</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">User</code> ↔ <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Order</code>: 一对多（作为买家/卖家）</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Product</code> ↔ <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Order</code>: 一对多</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Order</code> ↔ <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">OrderReview</code>: 一对多</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">User</code> ↔ <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">PointAccount</code>: 一对一</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">User</code> ↔ <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">PointRecord</code>: 一对多</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">User</code> ↔ <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">ReputationAccount</code>: 一对一</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">User</code> ↔ <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">ReputationRecord</code>: 一对多</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">User</code> ↔ <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">CheckIn</code>: 一对多</li></ul>
+<p>---</p>
+<h3>五、JPA注解说明</h3>
+<h4>5.1 实体类注解</h4>
+<table><thead><tr>
+<th>注解</th>
+<th>用途</th>
+<th>示例</th>
+</tr></thead><tbody>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Entity</code></td>
+<td>标记为JPA实体类</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Entity</code></td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Table</code></td>
+<td>指定表名</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Table(name = "users")</code></td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Id</code></td>
+<td>主键</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Id</code></td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@GeneratedValue</code></td>
+<td>主键生成策略</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@GeneratedValue(strategy = GenerationType.IDENTITY)</code></td>
+</tr>
+</tbody></table>
+<h4>5.2 字段注解</h4>
+<table><thead><tr>
+<th>注解</th>
+<th>用途</th>
+<th>示例</th>
+</tr></thead><tbody>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Column</code></td>
+<td>列配置</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Column(nullable = false, unique = true)</code></td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Enumerated</code></td>
+<td>枚举映射</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Enumerated(EnumType.STRING)</code></td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@PrePersist</code></td>
+<td>持久化前执行</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@PrePersist</code></td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@PreUpdate</code></td>
+<td>更新前执行</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@PreUpdate</code></td>
+</tr>
+</tbody></table>
+<h4>5.3 关系注解</h4>
+<table><thead><tr>
+<th>注解</th>
+<th>用途</th>
+<th>示例</th>
+</tr></thead><tbody>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@ManyToOne</code></td>
+<td>多对一关系</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@ManyToOne(fetch = FetchType.LAZY)</code></td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@JoinColumn</code></td>
+<td>指定外键列</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@JoinColumn(name = "user_id")</code></td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@ElementCollection</code></td>
+<td>集合映射</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@ElementCollection(fetch = FetchType.LAZY)</code></td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@CollectionTable</code></td>
+<td>集合表配置</td>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@CollectionTable(name = "product_images")</code></td>
+</tr>
+</tbody></table>
+<h4>5.4 Lombok注解</h4>
+<table><thead><tr>
+<th>注解</th>
+<th>用途</th>
+</tr></thead><tbody>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Data</code></td>
+<td>生成getter/setter/toString/equals/hashCode</td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Builder</code></td>
+<td>支持Builder模式</td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@NoArgsConstructor</code></td>
+<td>无参构造函数</td>
+</tr>
+<tr>
+<td><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@AllArgsConstructor</code></td>
+<td>全参构造函数</td>
+</tr>
+</tbody></table>
+<p>---</p>
+<h3>六、验证与测试</h3>
+<h4>6.1 启动验证</h4>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">BASH</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code># 进入后端目录
+cd backend
+
+# 启动应用
+mvn spring-boot:run -Dspring-boot.run.profiles=dev</code></pre>
+            </div>
+            
+<h4>6.2 检查数据库表</h4>
+<ol><li>访问H2控制台: http://localhost:8090/h2-console</li>
+<li>连接信息:</li></ol>
+<p>   - JDBC URL: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">jdbc:h2:mem:aisale</code></p>
+<p>   - 用户名: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">sa</code></p>
+<p>   - 密码: 空</p>
+<ol><li>检查以下表是否创建:</li></ol>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">users</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">admins</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">addresses</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">products</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">orders</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">order_reviews</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">order_logs</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">chat_messages</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">point_accounts</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">point_records</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">reputation_accounts</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">reputation_records</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">check_ins</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">operation_logs</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">search_history</code></p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">product_images</code> (Product的ElementCollection表)</p>
+<p>   - <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">product_tags</code> (Product的ElementCollection表)</p>
+<h4>6.3 查看日志</h4>
+<p>启动日志应包含:</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">CODE</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>Hibernate: create table users ...
+Hibernate: create table admins ...
+Hibernate: create table products ...
+...</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>七、常见问题</h3>
+<h4>7.1 表未创建</h4>
+<p><strong>问题:</strong> 启动后数据库表未创建</p>
+<p><strong>解决方案:</strong></p>
+<ol><li>检查<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Entity</code>注解是否添加</li>
+<li>检查实体类是否在<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">com.aisale.backend.entity</code>包下</li>
+<li>检查<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">spring.jpa.hibernate.ddl-auto=update</code></li>
+<li>清理并重启: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">mvn clean spring-boot:run</code></li></ol>
+<h4>7.2 字段类型错误</h4>
+<p><strong>问题:</strong> BigDecimal精度丢失</p>
+<p><strong>解决方案:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>@Column(nullable = false, precision = 10, scale = 2)
+private BigDecimal price;</code></pre>
+            </div>
+            
+<p>必须指定<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">precision</code>和<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">scale</code></p>
+<h4>7.3 N+1查询问题</h4>
+<p><strong>问题:</strong> 查询性能低下</p>
+<p><strong>解决方案:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>@ManyToOne(fetch = FetchType.LAZY)  // 使用懒加载</code></pre>
+            </div>
+            
+<p>避免使用<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">FetchType.EAGER</code></p>
+<h4>7.4 枚举映射问题</h4>
+<p><strong>问题:</strong> 枚举存储为数字而非字符串</p>
+<p><strong>解决方案:</strong></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>@Enumerated(EnumType.STRING)  // 存储为字符串
+private OrderStatus status;</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>八、扩展练习</h3>
+<h4>练习1：添加新实体</h4>
+<ol><li>创建<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Category</code>实体类</li>
+<li>添加字段：id、name、description、parentId</li>
+<li>创建<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">CategoryRepository</code>接口</li>
+<li>重启应用验证表创建</li></ol>
+<h4>练习2：优化查询</h4>
+<ol><li>为常用查询添加索引</li>
+<li>使用<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Query</code>编写复杂查询</li>
+<li>测试查询性能</li></ol>
+<h4>练习3：实体关系映射</h4>
+<ol><li>为<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Order</code>添加与<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">Product</code>的关系</li>
+<li>测试级联操作</li>
+<li>理解<code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">insertable=false, updatable=false</code>的作用</li></ol>
+<p>---</p>
+<p>最后更新: 2026-04-22</p>
+<p>文档版本: 1.0</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 代码复制功能
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-wrapper').querySelector('code');
+            const text = codeBlock.innerText;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ 已复制';
+                btn.classList.add('copied');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                btn.innerHTML = '✗ 失败';
+                setTimeout(() => {
+                    btn.innerHTML = '复制';
+                }, 2000);
+            });
+        }
+
+        // 页面加载完成后为所有代码块添加复制按钮
+        document.addEventListener('DOMContentLoaded', () => {
+            const codeWrappers = document.querySelectorAll('.code-wrapper');
+            codeWrappers.forEach(wrapper => {
+                if (!wrapper.querySelector('.copy-btn')) {
+                    const header = wrapper.querySelector('.code-header');
+                    if (header) {
+                        const btn = document.createElement('button');
+                        btn.className = 'copy-btn';
+                        btn.innerHTML = '📋 复制';
+                        btn.onclick = function() { copyCode(this); };
+                        header.appendChild(btn);
+                    }
+                }
+            });
+        });
+
+        // 设置当前页面高亮
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
