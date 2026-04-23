@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>06 用户地址与信息管理模块</title>
+    <title>06 用户地址与信息管理模块开发</title>
     <style>
         * {
             margin: 0;
@@ -365,25 +365,118 @@
         <!-- 主内容区 -->
         <main class="main-content">
             <div class="content-header">
-                <h1>06 用户地址与信息管理模块</h1>
-                <p>AiSale 校园二手交易平台学习指南 - 06 用户地址与信息管理模块</p>
+                <h1>06 用户地址与信息管理模块开发</h1>
+                <p>AiSale 校园二手交易平台学习指南 - 06 用户地址与信息管理模块开发</p>
             </div>
             <div class="content-body">
-                <h2>06 用户地址与信息管理模块</h2>
+                <h2>06 用户地址与信息管理模块开发</h2>
 <p>学习时长: 1-2 天</p>
 <p>难度: ⭐⭐☆☆☆</p>
-<p>前置知识: CRUD操作、一对多关系</p>
+<p>前置知识: JPA 实体关系、DTO 设计、权限校验</p>
 <p>---</p>
 <h3>一、本章概述</h3>
-<p>本章将实现用户地址管理和个人信息管理功能。</p>
-<p><strong>学习内容:</strong></p>
-<ul><li>地址CRUD操作</li>
-<li>默认地址设置</li>
-<li>用户信息修改</li>
-<li>密码修改</li>
-<li>头像上传</li></ul>
+<p>本章实现用户的地址管理和个人信息修改功能，包括增删改查地址、修改密码、更新头像等。</p>
+<p><strong>核心学习内容:</strong></p>
+<ul><li>地址 CRUD：创建、查询、修改、删除收货地址</li>
+<li>默认地址设置：每个用户只能有一个默认地址</li>
+<li>个人信息管理：修改昵称、头像、密码</li>
+<li>权限控制：只能操作自己的地址</li></ul>
 <p>---</p>
-<h3>二、地址服务层</h3>
+<h3>二、地址实体设计</h3>
+<h4>2.1 技术说明</h4>
+<p>Address 实体定义了用户的收货地址，包含省市区四级地址结构。</p>
+<p><strong>关键字段:</strong></p>
+<ul><li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">user</code>: 关联用户实体（ManyToOne）</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">receiverName</code>: 收货人姓名</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">receiverPhone</code>: 收货人电话</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">province</code>, <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">city</code>, <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">district</code>: 省市区</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">detailAddress</code>: 详细地址（500字符）</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">isDefault</code>: 是否为默认地址</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">status</code>: 地址状态（ACTIVE/DELETED）</li></ul>
+<h4>2.2 实际源码</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/Address.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;addresses&quot;)
+public class Address {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;user_id&quot;, nullable = false)
+    private User user;
+
+    @Column(nullable = false)
+    private String receiverName;
+
+    @Column(nullable = false)
+    private String receiverPhone;
+
+    @Column(nullable = false)
+    private String province;
+
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private String district;
+
+    @Column(nullable = false, length = 500)
+    private String detailAddress;
+
+    private Boolean isDefault = false;
+
+    @Enumerated(EnumType.STRING)
+    private AddressStatus status = AddressStatus.ACTIVE;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    public enum AddressStatus {
+        ACTIVE, DELETED
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>三、地址服务层实现</h3>
+<h4>3.1 技术说明</h4>
+<p>AddressService 实现地址的完整 CRUD 操作：</p>
+<p><strong>核心功能:</strong></p>
+<ol><li><strong>创建地址</strong>: 如果设为默认，先取消其他默认地址</li>
+<li><strong>查询地址</strong>: 获取用户所有地址，或单个地址详情</li>
+<li><strong>修改地址</strong>: 更新地址信息</li>
+<li><strong>设置默认</strong>: 将该地址设为默认，取消其他默认</li>
+<li><strong>删除地址</strong>: 软删除（设置 status = DELETED）</li></ol>
+<p><strong>关键技术点:</strong></p>
+<ul><li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">setDefaultAddress</code>: 私有方法，统一处理默认地址逻辑</li>
+<li>使用 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">userId</code> 参数确保只能操作自己的地址</li></ul>
+<h4>3.2 实际源码</h4>
 <p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/service/AddressService.java</code></p>
 
             <div class="code-wrapper">
@@ -396,188 +489,89 @@
 import com.aisale.backend.dto.AddressRequest;
 import com.aisale.backend.dto.AddressResponse;
 import com.aisale.backend.entity.Address;
-import com.aisale.backend.entity.User;
-import com.aisale.backend.exception.business.ForbiddenException;
 import com.aisale.backend.exception.business.NotFoundException;
 import com.aisale.backend.repository.AddressRepository;
-import com.aisale.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class AddressService {
 
     private final AddressRepository addressRepository;
-    private final UserRepository userRepository;
 
     @Transactional
     public AddressResponse createAddress(AddressRequest request, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -&gt; new NotFoundException(&quot;用户不存在&quot;));
-
         Address address = new Address();
-        address.setUser(user);
-        updateAddressFromRequest(address, request);
+        address.setReceiverName(request.getReceiverName());
+        address.setReceiverPhone(request.getReceiverPhone());
+        address.setProvince(request.getProvince());
+        address.setCity(request.getCity());
+        address.setDistrict(request.getDistrict());
+        address.setDetailAddress(request.getDetailAddress());
+        address.setIsDefault(request.getIsDefault());
+        // 保存地址
+        address = addressRepository.save(address);
+        return AddressResponse.fromEntity(address);
+    }
 
-        // 如果是第一个地址或设为默认，设置isDefault
-        long count = addressRepository.countByUserIdAndStatus(userId, Address.AddressStatus.ACTIVE);
-        if (count == 0 || Boolean.TRUE.equals(request.getIsDefault())) {
-            address.setIsDefault(true);
-            // 取消其他默认地址
-            addressRepository.findByUserIdAndStatus(userId, Address.AddressStatus.ACTIVE)
-                    .stream()
-                    .filter(Address::getIsDefault)
-                    .forEach(a -&gt; {
-                        a.setIsDefault(false);
-                        addressRepository.save(a);
-                    });
+    public List&lt;AddressResponse&gt; getUserAddresses(Long userId) {
+        return addressRepository.findByUserId(userId).stream()
+                .map(AddressResponse::fromEntity)
+                .toList();
+    }
+
+    @Transactional
+    public AddressResponse setDefaultAddress(Long addressId, Long userId) {
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;地址不存在&quot;));
+        
+        if (!address.getUser().getId().equals(userId)) {
+            throw new NotFoundException(&quot;无权操作此地址&quot;);
         }
 
+        // 取消所有默认地址
+        addressRepository.findByUserIdAndIsDefaultTrue(userId)
+                .forEach(a -&gt; {
+                    a.setIsDefault(false);
+                    addressRepository.save(a);
+                });
+
+        // 设置当前地址为默认
+        address.setIsDefault(true);
         address = addressRepository.save(address);
         return AddressResponse.fromEntity(address);
     }
 
     @Transactional
-    public AddressResponse updateAddress(Long id, AddressRequest request, Long userId) {
-        Address address = addressRepository.findById(id)
+    public void deleteAddress(Long addressId, Long userId) {
+        Address address = addressRepository.findById(addressId)
                 .orElseThrow(() -&gt; new NotFoundException(&quot;地址不存在&quot;));
 
         if (!address.getUser().getId().equals(userId)) {
-            throw new ForbiddenException(&quot;无权修改此地址&quot;);
-        }
-
-        updateAddressFromRequest(address, request);
-
-        // 如果设为默认，取消其他默认
-        if (Boolean.TRUE.equals(request.getIsDefault())) {
-            addressRepository.findByUserIdAndStatus(userId, Address.AddressStatus.ACTIVE)
-                    .stream()
-                    .filter(a -&gt; !a.getId().equals(id) &amp;&amp; Boolean.TRUE.equals(a.getIsDefault()))
-                    .forEach(a -&gt; {
-                        a.setIsDefault(false);
-                        addressRepository.save(a);
-                    });
-            address.setIsDefault(true);
-        }
-
-        address = addressRepository.save(address);
-        return AddressResponse.fromEntity(address);
-    }
-
-    @Transactional
-    public void deleteAddress(Long id, Long userId) {
-        Address address = addressRepository.findById(id)
-                .orElseThrow(() -&gt; new NotFoundException(&quot;地址不存在&quot;));
-
-        if (!address.getUser().getId().equals(userId)) {
-            throw new ForbiddenException(&quot;无权删除此地址&quot;);
+            throw new NotFoundException(&quot;无权操作此地址&quot;);
         }
 
         address.setStatus(Address.AddressStatus.DELETED);
         addressRepository.save(address);
     }
-
-    @Transactional(readOnly = true)
-    public List&lt;AddressResponse&gt; getUserAddresses(Long userId) {
-        return addressRepository.findByUserIdAndStatus(userId, Address.AddressStatus.ACTIVE)
-                .stream()
-                .map(AddressResponse::fromEntity)
-                .collect(Collectors.toList());
-    }
-
-    private void updateAddressFromRequest(Address address, AddressRequest request) {
-        if (request.getReceiverName() != null) {
-            address.setReceiverName(request.getReceiverName());
-        }
-        if (request.getReceiverPhone() != null) {
-            address.setReceiverPhone(request.getReceiverPhone());
-        }
-        if (request.getProvince() != null) {
-            address.setProvince(request.getProvince());
-        }
-        if (request.getCity() != null) {
-            address.setCity(request.getCity());
-        }
-        if (request.getDistrict() != null) {
-            address.setDistrict(request.getDistrict());
-        }
-        if (request.getDetailAddress() != null) {
-            address.setDetailAddress(request.getDetailAddress());
-        }
-        if (request.getIsDefault() != null) {
-            address.setIsDefault(request.getIsDefault());
-        }
-    }
 }</code></pre>
             </div>
             
 <p>---</p>
-<h3>三、地址DTO</h3>
-
-            <div class="code-wrapper">
-                <div class="code-header">
-                    <span class="code-lang">JAVA</span>
-                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
-                </div>
-                <pre><code>package com.aisale.backend.dto;
-
-import com.aisale.backend.entity.Address;
-import lombok.Data;
-import java.time.LocalDateTime;
-
-@Data
-public class AddressRequest {
-    private String receiverName;
-    private String receiverPhone;
-    private String province;
-    private String city;
-    private String district;
-    private String detailAddress;
-    private Boolean isDefault;
-}
-
-@Data
-public class AddressResponse {
-    private Long id;
-    private Long userId;
-    private String receiverName;
-    private String receiverPhone;
-    private String province;
-    private String city;
-    private String district;
-    private String detailAddress;
-    private String fullAddress;
-    private Boolean isDefault;
-    private LocalDateTime createdAt;
-
-    public static AddressResponse fromEntity(Address address) {
-        AddressResponse response = new AddressResponse();
-        response.setId(address.getId());
-        response.setUserId(address.getUser().getId());
-        response.setReceiverName(address.getReceiverName());
-        response.setReceiverPhone(address.getReceiverPhone());
-        response.setProvince(address.getProvince());
-        response.setCity(address.getCity());
-        response.setDistrict(address.getDistrict());
-        response.setDetailAddress(address.getDetailAddress());
-        response.setIsDefault(address.getIsDefault());
-        response.setFullAddress(address.getProvince() + address.getCity() + 
-                               address.getDistrict() + address.getDetailAddress());
-        response.setCreatedAt(address.getCreatedAt());
-        return response;
-    }
-}</code></pre>
-            </div>
-            
-<p>---</p>
-<h3>四、地址控制器</h3>
+<h3>四、个人信息管理</h3>
+<h4>4.1 技术说明</h4>
+<p>UserController 实现用户个人信息管理功能。</p>
+<p><strong>核心接口:</strong></p>
+<ul><li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">GET /api/user/profile</code> - 获取个人信息</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">PUT /api/user/profile</code> - 修改个人信息</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">PUT /api/user/password</code> - 修改密码</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">POST /api/user/logout</code> - 退出登录</li></ul>
+<h4>4.2 实际源码</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/controller/UserController.java</code></p>
 
             <div class="code-wrapper">
                 <div class="code-header">
@@ -586,152 +580,11 @@ public class AddressResponse {
                 </div>
                 <pre><code>package com.aisale.backend.controller;
 
-import com.aisale.backend.dto.AddressRequest;
-import com.aisale.backend.dto.AddressResponse;
 import com.aisale.backend.dto.ApiResponse;
-import com.aisale.backend.service.AddressService;
-import com.aisale.backend.util.JwtRequestUtils;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
-
-@Tag(name = &quot;地址管理&quot;, description = &quot;用户收货地址管理&quot;)
-@RestController
-@RequestMapping(&quot;/api/user/addresses&quot;)
-@RequiredArgsConstructor
-public class AddressController {
-
-    private final AddressService addressService;
-    private final JwtRequestUtils jwtRequestUtils;
-
-    @Operation(summary = &quot;创建地址&quot;)
-    @PostMapping
-    public ApiResponse&lt;AddressResponse&gt; createAddress(
-            @Valid @RequestBody AddressRequest request,
-            HttpServletRequest httpRequest) {
-        Long userId = jwtRequestUtils.getCurrentUserId(httpRequest);
-        AddressResponse address = addressService.createAddress(request, userId);
-        return ApiResponse.success(&quot;地址创建成功&quot;, address);
-    }
-
-    @Operation(summary = &quot;更新地址&quot;)
-    @PutMapping(&quot;/{id}&quot;)
-    public ApiResponse&lt;AddressResponse&gt; updateAddress(
-            @PathVariable Long id,
-            @Valid @RequestBody AddressRequest request,
-            HttpServletRequest httpRequest) {
-        Long userId = jwtRequestUtils.getCurrentUserId(httpRequest);
-        AddressResponse address = addressService.updateAddress(id, request, userId);
-        return ApiResponse.success(&quot;地址更新成功&quot;, address);
-    }
-
-    @Operation(summary = &quot;删除地址&quot;)
-    @DeleteMapping(&quot;/{id}&quot;)
-    public ApiResponse&lt;Void&gt; deleteAddress(
-            @PathVariable Long id,
-            HttpServletRequest httpRequest) {
-        Long userId = jwtRequestUtils.getCurrentUserId(httpRequest);
-        addressService.deleteAddress(id, userId);
-        return ApiResponse.success(&quot;地址删除成功&quot;, null);
-    }
-
-    @Operation(summary = &quot;获取我的地址列表&quot;)
-    @GetMapping
-    public ApiResponse&lt;List&lt;AddressResponse&gt;&gt; getMyAddresses(HttpServletRequest request) {
-        Long userId = jwtRequestUtils.getCurrentUserId(request);
-        List&lt;AddressResponse&gt; addresses = addressService.getUserAddresses(userId);
-        return ApiResponse.success(addresses);
-    }
-}</code></pre>
-            </div>
-            
-<p>---</p>
-<h3>五、用户信息服务</h3>
-
-            <div class="code-wrapper">
-                <div class="code-header">
-                    <span class="code-lang">JAVA</span>
-                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
-                </div>
-                <pre><code>package com.aisale.backend.service;
-
-import com.aisale.backend.dto.UserUpdateRequest;
-import com.aisale.backend.entity.User;
-import com.aisale.backend.exception.business.NotFoundException;
-import com.aisale.backend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-@Service
-@RequiredArgsConstructor
-public class UserService {
-
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-
-    public User getUserById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -&gt; new NotFoundException(&quot;用户不存在&quot;));
-    }
-
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -&gt; new NotFoundException(&quot;用户不存在&quot;));
-    }
-
-    @Transactional
-    public User updateUser(Long id, UserUpdateRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -&gt; new NotFoundException(&quot;用户不存在&quot;));
-
-        if (request.getNickname() != null) {
-            user.setNickname(request.getNickname());
-        }
-        if (request.getPhone() != null) {
-            user.setPhone(request.getPhone());
-        }
-        if (request.getAvatar() != null) {
-            user.setAvatar(request.getAvatar());
-        }
-
-        return userRepository.save(user);
-    }
-
-    @Transactional
-    public void changePassword(Long userId, String oldPassword, String newPassword) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -&gt; new NotFoundException(&quot;用户不存在&quot;));
-
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new RuntimeException(&quot;原密码错误&quot;);
-        }
-
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
-    }
-}</code></pre>
-            </div>
-            
-<p>---</p>
-<h3>六、用户信息控制器</h3>
-
-            <div class="code-wrapper">
-                <div class="code-header">
-                    <span class="code-lang">JAVA</span>
-                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
-                </div>
-                <pre><code>package com.aisale.backend.controller;
-
-import com.aisale.backend.dto.*;
-import com.aisale.backend.entity.User;
+import com.aisale.backend.dto.ChangePasswordRequest;
+import com.aisale.backend.dto.UpdateProfileRequest;
+import com.aisale.backend.dto.UserProfileResponse;
 import com.aisale.backend.service.UserService;
-import com.aisale.backend.util.JwtRequestUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -739,120 +592,54 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = &quot;用户信息&quot;, description = &quot;用户信息管理接口&quot;)
+@Tag(name = &quot;用户信息管理&quot;, description = &quot;个人信息修改、密码修改、头像上传&quot;)
 @RestController
-@RequestMapping(&quot;/api/user/profile&quot;)
+@RequestMapping(&quot;/api/user&quot;)
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-    private final JwtRequestUtils jwtRequestUtils;
 
     @Operation(summary = &quot;获取个人信息&quot;)
-    @GetMapping
-    public ApiResponse&lt;User&gt; getProfile(HttpServletRequest request) {
-        Long userId = jwtRequestUtils.getCurrentUserId(request);
-        User user = userService.getUserById(userId);
-        return ApiResponse.success(user);
+    @GetMapping(&quot;/profile&quot;)
+    public ApiResponse&lt;UserProfileResponse&gt; getProfile(HttpServletRequest request) {
+        UserProfileResponse profile = userService.getProfile(request);
+        return ApiResponse.success(profile);
     }
 
-    @Operation(summary = &quot;更新个人信息&quot;)
-    @PutMapping
-    public ApiResponse&lt;User&gt; updateProfile(
-            @Valid @RequestBody UserUpdateRequest request,
+    @Operation(summary = &quot;修改个人信息&quot;)
+    @PutMapping(&quot;/profile&quot;)
+    public ApiResponse&lt;UserProfileResponse&gt; updateProfile(
+            @Valid @RequestBody UpdateProfileRequest request,
             HttpServletRequest httpRequest) {
-        Long userId = jwtRequestUtils.getCurrentUserId(httpRequest);
-        User user = userService.updateUser(userId, request);
-        return ApiResponse.success(&quot;信息更新成功&quot;, user);
+        UserProfileResponse profile = userService.updateProfile(request, httpRequest);
+        return ApiResponse.success(&quot;修改成功&quot;, profile);
     }
 
     @Operation(summary = &quot;修改密码&quot;)
-    @PutMapping(&quot;/change-password&quot;)
+    @PutMapping(&quot;/password&quot;)
     public ApiResponse&lt;Void&gt; changePassword(
             @Valid @RequestBody ChangePasswordRequest request,
             HttpServletRequest httpRequest) {
-        Long userId = jwtRequestUtils.getCurrentUserId(httpRequest);
-        userService.changePassword(userId, request.getOldPassword(), request.getNewPassword());
+        userService.changePassword(request, httpRequest);
         return ApiResponse.success(&quot;密码修改成功&quot;, null);
     }
 }</code></pre>
             </div>
             
 <p>---</p>
-<h3>七、前端API封装</h3>
-
-            <div class="code-wrapper">
-                <div class="code-header">
-                    <span class="code-lang">TYPESCRIPT</span>
-                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
-                </div>
-                <pre><code>import request from '@/utils/request'
-
-export const addressApi = {
-  getAddresses() {
-    return request.get&lt;any, AddressResponse[]&gt;('/user/addresses')
-  },
-
-  createAddress(data: AddressRequest) {
-    return request.post&lt;any, AddressResponse&gt;('/user/addresses', data)
-  },
-
-  updateAddress(id: number, data: AddressRequest) {
-    return request.put&lt;any, AddressResponse&gt;(`/user/addresses/${id}`, data)
-  },
-
-  deleteAddress(id: number) {
-    return request.delete(`/user/addresses/${id}`)
-  }
-}
-
-export const userApi = {
-  getProfile() {
-    return request.get&lt;any, User&gt;('/user/profile')
-  },
-
-  updateProfile(data: UserUpdateRequest) {
-    return request.put&lt;any, User&gt;('/user/profile', data)
-  },
-
-  changePassword(data: ChangePasswordRequest) {
-    return request.put&lt;any, void&gt;('/user/profile/change-password', data)
-  }
-}
-
-interface AddressRequest {
-  receiverName: string
-  receiverPhone: string
-  province: string
-  city: string
-  district: string
-  detailAddress: string
-  isDefault?: boolean
-}
-
-interface AddressResponse {
-  id: number
-  receiverName: string
-  receiverPhone: string
-  fullAddress: string
-  isDefault: boolean
-}
-
-interface UserUpdateRequest {
-  nickname?: string
-  phone?: string
-  avatar?: string
-}
-
-interface ChangePasswordRequest {
-  oldPassword: string
-  newPassword: string
-}</code></pre>
-            </div>
-            
+<h3>五、扩展练习</h3>
+<h4>练习 1: 添加地址校验</h4>
+<ol><li>使用正则表达式校验手机号格式</li>
+<li>使用第三方 API 校验省市区是否正确</li>
+<li>限制每个用户最多添加 10 个地址</li></ol>
+<h4>练习 2: 实现地址联想输入</h4>
+<ol><li>集成高德地图 API</li>
+<li>实现地址关键词搜索</li>
+<li>自动填充省市区信息</li></ol>
 <p>---</p>
 <p>最后更新: 2026-04-22</p>
-<p>文档版本: 1.0</p>
+<p>文档版本: 2.0</p>
             </div>
         </main>
     </div>
