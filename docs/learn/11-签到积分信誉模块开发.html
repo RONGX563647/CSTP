@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>11 签到、积分、信誉模块开发</title>
+    <title>11 签到积分信誉模块开发</title>
     <style>
         * {
             margin: 0;
@@ -365,128 +365,211 @@
         <!-- 主内容区 -->
         <main class="main-content">
             <div class="content-header">
-                <h1>11 签到、积分、信誉模块开发</h1>
-                <p>AiSale 校园二手交易平台学习指南 - 11 签到、积分、信誉模块开发</p>
+                <h1>11 签到积分信誉模块开发</h1>
+                <p>AiSale 校园二手交易平台学习指南 - 11 签到积分信誉模块开发</p>
             </div>
             <div class="content-body">
-                <h2>11 签到、积分、信誉模块开发</h2>
-<p>学习时长: 2-3 天</p>
+                <h2>11 签到积分信誉模块开发</h2>
+<p>学习时长: 2 天</p>
 <p>难度: ⭐⭐⭐☆☆</p>
-<p>前置知识: 定时任务、事务管理</p>
+<p>前置知识: 定时任务、积分账户设计、信誉系统</p>
 <p>---</p>
 <h3>一、本章概述</h3>
-<p>本章将实现用户签到、积分系统和信誉系统。</p>
-<p><strong>学习内容:</strong></p>
-<ul><li>签到服务</li>
-<li>积分账户与记录</li>
-<li>信誉账户与记录</li>
-<li>每日签到逻辑</li>
-<li>积分奖励计算</li></ul>
+<p>本章实现签到、积分、信誉三大功能模块，构建完整的用户激励体系。</p>
+<p><strong>核心学习内容:</strong></p>
+<ul><li>签到模块：每日签到、连续签到奖励</li>
+<li>积分模块：积分账户、积分流水、积分增减</li>
+<li>信誉模块：信誉账户、信誉记录、管理员调整</li>
+<li>CheckIn 实体：签到记录存储</li>
+<li>PointAccount / PointRecord 实体：积分账户和流水</li>
+<li>ReputationAccount / ReputationRecord 实体：信誉账户和记录</li></ul>
 <p>---</p>
-<h3>二、签到服务</h3>
+<h3>二、CheckIn 签到实体</h3>
+<h4>2.1 实际源码</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/CheckIn.java</code></p>
 
             <div class="code-wrapper">
                 <div class="code-header">
                     <span class="code-lang">JAVA</span>
                     <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
                 </div>
-                <pre><code>package com.aisale.backend.service;
+                <pre><code>package com.aisale.backend.entity;
 
-import com.aisale.backend.entity.CheckIn;
-import com.aisale.backend.entity.PointAccount;
-import com.aisale.backend.entity.PointRecord;
-import com.aisale.backend.repository.CheckInRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import jakarta.persistence.*;
+import lombok.Data;
 import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
 
-@Service
-@RequiredArgsConstructor
-public class CheckInService {
+@Data
+@Entity
+@Table(name = &quot;check_ins&quot;, indexes = {
+    @Index(name = &quot;idx_checkin_user_date&quot;, columnList = &quot;user_id, check_in_date&quot;, unique = true)
+})
+public class CheckIn {
 
-    private final CheckInRepository checkInRepository;
-    private final PointService pointService;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Transactional
-    public CheckIn checkIn(Long userId) {
-        LocalDate today = LocalDate.now();
+    @Column(name = &quot;user_id&quot;, nullable = false)
+    private Long userId;
 
-        // 检查今天是否已签到
-        if (checkInRepository.findByUserIdAndCheckInDate(userId, today).isPresent()) {
-            throw new RuntimeException(&quot;今天已经签到过了&quot;);
-        }
+    @Column(name = &quot;check_in_date&quot;, nullable = false)
+    private LocalDate checkInDate;
 
-        // 计算连续签到天数
-        int continuousDays = calculateContinuousDays(userId);
+    @Column(name = &quot;continuous_days&quot;, nullable = false)
+    private Integer continuousDays = 1;
 
-        // 创建签到记录
-        CheckIn checkIn = new CheckIn();
-        checkIn.setUserId(userId);
-        checkIn.setCheckInDate(today);
-        checkIn.setContinuousDays(continuousDays);
+    @Column(name = &quot;reward_points&quot;)
+    private Integer rewardPoints = 0;
 
-        // 计算奖励积分
-        int rewardPoints = calculateRewardPoints(continuousDays);
-        checkIn.setRewardPoints(rewardPoints);
+    private LocalDateTime createdAt;
 
-        checkIn = checkInRepository.save(checkIn);
-
-        // 发放积分
-        pointService.addPoints(userId, rewardPoints, PointRecord.PointType.CHECK_IN, 
-                              checkIn.getId(), &quot;签到奖励&quot;);
-
-        return checkIn;
-    }
-
-    private int calculateContinuousDays(Long userId) {
-        List&lt;CheckIn&gt; checkIns = checkInRepository.findByUserIdOrderByCheckInDateDesc(userId);
-        
-        if (checkIns.isEmpty()) {
-            return 1;
-        }
-
-        CheckIn lastCheckIn = checkIns.get(0);
-        LocalDate today = LocalDate.now();
-        LocalDate yesterday = today.minusDays(1);
-
-        // 如果最后一次签到是昨天，连续天数+1
-        if (lastCheckIn.getCheckInDate().equals(yesterday)) {
-            return lastCheckIn.getContinuousDays() + 1;
-        }
-
-        // 如果今天已签到，返回当前连续天数
-        if (lastCheckIn.getCheckInDate().equals(today)) {
-            return lastCheckIn.getContinuousDays();
-        }
-
-        // 否则重置为1
-        return 1;
-    }
-
-    private int calculateRewardPoints(int continuousDays) {
-        if (continuousDays &gt;= 30) return 50;
-        if (continuousDays &gt;= 14) return 30;
-        if (continuousDays &gt;= 7) return 20;
-        if (continuousDays &gt;= 3) return 10;
-        return 5;
-    }
-
-    public boolean hasCheckedInToday(Long userId) {
-        return checkInRepository.findByUserIdAndCheckInDate(userId, LocalDate.now()).isPresent();
-    }
-
-    public CheckIn getTodayCheckIn(Long userId) {
-        return checkInRepository.findByUserIdAndCheckInDate(userId, LocalDate.now())
-                .orElse(null);
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 }</code></pre>
             </div>
             
 <p>---</p>
-<h3>三、积分服务</h3>
+<h3>三、PointAccount 积分账户实体</h3>
+<h4>3.1 实际源码</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/PointAccount.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;point_accounts&quot;, indexes = {
+    @Index(name = &quot;idx_point_account_user&quot;, columnList = &quot;user_id&quot;, unique = true)
+})
+public class PointAccount {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;user_id&quot;, nullable = false, unique = true)
+    private Long userId;
+
+    @Column(name = &quot;total_points&quot;)
+    private Integer totalPoints = 0;
+
+    @Column(name = &quot;available_points&quot;)
+    private Integer availablePoints = 0;
+
+    @Column(name = &quot;used_points&quot;)
+    private Integer usedPoints = 0;
+
+    @Column(name = &quot;created_at&quot;)
+    private LocalDateTime createdAt;
+
+    @Column(name = &quot;updated_at&quot;)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>四、PointRecord 积分记录实体</h3>
+<h4>4.1 实际源码</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/PointRecord.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = &quot;point_records&quot;, indexes = {
+    @Index(name = &quot;idx_point_record_user&quot;, columnList = &quot;user_id&quot;)
+})
+public class PointRecord {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;user_id&quot;, nullable = false)
+    private Long userId;
+
+    @Column(nullable = false)
+    private Integer points;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private PointType type;
+
+    @Column(length = 200)
+    private String description;
+
+    @Column(name = &quot;related_id&quot;)
+    private Long relatedId;
+
+    @Column(name = &quot;balance_after&quot;)
+    private Integer balanceAfter;
+
+    @Column(name = &quot;created_at&quot;)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
+    public enum PointType {
+        CHECK_IN,           // 签到
+        ORDER_COMPLETE,     // 订单完成
+        ADMIN_ADD,          // 管理员增加
+        ADMIN_DEDUCT,       // 管理员扣减
+        POINT_EXCHANGE      // 积分兑换
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>五、PointService 积分服务</h3>
+<h4>5.1 技术说明</h4>
+<p>PointService 实现积分管理的核心业务逻辑：</p>
+<p><strong>核心方法:</strong></p>
+<ul><li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">getOrCreateAccount</code>: 获取或创建积分账户（懒加载）</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">addPoints</code>: 增加积分（更新账户 + 记录流水）</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">deductPoints</code>: 扣减积分（检查余额 + 更新账户 + 记录流水）</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">adminAdjustPoints</code>: 管理员调整积分</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">getAccountOverview</code>: 获取积分概览（总积分、可用积分、签到次数等）</li></ul>
+<p><strong>关键技术点:</strong></p>
+<ul><li>所有方法使用 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">@Transactional</code> 保证一致性</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">addPoints</code> 和 <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">deductPoints</code> 都会创建 PointRecord 记录</li>
+<li>扣减积分前检查可用余额是否充足</li></ul>
+<h4>5.2 实际源码</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/service/PointService.java</code></p>
 
             <div class="code-wrapper">
                 <div class="code-header">
@@ -495,24 +578,35 @@ public class CheckInService {
                 </div>
                 <pre><code>package com.aisale.backend.service;
 
+import com.aisale.backend.dto.PointAccountResponse;
+import com.aisale.backend.dto.PointRecordResponse;
 import com.aisale.backend.entity.PointAccount;
 import com.aisale.backend.entity.PointRecord;
+import com.aisale.backend.entity.User;
 import com.aisale.backend.exception.business.NotFoundException;
+import com.aisale.backend.exception.business.ValidationException;
 import com.aisale.backend.repository.PointAccountRepository;
 import com.aisale.backend.repository.PointRecordRepository;
+import com.aisale.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class PointService {
 
     private final PointAccountRepository pointAccountRepository;
     private final PointRecordRepository pointRecordRepository;
+    private final UserRepository userRepository;
 
+    /**
+     * 获取用户积分账户（不存在则自动创建）
+     */
     @Transactional
     public PointAccount getOrCreateAccount(Long userId) {
         return pointAccountRepository.findByUserId(userId)
@@ -523,14 +617,19 @@ public class PointService {
                 });
     }
 
+    /**
+     * 增加积分
+     */
     @Transactional
-    public void addPoints(Long userId, int points, PointRecord.PointType type, 
-                         Long relatedId, String description) {
+    public PointRecord addPoints(Long userId, PointRecord.PointType type, 
+                                  int points, Long relatedId, String description) {
+        if (points &lt;= 0) {
+            throw new ValidationException(&quot;增加积分必须为正数&quot;);
+        }
+
         PointAccount account = getOrCreateAccount(userId);
-        
         account.setTotalPoints(account.getTotalPoints() + points);
         account.setAvailablePoints(account.getAvailablePoints() + points);
-        pointAccountRepository.save(account);
 
         PointRecord record = new PointRecord();
         record.setUserId(userId);
@@ -539,21 +638,33 @@ public class PointService {
         record.setBalanceAfter(account.getAvailablePoints());
         record.setRelatedId(relatedId);
         record.setDescription(description);
-        pointRecordRepository.save(record);
+
+        pointAccountRepository.save(account);
+        record = pointRecordRepository.save(record);
+
+        log.info(&quot;用户ID={} 增加{}积分，类型={}，描述={}&quot;, userId, points, type, description);
+        return record;
     }
 
+    /**
+     * 扣减积分
+     */
     @Transactional
-    public void deductPoints(Long userId, int points, PointRecord.PointType type,
-                            Long relatedId, String description) {
-        PointAccount account = getOrCreateAccount(userId);
-        
+    public PointRecord deductPoints(Long userId, PointRecord.PointType type, 
+                                     int points, Long relatedId, String description) {
+        if (points &lt;= 0) {
+            throw new ValidationException(&quot;扣减积分必须为正数&quot;);
+        }
+
+        PointAccount account = pointAccountRepository.findByUserId(userId)
+                .orElseThrow(() -&gt; new NotFoundException(&quot;积分账户不存在&quot;));
+
         if (account.getAvailablePoints() &lt; points) {
-            throw new RuntimeException(&quot;积分不足&quot;);
+            throw new ValidationException(&quot;积分不足&quot;);
         }
 
         account.setAvailablePoints(account.getAvailablePoints() - points);
         account.setUsedPoints(account.getUsedPoints() + points);
-        pointAccountRepository.save(account);
 
         PointRecord record = new PointRecord();
         record.setUserId(userId);
@@ -562,103 +673,94 @@ public class PointService {
         record.setBalanceAfter(account.getAvailablePoints());
         record.setRelatedId(relatedId);
         record.setDescription(description);
-        pointRecordRepository.save(record);
-    }
 
-    public Page&lt;PointRecord&gt; getPointRecords(Long userId, Pageable pageable) {
-        return pointRecordRepository.findByUserId(userId, pageable);
+        pointAccountRepository.save(account);
+        record = pointRecordRepository.save(record);
+
+        log.info(&quot;用户ID={} 扣减{}积分，类型={}，描述={}&quot;, userId, points, type, description);
+        return record;
     }
 }</code></pre>
             </div>
             
 <p>---</p>
-<h3>四、信誉服务</h3>
+<h3>六、ReputationAccount 信誉账户实体</h3>
+<h4>6.1 实际源码</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/ReputationAccount.java</code></p>
 
             <div class="code-wrapper">
                 <div class="code-header">
                     <span class="code-lang">JAVA</span>
                     <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
                 </div>
-                <pre><code>package com.aisale.backend.service;
+                <pre><code>package com.aisale.backend.entity;
 
-import com.aisale.backend.entity.ReputationAccount;
-import com.aisale.backend.entity.ReputationRecord;
-import com.aisale.backend.entity.ReputationAccount.ReputationLevel;
-import com.aisale.backend.repository.ReputationAccountRepository;
-import com.aisale.backend.repository.ReputationRecordRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
 
-@Service
-@RequiredArgsConstructor
-public class ReputationService {
+@Data
+@Entity
+@Table(name = &quot;reputation_accounts&quot;, indexes = {
+    @Index(name = &quot;idx_reputation_account_user&quot;, columnList = &quot;user_id&quot;, unique = true)
+})
+public class ReputationAccount {
 
-    private final ReputationAccountRepository reputationAccountRepository;
-    private final ReputationRecordRepository reputationRecordRepository;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Transactional
-    public ReputationAccount getOrCreateAccount(Long userId) {
-        return reputationAccountRepository.findByUserId(userId)
-                .orElseGet(() -&gt; {
-                    ReputationAccount account = new ReputationAccount();
-                    account.setUserId(userId);
-                    return reputationAccountRepository.save(account);
-                });
+    @Column(name = &quot;user_id&quot;, nullable = false, unique = true)
+    private Long userId;
+
+    @Column(name = &quot;reputation_score&quot;)
+    private Integer reputationScore = 100;
+
+    @Column(name = &quot;created_at&quot;)
+    private LocalDateTime createdAt;
+
+    @Column(name = &quot;updated_at&quot;)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    @Transactional
-    public void updateReputationAfterReview(Long userId, int rating, String content) {
-        ReputationAccount account = getOrCreateAccount(userId);
-
-        account.setTotalReviews(account.getTotalReviews() + 1);
-
-        if (rating &gt;= 4) {
-            account.setGoodReviews(account.getGoodReviews() + 1);
-            account.setTotalScore(account.getTotalScore() + 5);
-        } else if (rating == 3) {
-            account.setNeutralReviews(account.getNeutralReviews() + 1);
-        } else {
-            account.setBadReviews(account.getBadReviews() + 1);
-            account.setTotalScore(account.getTotalScore() - 10);
-        }
-
-        // 更新平均分
-        double totalScore = account.getGoodReviews() * 5 + 
-                           account.getNeutralReviews() * 3 + 
-                           account.getBadReviews() * 1;
-        account.setAvgRating(account.getTotalReviews() &gt; 0 ? 
-            totalScore / account.getTotalReviews() : 0);
-
-        // 更新等级
-        ReputationLevel level = ReputationLevel.calculate(
-            account.getAvgRating(), account.getTotalReviews());
-        account.setLevel(level.getLevel());
-
-        reputationAccountRepository.save(account);
-
-        // 记录
-        ReputationRecord record = new ReputationRecord();
-        record.setUserId(userId);
-        record.setType(ReputationRecord.RecordType.REVIEW_ADD);
-        record.setScoreChange(rating &gt;= 4 ? 5 : (rating &lt;= 2 ? -10 : 0));
-        record.setBalanceAfter(account.getTotalScore());
-        record.setRating(rating);
-        record.setContent(content);
-        reputationRecordRepository.save(record);
-    }
-
-    public Page&lt;ReputationRecord&gt; getReputationRecords(Long userId, Pageable pageable) {
-        return reputationRecordRepository.findByUserId(userId, pageable);
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }</code></pre>
             </div>
             
 <p>---</p>
+<h3>七、ReputationService 信誉服务</h3>
+<h4>7.1 技术说明</h4>
+<p>ReputationService 实现信誉分管理，核心方法与 PointService 类似：</p>
+<p><strong>核心方法:</strong></p>
+<ul><li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">getOrCreateAccount</code>: 获取或创建信誉账户（默认 100 分）</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">addReputation</code>: 增加信誉分</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">deductReputation</code>: 扣减信誉分</li>
+<li><code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">adminAdjustReputation</code>: 管理员调整信誉分</li></ul>
+<p>---</p>
+<h3>八、扩展练习</h3>
+<h4>练习 1: 实现连续签到奖励</h4>
+<ol><li>连续签到 7 天，额外奖励 10 积分</li>
+<li>连续签到 30 天，额外奖励 50 积分</li>
+<li>使用 CheckIn.continuousDays 字段追踪连续天数</li></ol>
+<h4>练习 2: 实现积分商城</h4>
+<ol><li>创建 Product 积分兑换商品</li>
+<li>用户可用积分兑换商品</li>
+<li>扣减积分并生成订单</li></ol>
+<h4>练习 3: 信誉分影响搜索排名</h4>
+<ol><li>信誉分高的用户商品优先展示</li>
+<li>信誉分低于 60 分的用户商品降权</li>
+<li>信誉分低于 30 分的用户禁止发布商品</li></ol>
+<p>---</p>
 <p>最后更新: 2026-04-22</p>
-<p>文档版本: 1.0</p>
+<p>文档版本: 2.0</p>
             </div>
         </main>
     </div>

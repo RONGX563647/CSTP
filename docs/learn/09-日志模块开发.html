@@ -370,61 +370,44 @@
             </div>
             <div class="content-body">
                 <h2>09 日志模块开发</h2>
-<p>学习时长: 1-2 天</p>
-<p>难度: ⭐⭐⭐☆☆</p>
-<p>前置知识: AOP切面编程、拦截器</p>
+<p>学习时长: 1 天</p>
+<p>难度: ⭐⭐☆☆☆</p>
+<p>前置知识: Spring AOP、切面编程、操作日志记录</p>
 <p>---</p>
 <h3>一、本章概述</h3>
-<p>本章将实现系统操作日志记录功能，使用AOP切面自动记录用户操作。</p>
-<p><strong>学习内容:</strong></p>
-<ul><li>操作日志实体</li>
-<li>AOP切面配置</li>
-<li>拦截器开发</li>
-<li>日志服务层</li>
-<li>管理端日志查询</li></ul>
+<p>本章实现操作日志记录功能，使用 <strong>AOP 切面</strong>自动记录 Controller 和 Service 层的方法执行情况。</p>
+<p><strong>核心学习内容:</strong></p>
+<ul><li>LogAspect 日志切面：自动记录方法执行</li>
+<li>OperationLog 实体：日志存储结构</li>
+<li>OperationLogService：日志查询服务</li>
+<li>管理员日志查询接口</li></ul>
 <p>---</p>
-<h3>二、操作日志服务</h3>
+<h3>二、LogAspect 日志切面</h3>
+<h4>2.1 技术说明</h4>
+<p>LogAspect 使用 Spring AOP 实现日志自动记录，无需在每个方法中手动添加日志代码。</p>
+<p><strong>核心功能:</strong></p>
+<ul><li><strong>Controller 层</strong>: 记录 INFO 级别日志，保存到数据库</li>
+<li><strong>Service 层</strong>: 记录 DEBUG 级别日志，不保存到数据库</li>
+<li><strong>自动解析</strong>: 从方法名解析模块和操作类型</li>
+<li><strong>异常捕获</strong>: 记录方法执行失败的原因</li></ul>
+<p><strong>切点定义:</strong></p>
 
             <div class="code-wrapper">
                 <div class="code-header">
                     <span class="code-lang">JAVA</span>
                     <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
                 </div>
-                <pre><code>package com.aisale.backend.service;
+                <pre><code>// Controller 层切点
+@Pointcut(&quot;execution(* com.aisale.backend.controller..*.*(..))&quot;)
+public void controllerPointcut() {}
 
-import com.aisale.backend.entity.OperationLog;
-import com.aisale.backend.repository.OperationLogRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
-@Service
-@RequiredArgsConstructor
-public class OperationLogService {
-
-    private final OperationLogRepository operationLogRepository;
-
-    public void saveLog(OperationLog log) {
-        operationLogRepository.save(log);
-    }
-
-    public Page&lt;OperationLog&gt; getAllLogs(Pageable pageable) {
-        return operationLogRepository.findAllByOrderByCreateTimeDesc(pageable);
-    }
-
-    public Page&lt;OperationLog&gt; getLogsByModule(String module, Pageable pageable) {
-        return operationLogRepository.findByModule(module, pageable);
-    }
-
-    public Page&lt;OperationLog&gt; getLogsByOperatorId(Long operatorId, Pageable pageable) {
-        return operationLogRepository.findByOperatorId(operatorId, pageable);
-    }
-}</code></pre>
+// Service 层切点
+@Pointcut(&quot;execution(* com.aisale.backend.service..*.*(..))&quot;)
+public void servicePointcut() {}</code></pre>
             </div>
             
-<p>---</p>
-<h3>三、AOP切面</h3>
+<h4>2.2 实际源码</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/aspect/LogAspect.java</code></p>
 
             <div class="code-wrapper">
                 <div class="code-header">
@@ -434,108 +417,249 @@ public class OperationLogService {
                 <pre><code>package com.aisale.backend.aspect;
 
 import com.aisale.backend.entity.OperationLog;
+import com.aisale.backend.entity.User;
 import com.aisale.backend.service.OperationLogService;
+import com.aisale.backend.util.JwtRequestUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+@Slf4j
 @Aspect
 @Component
-@Slf4j
-@RequiredArgsConstructor
 public class LogAspect {
 
-    private final OperationLogService operationLogService;
+    @Autowired
+    private OperationLogService operationLogService;
 
-    @Pointcut(&quot;execution(* com.aisale.backend.controller..*(..))&quot;)
+    @Autowired
+    private JwtRequestUtils jwtRequestUtils;
+
+    /**
+     * Controller 层切点
+     */
+    @Pointcut(&quot;execution(* com.aisale.backend.controller..*.*(..))&quot;)
     public void controllerPointcut() {}
 
-    @Around(&quot;controllerPointcut()&quot;)
-    public Object logOperation(ProceedingJoinPoint joinPoint) throws Throwable {
-        long startTime = System.currentTimeMillis();
+    /**
+     * Service 层切点
+     */
+    @Pointcut(&quot;execution(* com.aisale.backend.service..*.*(..))&quot;)
+    public void servicePointcut() {}
 
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = attributes != null ? attributes.getRequest() : null;
+    /**
+     * 环绕通知 - 记录方法执行情况
+     */
+    @Around(&quot;controllerPointcut() || servicePointcut()&quot;)
+    public Object logMethodExecution(ProceedingJoinPoint joinPoint) throws Throwable {
+        String className = joinPoint.getSignature().getDeclaringTypeName();
+        String methodName = joinPoint.getSignature().getName();
+        String methodFullName = className + &quot;.&quot; + methodName;
 
-        OperationLog operationLog = new OperationLog();
-        if (request != null) {
-            operationLog.setRequestMethod(request.getMethod());
-            operationLog.setRequestUrl(request.getRequestURI());
-            operationLog.setIp(getClientIp(request));
-            operationLog.setUserAgent(request.getHeader(&quot;User-Agent&quot;));
+        // 判断是否是 Service 层方法
+        boolean isService = className.contains(&quot;.service.&quot;);
+
+        // Service 层只记录 DEBUG 日志
+        if (isService) {
+            log.debug(&quot;开始执行：{}&quot;, methodFullName);
+            long startTime = System.currentTimeMillis();
+            try {
+                Object result = joinPoint.proceed();
+                long endTime = System.currentTimeMillis();
+                log.debug(&quot;执行完成：{} | 耗时：{}ms&quot;, methodFullName, (endTime - startTime));
+                return result;
+            } catch (Throwable e) {
+                long endTime = System.currentTimeMillis();
+                log.error(&quot;执行失败：{} | 耗时：{}ms | 错误：{}&quot;, methodFullName, (endTime - startTime), e.getMessage());
+                throw e;
+            }
         }
 
-        operationLog.setModule(joinPoint.getSignature().getDeclaringType().getSimpleName());
-        operationLog.setAction(joinPoint.getSignature().getName());
+        // Controller 层记录 INFO 日志
+        log.info(&quot;&gt;&gt;&gt; 开始执行：{}&quot;, methodFullName);
+        logParams(joinPoint.getArgs());
 
+        long startTime = System.currentTimeMillis();
         try {
             Object result = joinPoint.proceed();
-            operationLog.setStatus(&quot;SUCCESS&quot;);
-            operationLog.setDuration(System.currentTimeMillis() - startTime);
-            operationLogService.saveLog(operationLog);
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            log.info(&quot;&lt;&lt;&lt; 执行完成：{} | 耗时：{}ms&quot;, methodFullName, duration);
+            
+            // 保存操作日志到数据库
+            saveOperationLog(methodFullName, joinPoint.getArgs(), duration, &quot;SUCCESS&quot;, null);
+            
             return result;
-        } catch (Exception e) {
-            operationLog.setStatus(&quot;FAIL&quot;);
-            operationLog.setMessage(e.getMessage());
-            operationLog.setDuration(System.currentTimeMillis() - startTime);
-            operationLogService.saveLog(operationLog);
+        } catch (Throwable e) {
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            log.error(&quot;!!! 执行失败：{} | 耗时：{}ms | 错误：{}&quot;, methodFullName, duration, e.getMessage());
+            
+            // 保存失败日志到数据库
+            saveOperationLog(methodFullName, joinPoint.getArgs(), duration, &quot;FAIL&quot;, e.getMessage());
+            
             throw e;
         }
     }
 
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader(&quot;X-Forwarded-For&quot;);
-        if (ip == null || ip.isEmpty()) {
-            ip = request.getRemoteAddr();
+    /**
+     * 解析模块名称
+     */
+    private String parseModule(String methodFullName) {
+        if (methodFullName.contains(&quot;Product&quot;)) {
+            return &quot;PRODUCT&quot;;
+        } else if (methodFullName.contains(&quot;Order&quot;)) {
+            return &quot;ORDER&quot;;
+        } else if (methodFullName.contains(&quot;User&quot;)) {
+            return &quot;USER&quot;;
+        } else if (methodFullName.contains(&quot;Auth&quot;)) {
+            return &quot;AUTH&quot;;
+        } else {
+            return &quot;SYSTEM&quot;;
         }
-        return ip;
+    }
+
+    /**
+     * 解析操作类型
+     */
+    private String parseAction(String methodFullName) {
+        if (methodFullName.contains(&quot;create&quot;) || methodFullName.contains(&quot;add&quot;)) {
+            return &quot;CREATE&quot;;
+        } else if (methodFullName.contains(&quot;update&quot;) || methodFullName.contains(&quot;edit&quot;)) {
+            return &quot;UPDATE&quot;;
+        } else if (methodFullName.contains(&quot;delete&quot;) || methodFullName.contains(&quot;remove&quot;)) {
+            return &quot;DELETE&quot;;
+        } else if (methodFullName.contains(&quot;get&quot;) || methodFullName.contains(&quot;find&quot;)) {
+            return &quot;QUERY&quot;;
+        } else if (methodFullName.contains(&quot;login&quot;)) {
+            return &quot;LOGIN&quot;;
+        } else {
+            return &quot;OTHER&quot;;
+        }
     }
 }</code></pre>
             </div>
             
 <p>---</p>
-<h3>四、请求日志拦截器</h3>
+<h3>三、OperationLog 实体</h3>
+<h4>3.1 实际源码</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/entity/OperationLog.java</code></p>
 
             <div class="code-wrapper">
                 <div class="code-header">
                     <span class="code-lang">JAVA</span>
                     <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
                 </div>
-                <pre><code>package com.aisale.backend.interceptor;
+                <pre><code>package com.aisale.backend.entity;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerInterceptor;
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
 
-@Slf4j
-@Component
-public class RequestLoggingInterceptor implements HandlerInterceptor {
+@Data
+@Entity
+@Table(name = &quot;operation_logs&quot;, indexes = {
+    @Index(name = &quot;idx_operation_log_user&quot;, columnList = &quot;user_id&quot;),
+    @Index(name = &quot;idx_operation_log_time&quot;, columnList = &quot;operation_time&quot;)
+})
+public class OperationLog {
 
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        log.debug(&quot;收到请求: {} {} from {}&quot;, request.getMethod(), request.getRequestURI(), request.getRemoteAddr());
-        return true;
-    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-        log.debug(&quot;请求完成: {} {} - Status: {}&quot;, request.getMethod(), request.getRequestURI(), response.getStatus());
+    @Column(name = &quot;user_id&quot;)
+    private Long userId;
+
+    @Column(nullable = false, length = 50)
+    private String operation;
+
+    @Column(nullable = false, length = 200)
+    private String url;
+
+    @Column(nullable = false, length = 20)
+    private String method;
+
+    @Column(columnDefinition = &quot;TEXT&quot;)
+    private String params;
+
+    @Column(name = &quot;ip_address&quot;, length = 50)
+    private String ipAddress;
+
+    @Column(name = &quot;operation_time&quot;)
+    private LocalDateTime operationTime;
+
+    @PrePersist
+    protected void onCreate() {
+        operationTime = LocalDateTime.now();
     }
 }</code></pre>
             </div>
             
 <p>---</p>
+<h3>四、管理员日志查询接口</h3>
+<h4>4.1 实际源码</h4>
+<p>文件位置: <code style="background: #faf8f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">backend/src/main/java/com/aisale/backend/controller/AdminLogController.java</code></p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">JAVA</span>
+                    <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+                </div>
+                <pre><code>package com.aisale.backend.controller;
+
+import com.aisale.backend.dto.ApiResponse;
+import com.aisale.backend.service.OperationLogService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.web.bind.annotation.*;
+
+@Tag(name = &quot;管理员日志管理&quot;, description = &quot;查看系统操作日志&quot;)
+@RestController
+@RequestMapping(&quot;/api/admin/logs&quot;)
+@RequiredArgsConstructor
+public class AdminLogController {
+
+    private final OperationLogService operationLogService;
+
+    @Operation(summary = &quot;查询操作日志（分页）&quot;)
+    @GetMapping
+    public ApiResponse&lt;Page&gt; getLogs(
+            @RequestParam(defaultValue = &quot;0&quot;) int page,
+            @RequestParam(defaultValue = &quot;20&quot;) int size,
+            @RequestParam(required = false) String module,
+            @RequestParam(required = false) String action) {
+        Page logs = operationLogService.queryLogs(page, size, module, action);
+        return ApiResponse.success(logs);
+    }
+}</code></pre>
+            </div>
+            
+<p>---</p>
+<h3>五、扩展练习</h3>
+<h4>练习 1: 添加日志导出功能</h4>
+<ol><li>支持导出为 CSV 格式</li>
+<li>按时间范围筛选</li>
+<li>按模块筛选</li></ol>
+<h4>练习 2: 实现日志自动清理</h4>
+<ol><li>使用 Spring @Scheduled 定时任务</li>
+<li>删除 30 天前的日志</li>
+<li>保留重要操作日志</li></ol>
+<p>---</p>
 <p>最后更新: 2026-04-22</p>
-<p>文档版本: 1.0</p>
+<p>文档版本: 2.0</p>
             </div>
         </main>
     </div>
